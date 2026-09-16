@@ -65,16 +65,18 @@
   }
 
   .content > .view {
-    height: auto;
+    height: 100%;
     min-height: 100%;
     overflow: visible;
+    display: flex;
+    flex-direction: column;
   }
 
   .home-view > .grid {
-    height: auto;
+    flex: 1 1 auto;
     min-height: 760px;
-    grid-template-rows: 130px 130px 235px 205px;
-    align-content: start;
+    grid-template-rows: minmax(0, 0.88fr) minmax(0, 0.88fr) minmax(0, 1.38fr) minmax(0, 1.16fr);
+    align-content: stretch;
   }
 }
 
