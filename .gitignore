@@ -5,3 +5,7 @@ dist/
 !.env.example
 .vercel/
 .sites-runtime/
+
+# Local XSS/security test scaffolding (not for publication)
+public/__mock_ws.js
+vite.config.test.mjs
