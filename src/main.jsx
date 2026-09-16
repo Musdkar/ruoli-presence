@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState} from "react";
 import {createRoot} from "react-dom/client";
-import {BrowserRouter,Link,NavLink,Navigate,Outlet,Route,Routes,useOutletContext,useParams} from "react-router-dom";
+import {BrowserRouter,Link,NavLink,Navigate,Outlet,Route,Routes,useParams} from "react-router-dom";
 import {useLanyard} from "use-lanyard";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -14,6 +14,7 @@ import remarkGfm from "remark-gfm";
 import {config} from "./config";
 import {posts} from "./content/posts";
 import "./styles.css";
+import "./hotfix.css";
 
 ChartJS.register(ArcElement,Tooltip);
 const safeJSON=(value,fallback=null)=>{if(!value)return fallback;if(typeof value==="object")return value;try{return JSON.parse(value)}catch{return fallback}};
@@ -22,16 +23,25 @@ const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><sp
 
 function MapCard(){
   const ref=useRef(null);
+  const[failed,setFailed]=useState(false);
   useEffect(()=>{
     if(!ref.current)return;
-    const map=new maplibregl.Map({container:ref.current,style:"https://tiles.openfreemap.org/styles/dark",center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
-    map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
-    const el=document.createElement("div");
-    el.className="map-avatar";
-    el.innerHTML=`<img src="${config.avatar}" alt="avatar">`;
-    new maplibregl.Marker({element:el}).setLngLat([config.lng,config.lat]).addTo(map);
-    return()=>map.remove();
+    let map;
+    try{
+      map=new maplibregl.Map({container:ref.current,style:"https://tiles.openfreemap.org/styles/dark",center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
+      map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
+      map.on("error",()=>{});
+      const el=document.createElement("div");
+      el.className="map-avatar";
+      el.innerHTML=`<img src="${config.avatar}" alt="avatar">`;
+      new maplibregl.Marker({element:el}).setLngLat([config.lng,config.lat]).addTo(map);
+    }catch(error){
+      console.error("Map failed to initialise",error);
+      setFailed(true);
+    }
+    return()=>{try{map?.remove()}catch{}};
   },[]);
+  if(failed)return <article className="card map-card"><CardHead title="Map · Wuhan" meta="unavailable"/><Empty label="Map unavailable" detail="The rest of Home stays available even if the map provider fails."/></article>;
   return <article className="card map-card"><div ref={ref} className="map-canvas"/><div className="map-shade"/><h2>{config.city}</h2><div className="map-pill">◎ {config.city}, {config.region} · city level</div></article>;
 }
 
@@ -49,7 +59,7 @@ function SoftwareCard({apps}){
 }
 
 function KeyboardCard(){
-  return <article className="card keyboard-card"><CardHead title="Keyboard / today" meta="WhatPulse"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="WhatPulse keyboard heatmap"/></a>:<Empty label="WhatPulse heatmap not linked" detail="The full keyboard image will fit here without cropping once WhatPulse sharing is connected."/>}</article>;
+  return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta="WhatPulse · daily aggregate"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Yesterday keyboard heatmap"/></a>:<Empty label="Daily keyboard aggregate not linked" detail="Only the previous day’s privacy-filtered aggregate will be published here; no live keystroke feed."/>}</article>;
 }
 
 function HomePhotoCard(){return <article className="card photos-card"><CardHead title="Photo / VRChat" meta="React Photo Album"/><div className="photo-album"><RowsPhotoAlbum photos={config.photos} targetRowHeight={220} spacing={6} padding={0}/></div><Link className="photo-open" to="/photo">open archive ↗</Link></article>}
@@ -71,11 +81,10 @@ function Sidebar({presence}){
 }
 
 function Layout({presence}){
-  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><div className="edition">digital presence<br/>wuhan edition · 2026</div></header><main><Sidebar presence={presence}/><section className="content"><Outlet context={{presence}}/></section></main></>;
+  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><div className="edition">digital presence<br/>wuhan edition · 2026</div></header><main><Sidebar presence={presence}/><section className="content"><Outlet/></section></main></>;
 }
 
-function Home(){
-  const{presence}=useOutletContext();
+function Home({presence}){
   const apps=safeJSON(presence?.kv?.apps_today,null)?.apps||[];
   const health=safeJSON(presence?.kv?.health_today,null);
   return <div className="view home-view"><div className="grid"><StatusCard presence={presence}/><WeatherCard/><MapCard/><MusicCard presence={presence}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard/></div></div>;
@@ -107,7 +116,7 @@ function UsesPage(){
 }
 
 function SiteRouter({presence}){
-  return <BrowserRouter><Routes><Route element={<Layout presence={presence}/>}><Route index element={<Home/>}/><Route path="photo" element={<PhotoPage/>}/><Route path="photos" element={<Navigate to="/photo" replace/>}/><Route path="blog" element={<BlogPage/>}/><Route path="blog/:slug" element={<BlogPost/>}/><Route path="uses" element={<UsesPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Route></Routes></BrowserRouter>;
+  return <BrowserRouter><Routes><Route element={<Layout presence={presence}/>}><Route index element={<Home presence={presence}/>}/><Route path="photo" element={<PhotoPage/>}/><Route path="photos" element={<Navigate to="/photo" replace/>}/><Route path="blog" element={<BlogPage/>}/><Route path="blog/:slug" element={<BlogPost/>}/><Route path="uses" element={<UsesPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Route></Routes></BrowserRouter>;
 }
 function LanyardApp(){const presence=useLanyard(config.discordId);return <SiteRouter presence={presence}/>}
 function App(){return config.discordId?<LanyardApp/>:<SiteRouter presence={null}/>}
