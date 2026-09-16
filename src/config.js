@@ -9,6 +9,7 @@ export const config = {
   lng: 114.3055,
   timezone: "Asia/Shanghai",
   avatar: "/assets/avatar.webp",
+  mapAvatar: "/assets/map-avatar.png",
   socialLinks: [
     { label: "GH", name: "GitHub", href: "https://github.com/Musdkar" },
     { label: "VR", name: "VRChat", href: import.meta.env.VITE_VRCHAT_URL || "" },

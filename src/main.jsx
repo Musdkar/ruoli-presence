@@ -33,7 +33,7 @@ function MapCard(){
       map.on("error",()=>{});
       const el=document.createElement("div");
       el.className="map-avatar";
-      el.innerHTML=`<img src="${config.avatar}" alt="avatar">`;
+      el.innerHTML=`<img src="${config.mapAvatar}" alt="Map avatar">`;
       new maplibregl.Marker({element:el}).setLngLat([config.lng,config.lat]).addTo(map);
     }catch(error){
       console.error("Map failed to initialise",error);
