@@ -8,7 +8,7 @@ export const config = {
   lat: 30.5928,
   lng: 114.3055,
   timezone: "Asia/Shanghai",
-  avatar: "https://ruoli-presence-live-musdkar-6224.vercel.app/avatar.jpg",
+  avatar: "/assets/avatar.webp",
   socialLinks: [
     { label: "GH", name: "GitHub", href: "https://github.com/Musdkar" },
     { label: "VR", name: "VRChat", href: import.meta.env.VITE_VRCHAT_URL || "" },
@@ -17,9 +17,9 @@ export const config = {
   ],
   photos: [
     {
-      src: "https://ruoli-presence-live-musdkar-6224.vercel.app/vrchat.jpg",
-      width: 3840,
-      height: 2160,
+      src: "/assets/vrchat.webp",
+      width: 1600,
+      height: 900,
       alt: "VRChat screenshot",
       title: "VRChat · 2026"
     }
