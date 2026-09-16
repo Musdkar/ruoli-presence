@@ -1,18 +1,18 @@
 import React,{useEffect,useMemo,useRef,useState} from "react";
 import {createRoot} from "react-dom/client";
-import {BrowserRouter,Link,NavLink,Navigate,Outlet,Route,Routes,useParams} from "react-router-dom";
+import {BrowserRouter,Link,NavLink,Navigate,Outlet,Route,Routes,useLocation,useParams} from "react-router-dom";
 import {useLanyard} from "use-lanyard";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import {MasonryPhotoAlbum,RowsPhotoAlbum} from "react-photo-album";
+import {MasonryPhotoAlbum} from "react-photo-album";
 import "react-photo-album/masonry.css";
-import "react-photo-album/rows.css";
 import {Doughnut} from "react-chartjs-2";
 import {ArcElement,Chart as ChartJS,Tooltip} from "chart.js";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {config} from "./config";
 import {posts} from "./content/posts";
+import {getDisplayPresence} from "./presence";
 import "./styles.css";
 import "./hotfix.css";
 
@@ -21,28 +21,32 @@ const safeJSON=(value,fallback=null)=>{if(!value)return fallback;if(typeof value
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span><small>{meta}</small></div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
 
-function MapCard(){
+function MapCard({active}){
   const ref=useRef(null);
+  const mapRef=useRef(null);
   const[failed,setFailed]=useState(false);
+  const[ready,setReady]=useState(false);
   useEffect(()=>{
     if(!ref.current)return;
     let map;
     try{
       map=new maplibregl.Map({container:ref.current,style:"https://tiles.openfreemap.org/styles/dark",center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
+      mapRef.current=map;
       map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
       map.on("error",()=>{});
-      const el=document.createElement("div");
-      el.className="map-avatar";
-      el.innerHTML=`<img src="${config.mapAvatar}" alt="Map avatar">`;
-      new maplibregl.Marker({element:el}).setLngLat([config.lng,config.lat]).addTo(map);
+      map.once("load",()=>setReady(true));
     }catch(error){
       console.error("Map failed to initialise",error);
       setFailed(true);
     }
-    return()=>{try{map?.remove()}catch{}};
+    return()=>{mapRef.current=null;try{map?.remove()}catch{}};
   },[]);
-  if(failed)return <article className="card map-card"><CardHead title="Map · Wuhan" meta="unavailable"/><Empty label="Map unavailable" detail="The rest of Home stays available even if the map provider fails."/></article>;
-  return <article className="card map-card"><div ref={ref} className="map-canvas"/><div className="map-shade"/><h2>{config.city}</h2><div className="map-pill">◎ {config.city}, {config.region} · city level</div></article>;
+  useEffect(()=>{
+    if(!active)return;
+    const frame=requestAnimationFrame(()=>mapRef.current?.resize());
+    return()=>cancelAnimationFrame(frame);
+  },[active]);
+  return <article className="card map-card" aria-busy={!ready&&!failed}><div ref={ref} className={`map-canvas${ready?" is-ready":""}`}/><div className="map-shade"/><h2>{config.city}</h2>{/* This non-interactive map is always centered on Wuhan, so its city marker can render before WebGL/tiles load. */}<div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" fetchPriority="high"/></div>{!ready&&<span className="map-loading" role="status">{failed?"Map unavailable":"Loading map…"}</span>}<div className="map-pill">◎ {config.city}, {config.region} · city level</div></article>;
 }
 
 function WeatherCard(){
@@ -62,32 +66,42 @@ function KeyboardCard(){
   return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta="WhatPulse · daily aggregate"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Yesterday keyboard heatmap"/></a>:<Empty label="Daily keyboard aggregate not linked" detail="Only the previous day’s privacy-filtered aggregate will be published here; no live keystroke feed."/>}</article>;
 }
 
-function HomePhotoCard(){return <article className="card photos-card"><CardHead title="Photo / VRChat" meta="React Photo Album"/><div className="photo-album"><RowsPhotoAlbum photos={config.photos} targetRowHeight={220} spacing={6} padding={0}/></div><Link className="photo-open" to="/photo">open archive ↗</Link></article>}
+function HomePhotoCard(){
+  const photo=config.photos[0];
+  return <article className="card photos-card"><CardHead title="Photo / VRChat" meta="latest frame"/>{photo?<div className="photo-album"><img className="photo-backdrop" src={photo.src} alt="" aria-hidden="true"/><img className="photo-preview" src={photo.src} alt={photo.alt} width={photo.width} height={photo.height} decoding="async"/></div>:<Empty label="No photos yet"/>}<Link className="photo-open" to="/photo">open archive ↗</Link></article>;
+}
 
 function FitnessCard({health}){if(!health)return <article className="card fitness-card"><CardHead title="Fitness" meta="Health Auto Export"/><Empty label="Health not linked" detail="POST Step Count / Heart Rate to /api/health"/></article>;return <article className="card fitness-card"><CardHead title="Fitness" meta="Health Auto Export"/><div className="fitness-content"><div className="fitness-ring"><span>◎</span></div><div><strong>{Number(health.steps||0).toLocaleString()}</strong><small>steps today</small>{health.heartRate&&<em>{Math.round(health.heartRate)} bpm</em>}</div></div></article>}
 
 function DevicesCard(){return <article className="card devices-card"><CardHead title="Devices" meta="daily / play"/><div className="device-columns"><DeviceGroup title="daily" items={[["MacBook Pro · M1 Pro","macOS"],["iPhone 16 Pro Max","mobile"],["AirPods Pro 3","audio"]]}/><DeviceGroup title="play" items={[["Quest 3","VR"],["Gaming Laptop","7945HX · RTX 5070 Ti"],["Desktop PC","5800X · RX 6900 XT"],["Xiaomi Pad 7S Pro","tablet"]]}/></div></article>}
 function DeviceGroup({title,items}){return <div><h4>{title}</h4>{items.map(([n,m])=><div className="device" key={n}><b>{n}</b><span>{m}</span></div>)}</div>}
 
-function StatusCard({presence}){const status=presence?.discord_status||"offline",activity=presence?.activities?.find(a=>a.name&&!['Spotify'].includes(a.name));return <article className="card status-card"><CardHead title="Status" meta="Lanyard"/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{status}</strong><small>{activity?.details||activity?.name||(presence?"Discord presence":"Lanyard not linked")}</small></div></article>}
+function StatusCard({displayPresence}){const{status,label,source,detail}=displayPresence;return <article className="card status-card"><CardHead title="Status" meta={source}/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong><small>{detail}</small></div></article>}
 function MusicCard({presence}){const s=presence?.spotify;return <article className="card music-card"><CardHead title="Currently listening" meta="Lanyard / Spotify"/>{s?<><img className="album-art" src={s.album_art_url} alt={s.album}/><div className="track-info"><strong>{s.song}</strong><span>{s.artist}</span></div></>:<Empty label="nothing playing" detail={presence?"Spotify is idle":"Set VITE_DISCORD_ID after joining Lanyard"}/>}</article>}
 function VrcStatus({presence}){const vrc=presence?.activities?.find(a=>/vrchat/i.test(a.name||'')||/vrchat/i.test(a.details||''));return vrc?<div className="vrc-line">VRChat · {vrc.details||vrc.state||"active"}</div>:null}
 
-function Sidebar({presence}){
+function Sidebar({presence,displayPresence}){
   const[now,setNow]=useState(new Date());
   useEffect(()=>{const t=setInterval(()=>setNow(new Date()),30000);return()=>clearInterval(t)},[]);
   const local=useMemo(()=>new Intl.DateTimeFormat('en-GB',{timeZone:config.timezone,hour:'2-digit',minute:'2-digit',hour12:false}).format(now),[now]);
-  return <aside><div className="sidebar"><div className="kicker">About me</div><div className="identity"><img className="avatar" src={config.avatar} alt="avatar"/><div><h1>mostly<br/><i>online.</i></h1><p>Student, developer and VR enthusiast. Mostly code, VRChat, music, hardware and whatever I am building next.</p></div></div><div className="rule"/><dl><div><dt>based in</dt><dd>Wuhan, China</dd></div><div><dt>local time</dt><dd>{local}</dd></div><div><dt>presence</dt><dd>● {presence?.discord_status||'not linked'}</dd></div></dl><VrcStatus presence={presence}/><div className="social-block"><div className="social-title">Connect</div><div className="socials">{config.socialLinks.map(link=>link.href?<a key={link.label} href={link.href} target="_blank" rel="noreferrer" title={link.name}>{link.label}</a>:<span key={link.label} className="disabled" title={`${link.name} not linked`}>{link.label}</span>)}</div></div><div className="sidebar-note"><b>One identity, four views.</b><br/>Home is the live surface; Blog, Photo and Uses reuse the same fixed identity rail.</div></div></aside>;
+  return <aside><div className="sidebar"><div className="kicker">About me</div><div className="identity"><img className="avatar" src={config.avatar} alt="avatar"/><div><h1>mostly<br/><i>online.</i></h1><p>Student, developer and VR enthusiast. Mostly code, VRChat, music, hardware and whatever I am building next.</p></div></div><div className="rule"/><dl><div><dt>based in</dt><dd>Wuhan, China</dd></div><div><dt>local time</dt><dd>{local}</dd></div><div><dt>presence</dt><dd className={`sidebar-presence ${displayPresence.status}`}>● {displayPresence.label}</dd></div></dl><VrcStatus presence={presence}/><div className="social-block"><div className="social-title">Connect</div><div className="socials">{config.socialLinks.map(link=>link.href?<a key={link.label} href={link.href} target="_blank" rel="noreferrer" title={link.name}>{link.label}</a>:<span key={link.label} className="disabled" title={`${link.name} not linked`}>{link.label}</span>)}</div></div><div className="sidebar-note"><b>One identity, four views.</b><br/>Home is the live surface; Blog, Photo and Uses reuse the same fixed identity rail.</div></div></aside>;
 }
 
 function Layout({presence}){
-  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><div className="edition">digital presence<br/>wuhan edition · 2026</div></header><main><Sidebar presence={presence}/><section className="content"><Outlet/></section></main></>;
+  const{pathname}=useLocation();
+  const isHome=pathname==="/";
+  const[hasVisitedHome,setHasVisitedHome]=useState(isHome);
+  const[now,setNow]=useState(Date.now);
+  useEffect(()=>{if(isHome)setHasVisitedHome(true)},[isHome]);
+  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer)},[]);
+  const displayPresence=getDisplayPresence(presence,now);
+  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><div className="edition">digital presence<br/>wuhan edition · 2026</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome}/>}<Outlet/></section></main></>;
 }
 
-function Home({presence}){
+function Home({presence,displayPresence,active}){
   const apps=safeJSON(presence?.kv?.apps_today,null)?.apps||[];
   const health=safeJSON(presence?.kv?.health_today,null);
-  return <div className="view home-view"><div className="grid"><StatusCard presence={presence}/><WeatherCard/><MapCard/><MusicCard presence={presence}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard/></div></div>;
+  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard presence={presence}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard/></div></div>;
 }
 
 function PhotoPage(){
@@ -116,7 +130,7 @@ function UsesPage(){
 }
 
 function SiteRouter({presence}){
-  return <BrowserRouter><Routes><Route element={<Layout presence={presence}/>}><Route index element={<Home presence={presence}/>}/><Route path="photo" element={<PhotoPage/>}/><Route path="photos" element={<Navigate to="/photo" replace/>}/><Route path="blog" element={<BlogPage/>}/><Route path="blog/:slug" element={<BlogPost/>}/><Route path="uses" element={<UsesPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Route></Routes></BrowserRouter>;
+  return <BrowserRouter><Routes><Route element={<Layout presence={presence}/>}><Route index element={null}/><Route path="photo" element={<PhotoPage/>}/><Route path="photos" element={<Navigate to="/photo" replace/>}/><Route path="blog" element={<BlogPage/>}/><Route path="blog/:slug" element={<BlogPost/>}/><Route path="uses" element={<UsesPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Route></Routes></BrowserRouter>;
 }
 function LanyardApp(){const presence=useLanyard(config.discordId);return <SiteRouter presence={presence}/>}
 function App(){return config.discordId?<LanyardApp/>:<SiteRouter presence={null}/>}

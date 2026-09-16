@@ -16,7 +16,7 @@ The UI is custom; mature projects own the data collection and common rendering p
 - **ActivityWatch + official `aw-client`** — application usage. `bridge/activitywatch_bridge.py` publishes only aggregated app/minute totals; no window titles or URLs leave the computer.
 - **WhatPulse** — keyboard heatmap. The page embeds WhatPulse's shared heatmap instead of implementing its own key collection/heatmap engine.
 - **Health Auto Export** — Apple Health. POST JSON to `/api/health`; the endpoint reduces it to steps/latest heart rate and writes the summary to Lanyard KV.
-- **React Photo Album** — aspect-ratio-aware homepage photo plus Masonry archive.
+- **React Photo Album** — Masonry archive. Home uses one contained photo over a blurred copy so the whole frame remains visible.
 - **react-markdown + remark-gfm** — blog rendering without a custom Markdown parser.
 - **Simple Icons CDN** — software brand icons in Uses.
 - **Chart.js** — software-usage doughnut visualization.
@@ -43,3 +43,7 @@ The implementation studies the interaction/layout patterns of `ana.sh`, the conf
 8. Add VRChat / Discord / contact links through the corresponding `VITE_*` variables.
 
 When a live source is not configured, the corresponding card says **not linked** rather than presenting fake data.
+
+## iPhone presence (optional)
+
+Home and the identity rail can prefer an iPhone Focus status published in Lanyard KV: online, do not disturb, or sleeping. See [the iPhone setup guide](docs/iphone-presence.md). Phone automation and Lanyard credentials must be configured before synchronization works.
