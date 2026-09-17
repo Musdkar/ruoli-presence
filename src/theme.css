@@ -205,3 +205,63 @@ header { grid-template-columns: minmax(300px, 24vw) 1fr auto auto; column-gap: 1
   .theme-toggle-label { display: none; }
   .theme-toggle { padding: 0 9px; }
 }
+
+
+/* ==========================================================================
+   About Me header row: kicker on the left, motto on the right
+   ========================================================================== */
+.sidebar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sidebar-motto {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 21px;
+  line-height: .95;
+  letter-spacing: -.02em;
+  text-align: right;
+  color: #b6adff;
+}
+
+.sidebar-motto i { font-style: italic; font-weight: 400; }
+
+html.light .sidebar-motto { color: #6a52e6; }
+
+/* ==========================================================================
+   Fun facts block, sized to match the dl (local time / presence) below it
+   ========================================================================== */
+.fun-facts { margin-top: 20px; }
+
+.fun-facts-title {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  color: #777c86;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.fun-facts ul {
+  margin: 0;
+  padding-left: 15px;
+  display: grid;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #c3c6ce;
+  list-style: disc;
+}
+
+.fun-facts li::marker { color: #777c86; }
+
+html.light .fun-facts-title { color: #777a83; }
+html.light .fun-facts ul { color: #4c4f57; }
+
+/* Give the local time / presence list room after the fun facts block */
+.sidebar dl { margin-top: 22px; }
+
+/* Nudge the map city label up slightly */
+.map-card h2 { top: 14px; }
