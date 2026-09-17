@@ -13,12 +13,12 @@ import remarkGfm from "remark-gfm";
 import {config} from "./config";
 import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
+import {normalizeApps,normalizeHealth} from "./normalize";
 import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
 
 ChartJS.register(ArcElement,Tooltip);
-const safeJSON=(value,fallback=null)=>{if(!value)return fallback;if(typeof value==="object")return value;try{return JSON.parse(value)}catch{return fallback}};
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span><small>{meta}</small></div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
 const MAP_STYLE={dark:"https://tiles.openfreemap.org/styles/dark",light:"https://tiles.openfreemap.org/styles/positron"};
@@ -152,8 +152,8 @@ function Layout({presence}){
 }
 
 function Home({presence,displayPresence,active}){
-  const apps=safeJSON(presence?.kv?.apps_today,null)?.apps||[];
-  const health=safeJSON(presence?.kv?.health_today,null);
+  const apps=normalizeApps(presence&&presence.kv&&presence.kv.apps_today);
+  const health=normalizeHealth(presence&&presence.kv&&presence.kv.health_today);
   return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard presence={presence}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard/></div></div>;
 }
 
