@@ -13,6 +13,7 @@ import remarkGfm from "remark-gfm";
 import {config} from "./config";
 import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
+import VisitorLocationPage from "./visitor-location";
 import "./styles.css";
 import "./hotfix.css";
 
@@ -84,7 +85,7 @@ function Sidebar({presence,displayPresence}){
   const[now,setNow]=useState(new Date());
   useEffect(()=>{const t=setInterval(()=>setNow(new Date()),30000);return()=>clearInterval(t)},[]);
   const local=useMemo(()=>new Intl.DateTimeFormat('en-GB',{timeZone:config.timezone,hour:'2-digit',minute:'2-digit',hour12:false}).format(now),[now]);
-  return <aside><div className="sidebar"><div className="kicker">About me</div><div className="identity"><img className="avatar" src={config.avatar} alt="avatar"/><div><h1>mostly<br/><i>online.</i></h1><p>Student, developer and VR enthusiast. Mostly code, VRChat, music, hardware and whatever I am building next.</p></div></div><div className="rule"/><dl><div><dt>based in</dt><dd>Wuhan, China</dd></div><div><dt>local time</dt><dd>{local}</dd></div><div><dt>presence</dt><dd className={`sidebar-presence ${displayPresence.status}`}>● {displayPresence.label}</dd></div></dl><VrcStatus presence={presence}/><div className="social-block"><div className="social-title">Connect</div><div className="socials">{config.socialLinks.map(link=>link.href?<a key={link.label} href={link.href} target="_blank" rel="noreferrer" title={link.name}>{link.label}</a>:<span key={link.label} className="disabled" title={`${link.name} not linked`}>{link.label}</span>)}</div></div><div className="sidebar-note"><b>One identity, four views.</b><br/>Home is the live surface; Blog, Photo and Uses reuse the same fixed identity rail.</div></div></aside>;
+  return <aside><div className="sidebar"><div className="kicker">About me</div><div className="identity"><img className="avatar" src={config.avatar} alt="avatar"/><div><h1>mostly<br/><i>online.</i></h1><p>Student, developer and VR enthusiast. Mostly code, VRChat, music, hardware and whatever I am building next.</p></div></div><div className="rule"/><dl><div><dt>based in</dt><dd>Wuhan, China</dd></div><div><dt>local time</dt><dd>{local}</dd></div><div><dt>presence</dt><dd className={`sidebar-presence ${displayPresence.status}`}>● {displayPresence.label}</dd></div></dl><VrcStatus presence={presence}/><div className="social-block"><div className="social-title">Connect</div><div className="socials">{config.socialLinks.map(link=>link.href?<a key={link.label} href={link.href} target="_blank" rel="noreferrer" title={link.name}>{link.label}</a>:<span key={link.label} className="disabled" title={`${link.name} not linked`}>{link.label}</span>)}</div></div><div className="sidebar-note"><b>One identity, five views.</b><br/>Home is the live surface; Blog, Photo, Uses and Visitor reuse the same fixed identity rail.</div></div></aside>;
 }
 
 function Layout({presence}){
@@ -95,7 +96,7 @@ function Layout({presence}){
   useEffect(()=>{if(isHome)setHasVisitedHome(true)},[isHome]);
   useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer)},[]);
   const displayPresence=getDisplayPresence(presence,now);
-  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><div className="edition">digital presence<br/>wuhan edition · 2026</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome}/>}<Outlet/></section></main></>;
+  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"],["/visitor-location","VISITOR"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><div className="edition">digital presence<br/>wuhan edition · 2026</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome}/>}<Outlet/></section></main></>;
 }
 
 function Home({presence,displayPresence,active}){
@@ -130,7 +131,7 @@ function UsesPage(){
 }
 
 function SiteRouter({presence}){
-  return <BrowserRouter><Routes><Route element={<Layout presence={presence}/>}><Route index element={null}/><Route path="photo" element={<PhotoPage/>}/><Route path="photos" element={<Navigate to="/photo" replace/>}/><Route path="blog" element={<BlogPage/>}/><Route path="blog/:slug" element={<BlogPost/>}/><Route path="uses" element={<UsesPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Route></Routes></BrowserRouter>;
+  return <BrowserRouter><Routes><Route element={<Layout presence={presence}/>}><Route index element={null}/><Route path="photo" element={<PhotoPage/>}/><Route path="photos" element={<Navigate to="/photo" replace/>}/><Route path="blog" element={<BlogPage/>}/><Route path="blog/:slug" element={<BlogPost/>}/><Route path="uses" element={<UsesPage/>}/><Route path="visitor-location" element={<VisitorLocationPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Route></Routes></BrowserRouter>;
 }
 function LanyardApp(){const presence=useLanyard(config.discordId);return <SiteRouter presence={presence}/>}
 function App(){return config.discordId?<LanyardApp/>:<SiteRouter presence={null}/>}
