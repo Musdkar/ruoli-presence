@@ -186,6 +186,6 @@ export default function VisitorLocationPage(){
       </article>
     </section>
 
-    <div className="visitor-privacy"><span>PRIVACY NOTE</span><p>No WebRTC probe. No DNS-leak test. No persistent fingerprint ID. Browser signals are evaluated locally, and the optional device location is never sent by this feature.</p></div>
+    <div className="visitor-privacy"><span>PRIVACY NOTE</span><p>Browser signals are evaluated locally, and the optional device location is never sent by this feature.</p></div>
   </div>;
 }
