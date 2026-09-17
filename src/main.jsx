@@ -15,14 +15,61 @@ import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
 import "./styles.css";
 import "./hotfix.css";
+import "./theme.css";
 
 ChartJS.register(ArcElement,Tooltip);
 const safeJSON=(value,fallback=null)=>{if(!value)return fallback;if(typeof value==="object")return value;try{return JSON.parse(value)}catch{return fallback}};
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span><small>{meta}</small></div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
+const MAP_STYLE={dark:"https://tiles.openfreemap.org/styles/dark",light:"https://tiles.openfreemap.org/styles/positron"};
+
+const THEME_KEY="theme";
+const THEME_MODES=["dark","light","system"];
+const themeIcon=mode=>mode==="light"?"☀":mode==="dark"?"☾":"◐";
+function applyThemeMode(mode){
+  const prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;
+  const el=document.documentElement;
+  el.classList.remove("light","dark");
+  el.classList.add(resolved);
+  el.style.colorScheme=resolved;
+}
+function useTheme(){
+  const[stored,setStored]=useState(()=>{try{return localStorage.getItem(THEME_KEY)||"system"}catch{return "system"}});
+  useEffect(()=>{
+    applyThemeMode(stored);
+    try{localStorage.setItem(THEME_KEY,stored)}catch{}
+    if(stored!=="system")return;
+    const mq=window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange=()=>applyThemeMode("system");
+    mq.addEventListener("change",onChange);
+    return()=>mq.removeEventListener("change",onChange);
+  },[stored]);
+  const cycle=()=>setStored(cur=>THEME_MODES[(THEME_MODES.indexOf(cur)+1)%THEME_MODES.length]);
+  return{stored,cycle};
+}
+
+function useResolvedTheme(){
+  const read=()=>document.documentElement.classList.contains("light")?"light":"dark";
+  const[resolved,setResolved]=useState(read);
+  useEffect(()=>{
+    const el=document.documentElement;
+    const obs=new MutationObserver(()=>setResolved(read()));
+    obs.observe(el,{attributes:true,attributeFilter:["class"]});
+    setResolved(read());
+    return()=>obs.disconnect();
+  },[]);
+  return resolved;
+}
+function ThemeToggle(){
+  const{stored,cycle}=useTheme();
+  const next=THEME_MODES[(THEME_MODES.indexOf(stored)+1)%THEME_MODES.length];
+  return <button type="button" className="theme-toggle" onClick={cycle} title={`Theme: ${stored} — switch to ${next}`} aria-label={`Theme: ${stored}. Switch to ${next}`}><span className="theme-toggle-icon" aria-hidden="true">{themeIcon(stored)}</span><span className="theme-toggle-label">{stored}</span></button>;
+}
 
 function MapCard({active}){
   const ref=useRef(null);
+  const resolvedTheme=useResolvedTheme();
   const mapRef=useRef(null);
   const[failed,setFailed]=useState(false);
   const[ready,setReady]=useState(false);
@@ -30,7 +77,7 @@ function MapCard({active}){
     if(!ref.current)return;
     let map;
     try{
-      map=new maplibregl.Map({container:ref.current,style:"https://tiles.openfreemap.org/styles/dark",center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
+      map=new maplibregl.Map({container:ref.current,style:MAP_STYLE[resolvedTheme],center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
       mapRef.current=map;
       map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
       map.on("error",()=>{});
@@ -41,6 +88,12 @@ function MapCard({active}){
     }
     return()=>{mapRef.current=null;try{map?.remove()}catch{}};
   },[]);
+  useEffect(()=>{
+    const map=mapRef.current;
+    if (map === null) return;
+    try { map.setStyle(MAP_STYLE[resolvedTheme]); }
+    catch (error) { console.error("Map style switch failed", error); }
+  }, [resolvedTheme]);
   useEffect(()=>{
     if(!active)return;
     const frame=requestAnimationFrame(()=>mapRef.current?.resize());
@@ -95,7 +148,7 @@ function Layout({presence}){
   useEffect(()=>{if(isHome)setHasVisitedHome(true)},[isHome]);
   useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer)},[]);
   const displayPresence=getDisplayPresence(presence,now);
-  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><div className="edition">digital presence<br/>wuhan edition · 2026</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome}/>}<Outlet/></section></main></>;
+  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><ThemeToggle/><div className="edition">digital presence<br/>wuhan edition · 2026</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome}/>}<Outlet/></section></main></>;
 }
 
 function Home({presence,displayPresence,active}){

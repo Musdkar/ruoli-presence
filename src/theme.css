@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Day / night theme layer
+   --------------------------------------------------------------------------
+   Mechanism follows ana.sh: a `light` / `dark` class on <html>, defaulting to
+   the visitor's `prefers-color-scheme`, persisted in localStorage. The inline
+   script in index.html sets the class before first paint to avoid a flash.
+
+   The original stylesheet hard-codes many dark colours, so rather than rewrite
+   it we layer semantic variables + a small set of overrides on top. Night is
+   the existing look and stays the default; day is a light editorial variant.
+   ========================================================================== */
+
+:root {
+  /* shared accents (identical in both themes) */
+  --violet: #8e7cff;
+  --blue: #70a7ff;
+  --pink: #ed7997;
+  --mint: #6fc9b3;
+  --green: #8fa48f;
+
+  /* --- night (default, = current design) --- */
+  --bg: #0f1013;
+  --panel: #17181d;
+  --panel2: #141519;
+  --line: #2d3038;
+  --text: #f2f3f6;
+  --muted: #8c909a;
+  --muted2: #646974;
+  --header-bg: #121318;
+  --rail-bg: #15161a;
+  --card-shadow: 0 12px 38px rgba(0, 0, 0, .08);
+  --dot-grid: rgba(255, 255, 255, .05);
+  --overlay-bg: #14151adc;
+  --overlay-chip: #111218d8;
+  --chip-bg: #18191e;
+  --chip-bg-hover: #1c1d23;
+  --chip-line: #343741;
+  --soft-line: #292c33;
+  --map-fade: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, .65));
+  --avatar-ring: #17181d;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+
+html.dark { color-scheme: dark; }
+
+/* --- day --------------------------------------------------------------- */
+html.light {
+  color-scheme: light;
+
+  --bg: #f6f5f2;
+  --panel: #ffffff;
+  --panel2: #f1f0ec;
+  --line: #dedcd4;
+  --text: #1b1c20;
+  --muted: #6a6d76;
+  --muted2: #8a8d95;
+  --header-bg: #ffffff;
+  --rail-bg: #faf9f6;
+  --card-shadow: 0 10px 30px rgba(28, 28, 32, .07);
+  --dot-grid: rgba(0, 0, 0, .05);
+  --overlay-bg: #ffffffee;
+  --overlay-chip: #ffffffe6;
+  --chip-bg: #f4f3ef;
+  --chip-bg-hover: #ecebe5;
+  --chip-line: #d9d7cf;
+  --soft-line: #e6e4dd;
+  --map-fade: linear-gradient(180deg, transparent 45%, rgba(255, 255, 255, .72));
+  --avatar-ring: #ffffff;
+}
+
+html.light body {
+  background-image: radial-gradient(var(--dot-grid) .55px, transparent .55px);
+}
+
+/* ==========================================================================
+   Light-mode overrides for the parts of the original sheet that were written
+   with literal dark values. Kept explicit and minimal.
+   ========================================================================== */
+
+html.light header { background: var(--header-bg); }
+html.light nav { color: #6a6d76; }
+html.light nav a:hover,
+html.light nav a.active { color: #16171b; }
+html.light .edition { color: #8a8d95; }
+html.light aside { background: var(--rail-bg); }
+
+html.light .kicker,
+html.light .card-head span,
+html.light .eyebrow { color: #7c7f88; }
+html.light h1 i { color: #6a52e6; }
+html.light .identity p { color: #4c4f57; }
+html.light dt { color: #777a83; }
+html.light .vrc-line { border-color: var(--chip-line); color: #4c4f57; }
+html.light .social-title { color: #7c7f88; }
+html.light .socials a,
+html.light .socials span {
+  border-color: var(--chip-line);
+  color: #4c4f57;
+  background: var(--chip-bg);
+}
+html.light .socials a:hover {
+  border-color: #b9b2e0;
+  color: #16171b;
+  background: var(--chip-bg-hover);
+}
+html.light .sidebar-note { color: #74777f; }
+html.light .sidebar-note b { color: #3a3c43; }
+
+html.light .card { box-shadow: var(--card-shadow); }
+html.light .card-head small { color: #8a8d95; }
+html.light .status-main small { color: #7c7f88; }
+html.light .status-dot { background: #b7b9be; }
+html.light .weather-main span { color: #6a6d76; }
+html.light .weather-main small { color: #8a8d95; }
+
+html.light .map-shade { background: var(--map-fade); }
+html.light .map-pill { background: var(--overlay-bg); border-color: var(--chip-line); }
+html.light .map-avatar { background: #ffffffe8; border-color: #00000022; box-shadow: 0 0 0 12px #ffffff70; }
+html.light .map-avatar img { border-color: var(--avatar-ring); }
+
+html.light .track-info span { color: #6a6d76; }
+html.light .photo-open { background: var(--overlay-chip); border-color: var(--chip-line); }
+html.light .photo-wall img { border-color: var(--soft-line); }
+html.light .fitness-ring { border-color: #e6e4dd; }
+html.light .fitness-content small,
+html.light .fitness-content em { color: #7c7f88; }
+html.light .device-columns h4 { color: #7c7f88; border-color: var(--soft-line); }
+html.light .device { border-color: var(--soft-line); }
+html.light .device span { color: #7c7f88; }
+html.light .usage-row { color: #55585f; }
+html.light .usage-row i { background: #e6e4dd; }
+html.light .empty { border-color: #cbc9c1; }
+html.light .empty strong { color: #3a3c43; }
+html.light .empty span { color: #7c7f88; }
+
+html.light .page-mast p { color: #55585f; }
+html.light .archive-note { border-color: var(--chip-line); color: #7c7f88; }
+html.light .post-index { color: #a0a2a9; }
+html.light .post-row p { color: #55585f; }
+html.light .post-row time { color: #8a8d95; }
+html.light .post-tags span { border-color: var(--chip-line); color: #7c7f88; }
+html.light .blog-empty { border-color: var(--chip-line); }
+html.light .blog-empty > span { color: #8a8d95; }
+html.light .blog-empty p { color: #6a6d76; }
+html.light .back-link { color: #7c7f88; }
+html.light .article-head time { color: #7c7f88; }
+html.light .article-head p { color: #55585f; }
+html.light .article-body { color: #33353b; }
+html.light .article-body a { color: #5b43d6; }
+html.light .article-body code { background: #efece6; }
+html.light .article-body pre { background: #f4f2ee; border-color: var(--chip-line); }
+html.light .article-body blockquote { color: #55585f; }
+
+html.light .uses-group-head { border-color: var(--soft-line); }
+html.light .uses-group-head span { color: #8a8d95; }
+html.light .software-item { border-color: var(--soft-line); }
+html.light .software-icon { border-color: var(--chip-line); background: #f6f5f1; }
+html.light .brand-fallback { color: #4c4f57; }
+html.light .software-item span:not(.brand-fallback) { color: #8a8d95; }
+html.light .uses-foot { color: #8a8d95; }
+
+/* simple-icons are requested as light greys on dark; invert for day */
+html.light .software-icon img { filter: invert(1) hue-rotate(180deg); }
+
+/* ==========================================================================
+   Theme toggle button (in the header)
+   ========================================================================== */
+header { grid-template-columns: minmax(300px, 24vw) 1fr auto auto; column-gap: 14px; }
+
+.theme-toggle {
+  justify-self: end;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--violet);
+}
+
+.theme-toggle-icon { font-size: 12px; line-height: 1; }
+
+@media (max-width: 900px) {
+  header { grid-template-columns: 1fr auto; }
+  .theme-toggle { grid-column: 2; grid-row: 1; }
+}
+
+@media (max-width: 620px) {
+  .theme-toggle-label { display: none; }
+  .theme-toggle { padding: 0 9px; }
+}

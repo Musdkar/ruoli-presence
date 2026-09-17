@@ -3,8 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="dark light" />
     <title>ruoli — presence</title>
+    <script>
+      /* Set theme before first paint to avoid a flash. Mirrors ana.sh:
+         stored choice wins, otherwise follow the OS preference. */
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme") || "system";
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var resolved = stored === "system" ? (prefersDark ? "dark" : "light") : stored;
+          if (resolved !== "light" && resolved !== "dark") resolved = "dark";
+          var el = document.documentElement;
+          el.classList.remove("light", "dark");
+          el.classList.add(resolved);
+          el.style.colorScheme = resolved;
+        } catch (e) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="/src/tweaks.css" />
   </head>
   <body>
