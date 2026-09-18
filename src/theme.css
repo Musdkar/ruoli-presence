@@ -362,3 +362,21 @@ html.light .fitness-ring-track { stroke: #e4e2db; }
 html.light .fitness-content.is-empty .fitness-ring-track { stroke: #ebe9e3; }
 html.light .fitness-footsteps i,
 html.light .fitness-footsteps b { background: #7c7f88; }
+
+
+/* Light keyboard heatmap */
+html.light .keyboard-key {
+  border-color: #dedcd4;
+  background: #f3f2ee;
+  color: #666a73;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,.035);
+}
+html.light .keyboard-key::after {
+  background: linear-gradient(180deg, rgba(255,255,255,.65), transparent 48%);
+}
+html.light .keyboard-key span {
+  text-shadow: none;
+}
+html.light .keyboard-key:hover {
+  border-color: #b8b5ac;
+}
