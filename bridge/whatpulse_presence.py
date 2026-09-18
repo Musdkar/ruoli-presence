@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Publish privacy-safe WhatPulse aggregates for ruoli-presence.
 
-One local collector handles both Home cards:
-- Software / today: per-application foreground active time.
-- Keyboard / today: coarse 0..15 per-key heat, never exact per-key counts.
+One local publisher handles both Home cards:
+- Software / today: raw ActivityWatch foreground-window duration. AFK is intentionally
+  NOT intersected, so reading, thinking, and watching video still count.
+- Keyboard / today: coarse 0..15 per-key heat from WhatPulse, never exact counts.
 
-The WhatPulse SQLite database is opened read-only and with query_only enabled.
-No window titles, URLs, key order, hourly buckets, or raw rows leave the Mac.
+ActivityWatch window titles/URLs never leave the machine; only app names and summed
+durations are published. The WhatPulse SQLite database is opened read-only with
+query_only enabled. No key order, hourly buckets, or raw rows leave the machine.
 """
 
 from __future__ import annotations
@@ -15,14 +17,19 @@ import json
 import os
 import sqlite3
 import sys
+import socket
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from urllib import error as urlerror
+from urllib import parse as urlparse
 from urllib import request as urlrequest
 
 API_URL = os.environ.get("WHATPULSE_API_URL", "").strip()
 TOKEN = os.environ.get("INGEST_TOKEN", "").strip()
+ACTIVITYWATCH_API_URL = os.environ.get(
+    "ACTIVITYWATCH_API_URL", "http://127.0.0.1:5600/api/0"
+).strip().rstrip("/")
 
 SPECIAL = {
     16777216: "ESC",
@@ -92,42 +99,113 @@ def canonical_key(code: int) -> str | None:
     return None
 
 
-def read_software(con: sqlite3.Connection, target: str) -> dict | None:
-    columns = {row[1] for row in con.execute("PRAGMA table_info(application_activeuptime_hour)")}
-    if not {"day", "path", "msec_active"}.issubset(columns):
-        raise RuntimeError("Unsupported WhatPulse schema: application_activeuptime_hour changed")
+def aw_get(path: str, params: dict[str, object] | None = None):
+    url = ACTIVITYWATCH_API_URL + path
+    if params:
+        url += "?" + urlparse.urlencode(params)
+    # Never send localhost ActivityWatch traffic through a configured proxy.
+    opener = urlrequest.build_opener(urlrequest.ProxyHandler({}))
+    req = urlrequest.Request(url, headers={"Accept": "application/json"})
+    with opener.open(req, timeout=4) as response:
+        return json.loads(response.read().decode("utf-8"))
 
-    app_columns = {row[1] for row in con.execute("PRAGMA table_info(applications)")}
-    if not {"path", "name"}.issubset(app_columns):
-        raise RuntimeError("Unsupported WhatPulse schema: applications changed")
 
-    rows = con.execute(
-        """
-        SELECT a.name, h.path, SUM(h.msec_active)
-        FROM application_activeuptime_hour h
-        JOIN applications a ON a.path = h.path
-        WHERE h.day = ?
-        GROUP BY a.name, h.path
-        ORDER BY SUM(h.msec_active) DESC
-        """,
-        (target,),
-    ).fetchall()
+def parse_aw_timestamp(value: object) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
 
-    # The same display name can appear under more than one executable path.
-    minutes_by_name: dict[str, float] = defaultdict(float)
-    for raw_name, _path, raw_msec in rows:
-        name = str(raw_name or "").strip()
+
+def read_software(target: str) -> dict | None:
+    """Sum raw foreground-window duration by application.
+
+    Deliberately does not query/intersect aw-watcher-afk: foreground reading,
+    thinking, presentations, and video playback should continue to count.
+    """
+    day = date.fromisoformat(target)
+    local_tz = datetime.now().astimezone().tzinfo
+    start_local = datetime.combine(day, time.min, tzinfo=local_tz)
+    end_local = start_local + timedelta(days=1)
+    now = datetime.now().astimezone()
+    if start_local <= now < end_local:
+        end_local = now
+
+    start_utc = start_local.astimezone(timezone.utc)
+    end_utc = end_local.astimezone(timezone.utc)
+
+    buckets = aw_get("/buckets/")
+    if not isinstance(buckets, dict):
+        raise RuntimeError("ActivityWatch returned an invalid bucket list")
+
+    hostname = socket.gethostname()
+    candidates: list[tuple[str, dict]] = []
+    for bucket_id, meta in buckets.items():
+        if not isinstance(meta, dict):
+            continue
+        client = str(meta.get("client") or "")
+        if client == "aw-watcher-window" or str(bucket_id).startswith("aw-watcher-window_"):
+            candidates.append((str(bucket_id), meta))
+
+    if not candidates:
+        raise RuntimeError("No ActivityWatch aw-watcher-window bucket found")
+
+    same_host = [
+        item for item in candidates
+        if str(item[1].get("hostname") or "") == hostname
+    ]
+    pool = same_host or candidates
+    pool.sort(key=lambda item: str(item[1].get("created") or ""), reverse=True)
+    bucket_id = pool[0][0]
+
+    events = aw_get(
+        "/buckets/" + urlparse.quote(bucket_id, safe="") + "/events",
+        {
+            "start": start_utc.isoformat().replace("+00:00", "Z"),
+            "end": end_utc.isoformat().replace("+00:00", "Z"),
+            "limit": -1,
+        },
+    )
+    if not isinstance(events, list):
+        raise RuntimeError("ActivityWatch returned invalid window events")
+
+    seconds_by_app: dict[str, float] = defaultdict(float)
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        data = event.get("data")
+        if not isinstance(data, dict):
+            continue
+        app = str(data.get("app") or "").strip()
+        if not app or app.lower() in {"activitywatch", "aw-qt"}:
+            continue
         try:
-            minutes = float(raw_msec or 0) / 60000.0
+            duration = max(0.0, float(event.get("duration") or 0))
         except (TypeError, ValueError):
             continue
-        if not name or name == "WhatPulse" or minutes < 0.1:
+        event_start = parse_aw_timestamp(event.get("timestamp"))
+        if event_start is None:
             continue
-        minutes_by_name[name] += minutes
+        if event_start.tzinfo is None:
+            event_start = event_start.replace(tzinfo=timezone.utc)
+        else:
+            event_start = event_start.astimezone(timezone.utc)
+        event_end = event_start + timedelta(seconds=duration)
+        overlap = max(
+            0.0,
+            (min(event_end, end_utc) - max(event_start, start_utc)).total_seconds(),
+        )
+        if overlap > 0:
+            seconds_by_app[app] += overlap
 
     apps = [
-        {"name": name, "minutes": round(minutes, 1)}
-        for name, minutes in sorted(minutes_by_name.items(), key=lambda item: item[1], reverse=True)[:8]
+        {"name": name, "minutes": round(seconds / 60.0, 1)}
+        for name, seconds in sorted(
+            seconds_by_app.items(), key=lambda item: item[1], reverse=True
+        )[:8]
+        if seconds >= 6
     ]
     return {"date": target, "apps": apps} if apps else None
 
@@ -195,12 +273,22 @@ def main() -> None:
     software_day = env_date("SOFTWARE_DATE", today)
     keyboard_day = env_date("KEYBOARD_DATE", today)
 
-    con = open_readonly(default_db_path())
+    software = None
+    keyboard = None
+
     try:
-        software = read_software(con, software_day)
-        keyboard = read_keyboard(con, keyboard_day)
-    finally:
-        con.close()
+        software = read_software(software_day)
+    except Exception as exc:
+        print(f"warning: ActivityWatch software aggregate unavailable: {exc}", file=sys.stderr)
+
+    try:
+        con = open_readonly(default_db_path())
+        try:
+            keyboard = read_keyboard(con, keyboard_day)
+        finally:
+            con.close()
+    except Exception as exc:
+        print(f"warning: WhatPulse keyboard aggregate unavailable: {exc}", file=sys.stderr)
 
     payload = {}
     if software:
