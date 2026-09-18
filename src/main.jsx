@@ -26,7 +26,11 @@ const LazyMarkdown=React.lazy(async()=>{
 
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span>{meta?<small>{meta}</small>:null}</div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
-const MAP_STYLE={dark:"https://tiles.openfreemap.org/styles/dark",light:"https://tiles.openfreemap.org/styles/positron"};
+const MAP_TILES=[
+  [417,209],[418,209],[419,209],
+  [417,210],[418,210],[419,210],
+  [417,211],[418,211],[419,211],
+];
 const KEYBOARD_LAYOUT=[
   [
     {key:"ESC",label:"esc",u:1.15},
@@ -87,18 +91,6 @@ function useTheme(){
   return{stored,cycle};
 }
 
-function useResolvedTheme(){
-  const read=()=>document.documentElement.classList.contains("light")?"light":"dark";
-  const[resolved,setResolved]=useState(read);
-  useEffect(()=>{
-    const el=document.documentElement;
-    const obs=new MutationObserver(()=>setResolved(read()));
-    obs.observe(el,{attributes:true,attributeFilter:["class"]});
-    setResolved(read());
-    return()=>obs.disconnect();
-  },[]);
-  return resolved;
-}
 function useFastLanyard(userId){
   const live=useLanyard(userId);
   const liveRef=useRef(live);
@@ -138,33 +130,29 @@ function ThemeToggle(){
 
 function MapCard({active}){
   const ref=useRef(null);
-  const resolvedTheme=useResolvedTheme();
-  const mapRef=useRef(null);
-  const[failed,setFailed]=useState(false);
-  const[ready,setReady]=useState(false);
   const[shouldLoad,setShouldLoad]=useState(false);
 
   useEffect(()=>{
     if(!active||shouldLoad||!ref.current)return;
     const node=ref.current;
-    if(!("IntersectionObserver" in window)){
-      setShouldLoad(true);
-      return;
-    }
     let idleId=null;
     let timerId=null;
-    const scheduleLoad=()=>{
+    const schedule=()=>{
       if("requestIdleCallback" in window){
-        idleId=window.requestIdleCallback(()=>setShouldLoad(true),{timeout:1500});
+        idleId=window.requestIdleCallback(()=>setShouldLoad(true),{timeout:2200});
       }else{
-        timerId=window.setTimeout(()=>setShouldLoad(true),500);
+        timerId=window.setTimeout(()=>setShouldLoad(true),900);
       }
     };
+    if(!("IntersectionObserver" in window)){
+      schedule();
+      return()=>{};
+    }
     const observer=new IntersectionObserver(([entry])=>{
       if(!entry?.isIntersecting)return;
       observer.disconnect();
-      scheduleLoad();
-    },{root:null,rootMargin:"160px 0px"});
+      schedule();
+    },{root:null,rootMargin:"180px 0px"});
     observer.observe(node);
     return()=>{
       observer.disconnect();
@@ -173,51 +161,16 @@ function MapCard({active}){
     };
   },[active,shouldLoad]);
 
-  useEffect(()=>{
-    if(!shouldLoad||!ref.current)return;
-    let disposed=false;
-    let map;
-    const init=async()=>{
-      try{
-        const[{default:maplibregl}]=await Promise.all([
-          import("maplibre-gl"),
-          import("maplibre-gl/dist/maplibre-gl.css"),
-        ]);
-        if(disposed||!ref.current)return;
-        const theme=document.documentElement.classList.contains("light")?"light":"dark";
-        map=new maplibregl.Map({container:ref.current,style:MAP_STYLE[theme],center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
-        mapRef.current=map;
-        map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
-        map.on("error",()=>{});
-        map.once("load",()=>{if(!disposed)setReady(true)});
-      }catch(error){
-        if(disposed)return;
-        console.error("Map failed to initialise",error);
-        setFailed(true);
-      }
-    };
-    init();
-    return()=>{
-      disposed=true;
-      mapRef.current=null;
-      try{map?.remove()}catch{}
-    };
-  },[shouldLoad]);
-
-  useEffect(()=>{
-    const map=mapRef.current;
-    if(map===null)return;
-    try{map.setStyle(MAP_STYLE[resolvedTheme])}
-    catch(error){console.error("Map style switch failed",error)}
-  },[resolvedTheme]);
-
-  useEffect(()=>{
-    if(!active)return;
-    const frame=requestAnimationFrame(()=>mapRef.current?.resize());
-    return()=>cancelAnimationFrame(frame);
-  },[active]);
-
-  return <article className="card map-card" aria-busy={shouldLoad&&!ready&&!failed}><div ref={ref} className={`map-canvas${ready?" is-ready":""}`}/><div className="map-shade"/><h2>{config.city}</h2><div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" loading="lazy" decoding="async"/></div>{shouldLoad&&!ready&&<span className="map-loading" role="status">{failed?"Map unavailable":"Loading map…"}</span>}<div className="map-pill">◎ {config.city}, {config.region}</div></article>;
+  return <article className="card map-card" ref={ref}>
+    <div className="map-static" aria-hidden="true">
+      {shouldLoad?<div className="map-static-tiles">{MAP_TILES.map(([x,y])=><img key={x+"-"+y} src={`https://tile.openstreetmap.org/9/${x}/${y}.png`} alt="" width="256" height="256" loading="lazy" decoding="async" style={{left:(x-417)*256,top:(y-209)*256}}/>)}</div>:null}
+    </div>
+    <div className="map-shade"/>
+    <h2>{config.city}</h2>
+    <div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" loading="lazy" decoding="async"/></div>
+    <a className="map-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>
+    <div className="map-pill">◎ {config.city}, {config.region}</div>
+  </article>;
 }
 const WEATHER_CACHE_KEY="ruoli:weather:v1";
 const WEATHER_CACHE_MAX_AGE=30*60*1000;
