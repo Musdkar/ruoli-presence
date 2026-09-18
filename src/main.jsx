@@ -5,6 +5,7 @@ import {useLanyard} from "use-lanyard";
 import {config} from "./config";
 import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
+import {fetchLanyardPresence,readCachedPresence,sanitizePresence,writeCachedPresence} from "./lanyard-cache";
 import {normalizeApps,normalizeHealth,normalizeKeyboard,resolveMusic} from "./normalize";
 import "./styles.css";
 import "./hotfix.css";
@@ -98,6 +99,37 @@ function useResolvedTheme(){
   },[]);
   return resolved;
 }
+function useFastLanyard(userId){
+  const live=useLanyard(userId);
+  const liveRef=useRef(live);
+  liveRef.current=live;
+  const[cached,setCached]=useState(()=>readCachedPresence(userId));
+
+  useEffect(()=>{
+    if(!userId)return;
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),2500);
+    fetchLanyardPresence(userId,{signal:controller.signal}).then((next)=>{
+      if(!next||liveRef.current)return;
+      setCached(next);
+      writeCachedPresence(userId,next);
+    }).catch(()=>{}).finally(()=>clearTimeout(timeout));
+    return()=>{
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  },[userId]);
+
+  useEffect(()=>{
+    const next=sanitizePresence(live);
+    if(!next)return;
+    setCached(next);
+    writeCachedPresence(userId,next);
+  },[live,userId]);
+
+  return live||cached;
+}
+
 function ThemeToggle(){
   const{stored,cycle}=useTheme();
   const next=THEME_MODES[(THEME_MODES.indexOf(stored)+1)%THEME_MODES.length];
@@ -174,13 +206,38 @@ function MapCard({active}){
 
   return <article className="card map-card" aria-busy={shouldLoad&&!ready&&!failed}><div ref={ref} className={`map-canvas${ready?" is-ready":""}`}/><div className="map-shade"/><h2>{config.city}</h2><div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" loading="lazy" decoding="async"/></div>{shouldLoad&&!ready&&<span className="map-loading" role="status">{failed?"Map unavailable":"Loading map…"}</span>}<div className="map-pill">◎ {config.city}, {config.region}</div></article>;
 }
+const WEATHER_CACHE_KEY="ruoli:weather:v1";
+const WEATHER_CACHE_MAX_AGE=30*60*1000;
+function readWeatherCache(){
+  try{
+    const parsed=JSON.parse(localStorage.getItem(WEATHER_CACHE_KEY)||"null");
+    if(!parsed||!Number.isFinite(parsed.savedAt)||Date.now()-parsed.savedAt>WEATHER_CACHE_MAX_AGE)return null;
+    return parsed.weather&&typeof parsed.weather==="object"?parsed.weather:null;
+  }catch{return null}
+}
 function WeatherCard(){
-  const[weather,setWeather]=useState(null);
-  useEffect(()=>{fetch(`https://api.open-meteo.com/v1/forecast?latitude=${config.weatherLat}&longitude=${config.weatherLng}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=${encodeURIComponent(config.timezone)}`).then(r=>r.json()).then(d=>setWeather(d.current||null)).catch(()=>setWeather(false))},[]);
+  const[weather,setWeather]=useState(readWeatherCache);
+  useEffect(()=>{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),3000);
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${config.weatherLat}&longitude=${config.weatherLng}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=${encodeURIComponent(config.timezone)}`,{signal:controller.signal})
+      .then((r)=>{if(!r.ok)throw new Error("weather "+r.status);return r.json()})
+      .then((data)=>{
+        const next=data.current||null;
+        if(!next)throw new Error("weather missing current");
+        setWeather(next);
+        try{localStorage.setItem(WEATHER_CACHE_KEY,JSON.stringify({savedAt:Date.now(),weather:next}))}catch{}
+      })
+      .catch(()=>setWeather((current)=>current||false))
+      .finally(()=>clearTimeout(timeout));
+    return()=>{
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  },[]);
   const names={0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",51:"Drizzle",61:"Rain",63:"Rain",65:"Heavy rain",80:"Showers",95:"Thunderstorm"};
   return <article className="card weather-card"><CardHead title="Weather · Wuhan"/><div className="weather-main"><div><strong>{weather&&weather.temperature_2m!=null?Math.round(weather.temperature_2m)+"°":"--°"}</strong><span>{weather?(names[weather.weather_code]||"Current weather"):weather===false?"unavailable":"loading…"}</span></div>{weather&&<small>feels {Math.round(weather.apparent_temperature)}°<br/>wind {Math.round(weather.wind_speed_10m)} km/h</small>}</div></article>;
 }
-
 function formatUsageMinutes(minutes){
   const seconds=Math.max(0,Math.round(Number(minutes||0)*60));
   if(seconds<60)return seconds+"s";
@@ -290,6 +347,6 @@ function UsesPage(){
 function SiteRouter({presence}){
   return <BrowserRouter><Routes><Route element={<Layout presence={presence}/>}><Route index element={null}/><Route path="photo" element={<PhotoPage/>}/><Route path="photos" element={<Navigate to="/photo" replace/>}/><Route path="blog" element={<BlogPage/>}/><Route path="blog/:slug" element={<BlogPost/>}/><Route path="uses" element={<UsesPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Route></Routes></BrowserRouter>;
 }
-function LanyardApp(){const presence=useLanyard(config.discordId);return <SiteRouter presence={presence}/>}
+function LanyardApp(){const presence=useFastLanyard(config.discordId);return <SiteRouter presence={presence}/>}
 function App(){return config.discordId?<LanyardApp/>:<SiteRouter presence={null}/>}
 createRoot(document.getElementById("root")).render(<React.StrictMode><App/></React.StrictMode>);
