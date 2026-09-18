@@ -29,16 +29,16 @@ if command -v magick >/dev/null 2>&1; then
   magick montage "${tiles[@]}" -tile 5x3 -geometry 256x256+0+0 "$TMP/mosaic.png"
 
   magick "$TMP/mosaic.png" \
-    -strip -modulate 54,38,100 \
+    -strip -resize 1024x614! -modulate 54,38,100 \
     -fill '#11151d' -colorize 30% \
     -contrast-stretch 0.5%x0.5% \
-    -quality 82 "$OUT/wuhan-map-dark.webp"
+    -quality 74 "$OUT/wuhan-map-dark.webp"
 
   magick "$TMP/mosaic.png" \
-    -strip -modulate 104,32,100 \
+    -strip -resize 1024x614! -modulate 104,32,100 \
     -fill '#f0ede7' -colorize 18% \
     -contrast-stretch 0.3%x0.3% \
-    -quality 82 "$OUT/wuhan-map-light.webp"
+    -quality 74 "$OUT/wuhan-map-light.webp"
 else
   montage "${tiles[@]}" -tile 5x3 -geometry 256x256+0+0 "$TMP/mosaic.png"
 
