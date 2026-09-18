@@ -33,7 +33,6 @@ The implementation studies the interaction/layout patterns of `ana.sh`, the conf
 4. Enable VRCX Discord Rich Presence if you want VRChat activity to surface through Lanyard.
 5. Install WhatPulse and keep collection local (Work Offline is recommended). Publish both today’s Software active time and yesterday’s Keyboard heat with one bridge:
    ```bash
-   pip install -r bridge/requirements.txt
    WHATPULSE_API_URL="https://YOUR_DOMAIN/api/whatpulse" \
    INGEST_TOKEN="..." \
    python3 bridge/whatpulse_presence.py
