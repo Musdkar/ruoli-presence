@@ -16,7 +16,7 @@ import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
 
-const CardHead=({title,meta})=><div className="card-head"><span>{title}</span><small>{meta}</small></div>;
+const CardHead=({title,meta})=><div className="card-head"><span>{title}</span>{meta?<small>{meta}</small>:null}</div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
 const MAP_STYLE={dark:"https://tiles.openfreemap.org/styles/dark",light:"https://tiles.openfreemap.org/styles/positron"};
 const KEYBOARD_LAYOUT=[
@@ -136,7 +136,7 @@ function WeatherCard(){
   const[weather,setWeather]=useState(null);
   useEffect(()=>{fetch(`https://api.open-meteo.com/v1/forecast?latitude=${config.weatherLat}&longitude=${config.weatherLng}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=${encodeURIComponent(config.timezone)}`).then(r=>r.json()).then(d=>setWeather(d.current||null)).catch(()=>setWeather(false))},[]);
   const names={0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",51:"Drizzle",61:"Rain",63:"Rain",65:"Heavy rain",80:"Showers",95:"Thunderstorm"};
-  return <article className="card weather-card"><CardHead title="Weather · Wuhan" meta="Open-Meteo"/><div className="weather-main"><div><strong>{weather&&weather.temperature_2m!=null?Math.round(weather.temperature_2m)+"°":"--°"}</strong><span>{weather?(names[weather.weather_code]||"Current weather"):weather===false?"unavailable":"loading…"}</span></div>{weather&&<small>feels {Math.round(weather.apparent_temperature)}°<br/>wind {Math.round(weather.wind_speed_10m)} km/h</small>}</div></article>;
+  return <article className="card weather-card"><CardHead title="Weather · Wuhan"/><div className="weather-main"><div><strong>{weather&&weather.temperature_2m!=null?Math.round(weather.temperature_2m)+"°":"--°"}</strong><span>{weather?(names[weather.weather_code]||"Current weather"):weather===false?"unavailable":"loading…"}</span></div>{weather&&<small>feels {Math.round(weather.apparent_temperature)}°<br/>wind {Math.round(weather.wind_speed_10m)} km/h</small>}</div></article>;
 }
 
 function formatUsageMinutes(minutes){
@@ -151,7 +151,7 @@ function formatUsageMinutes(minutes){
 }
 
 function SoftwareCard({apps}){
-  if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="WhatPulse · active"/><Empty label="Software aggregate not linked" detail="Run bridge/whatpulse_presence.py to publish today’s active application time."/></article>;
+  if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="active time"/><Empty label="Software aggregate not linked" detail="Run bridge/whatpulse_presence.py to publish today’s active application time."/></article>;
   const top=apps.slice(0,5);
   const max=Math.max(1,...top.map(app=>app.minutes));
   return <article className="card apps-card"><CardHead title="Software / today" meta="WhatPulse · active"/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
@@ -159,9 +159,9 @@ function SoftwareCard({apps}){
 
 function KeyboardCard({keyboard}){
   if(!keyboard){
-    return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta="WhatPulse"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Yesterday keyboard heatmap"/></a>:<Empty label="Keyboard aggregate not linked" detail="Publish yesterday’s per-key totals from WhatPulse; no live keystrokes or key order leave the computer."/>}</article>;
+    return <article className="card keyboard-card"><CardHead title="Keyboard / today"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Today keyboard heatmap"/></a>:<Empty label="Keyboard aggregate not linked" detail="Publish today’s privacy-filtered keyboard aggregate; no live keystrokes or key order leave the computer."/>}</article>;
   }
-  return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta={keyboard.total.toLocaleString()+" keys"}/><div className="keyboard-heatmap" aria-label={"Keyboard heatmap for "+keyboard.date}>{KEYBOARD_LAYOUT.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const level=keyboard.heat[item.key]||0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{"--key-u":item.u||1,"--heat":level/15}} title={item.label||"space"}><span>{item.label}</span></div>})}</div>)}</div></article>;
+  return <article className="card keyboard-card"><CardHead title="Keyboard / today" meta={keyboard.total.toLocaleString()+" keys"}/><div className="keyboard-heatmap" aria-label={"Keyboard heatmap for "+keyboard.date}>{KEYBOARD_LAYOUT.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const level=keyboard.heat[item.key]||0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{"--key-u":item.u||1,"--heat":level/15}} title={item.label||"space"}><span>{item.label}</span></div>})}</div>)}</div></article>;
 }
 
 function HomePhotoCard(){
@@ -183,16 +183,14 @@ function FitnessCard({health}){
 function DevicesCard(){return <article className="card devices-card"><CardHead title="Devices" meta="daily / play"/><div className="device-columns"><DeviceGroup title="daily" items={[["MacBook Pro · M1 Pro","macOS"],["iPhone 16 Pro Max","mobile"],["AirPods Pro 3","audio"]]}/><DeviceGroup title="play" items={[["Quest 3","VR"],["Gaming Laptop","7945HX · RTX 5070 Ti"],["Desktop PC","5800X · RX 6900 XT"],["Xiaomi Pad 7S Pro","tablet"]]}/></div></article>}
 function DeviceGroup({title,items}){return <div><h4>{title}</h4>{items.map(([n,m])=><div className="device" key={n}><b>{n}</b><span>{m}</span></div>)}</div>}
 
-function StatusCard({displayPresence}){const{status,label,source,detail}=displayPresence;return <article className="card status-card"><CardHead title="Status" meta={source}/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong><small>{detail}</small></div></article>}
+function StatusCard({displayPresence}){const{status,label,detail}=displayPresence;return <article className="card status-card"><CardHead title="Status"/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong><small>{detail}</small></div></article>}
 function MusicCard({music}){
-  const labels={netease:"NetEase Music",apple_music:"Apple Music",spotify:"Spotify"};
   const stateLabels={playing:"Now playing",paused:"Paused",last_played:"Last played"};
   const coverUrl=music?.artwork?.url||null;
   const[failedCover,setFailedCover]=useState(null);
-  if(!music||music.state==="never")return <article className="card music-card"><CardHead title="Music" meta="Apple Music / NetEase"/><Empty label="Music not linked yet" detail="Waiting for the first local sync"/></article>;
-  const service=labels[music.service]||"Music";
+  if(!music||music.state==="never")return <article className="card music-card"><CardHead title="Music"/><Empty label="Music not linked yet" detail="Waiting for the first local sync"/></article>;
   const showCover=coverUrl&&failedCover!==coverUrl;
-  return <article className="card music-card"><CardHead title="Music" meta={service}/><div className={`music-body music-${music.state}`}><div className="music-state">{stateLabels[music.state]||"Music"}</div><div className="music-cover-frame">{showCover?<img className="music-cover" src={coverUrl} alt={music.track.title+" cover"} loading="lazy" decoding="async" onError={()=>setFailedCover(coverUrl)}/>:<div className="music-cover music-cover-empty">&#9834;</div>}</div><div className="music-track"><strong>{music.track.title}</strong><span>{music.track.artist}</span></div></div></article>;
+  return <article className="card music-card"><CardHead title="Music"/><div className={`music-body music-${music.state}`}><div className="music-state">{stateLabels[music.state]||"Music"}</div><div className="music-cover-frame">{showCover?<img className="music-cover" src={coverUrl} alt={music.track.title+" cover"} loading="lazy" decoding="async" onError={()=>setFailedCover(coverUrl)}/>:<div className="music-cover music-cover-empty">&#9834;</div>}</div><div className="music-track"><strong>{music.track.title}</strong><span>{music.track.artist}</span></div></div></article>;
 }
 function VrcStatus({presence}){const vrc=presence?.activities?.find(a=>/vrchat/i.test(a.name||'')||/vrchat/i.test(a.details||''));return vrc?<div className="vrc-line">VRChat · {vrc.details||vrc.state||"active"}</div>:null}
 
@@ -217,7 +215,7 @@ function Layout({presence}){
 function Home({presence,displayPresence,active,now}){
   const apps=normalizeApps(presence&&presence.kv&&presence.kv.apps_today);
   const health=normalizeHealth(presence&&presence.kv&&presence.kv.health_today);
-  const keyboard=normalizeKeyboard(presence&&presence.kv&&presence.kv.keyboard_yesterday);
+  const keyboard=normalizeKeyboard(presence&&presence.kv&&(presence.kv.keyboard_today||presence.kv.keyboard_yesterday));
   const music=resolveMusic(presence&&presence.kv&&presence.kv.music_now,presence&&presence.spotify,now);
   return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard keyboard={keyboard}/></div></div>;
 }
