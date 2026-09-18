@@ -5,13 +5,18 @@ site ingest API. None of these run in the deployed static site.
 
 ## Music presence (music_presence.mjs)
 
-Reads the macOS Now Playing item (Netease Music and Apple Music) and
-POSTs it to `POST /api/music`, which stores it in Lanyard KV `music_now`.
-The Home "Currently listening" card reads that value.
+Reads the macOS Now Playing item from Netease Music and Apple Music and
+POSTs a canonical music state to `POST /api/music`. The API stores the latest
+record in Lanyard KV `music_now`; Home treats that KV as a music data channel,
+not as Discord presence.
 
-Only the two configured sources are published; other media is ignored.
-When nothing is playing the last value is kept, so the card shows the
-last track.
+The bridge distinguishes `playing`, `paused`, and `last_played`. When the
+player disappears for several polls it keeps the last track and artwork
+indefinitely, Ana-style, but changes the state to `last_played`.
+
+While a track is `playing` or `paused`, the bridge republishes a small
+heartbeat. If the Mac or bridge goes offline, Home degrades an old live state
+to `last_played` instead of leaving a stale "now playing" claim forever.
 
 ### 1. Build nowplaying-cli
 
@@ -35,5 +40,9 @@ INGEST_TOKEN="<same value as the Static Web App setting>" \
 node bridge/music_presence.mjs
 ```
 
-Optional: `NP_INTERVAL_MS` (default 8000) and `NP_CLI` (default the
-bundled binary).
+Optional environment variables:
+
+- `NP_INTERVAL_MS` — poll interval, default `8000`.
+- `NP_HEARTBEAT_MS` — refresh interval for live states, default `30000`.
+- `NP_MISS_LIMIT` — consecutive misses before `last_played`, default `3`.
+- `NP_CLI` — path to `nowplaying-cli`; defaults to the bundled binary.
