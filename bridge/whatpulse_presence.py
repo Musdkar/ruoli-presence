@@ -171,7 +171,7 @@ def read_software(target: str) -> dict | None:
     if not isinstance(events, list):
         raise RuntimeError("ActivityWatch returned invalid window events")
 
-    seconds_by_app: dict[str, float] = defaultdict(float)
+    parsed_events: list[tuple[datetime, float, str]] = []
     for event in events:
         if not isinstance(event, dict):
             continue
@@ -192,6 +192,19 @@ def read_software(target: str) -> dict | None:
             event_start = event_start.replace(tzinfo=timezone.utc)
         else:
             event_start = event_start.astimezone(timezone.utc)
+        parsed_events.append((event_start, duration, app))
+
+    latest_start = max((item[0] for item in parsed_events), default=None)
+    seconds_by_app: dict[str, float] = defaultdict(float)
+    for event_start, duration, app in parsed_events:
+        # A heartbeat starts at duration=0 and is extended by later identical
+        # heartbeats. Account for the tiny live tail only while it is fresh.
+        # Never extend a stale zero-duration event if the watcher has stopped.
+        if duration == 0 and latest_start is not None and event_start == latest_start:
+            live_age = (end_utc - event_start).total_seconds()
+            if 0 <= live_age <= 10:
+                duration = live_age
+
         event_end = event_start + timedelta(seconds=duration)
         overlap = max(
             0.0,
@@ -296,7 +309,7 @@ def main() -> None:
     if keyboard:
         payload["keyboard"] = keyboard
     if not payload:
-        raise SystemExit("No WhatPulse aggregate data found for the requested dates.")
+        raise SystemExit("No Software or Keyboard aggregate data found for the requested date.")
 
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = urlrequest.Request(
