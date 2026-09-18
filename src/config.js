@@ -54,8 +54,7 @@ export const config = {
       note: "thinking + coding",
       items: [
         { name: "ChatGPT", meta: "research + work", icon: "openai" },
-        { name: "Claude Code", meta: "coding", icon: "anthropic" },
-        { name: "Codex", meta: "coding agents", icon: "openai" }
+        { name: "Claude Code", meta: "coding", icon: "anthropic" }
       ]
     },
     {
