@@ -3,7 +3,7 @@
 
 One local collector handles both Home cards:
 - Software / today: per-application foreground active time.
-- Keyboard / yesterday: coarse 0..15 per-key heat, never exact per-key counts.
+- Keyboard / today: coarse 0..15 per-key heat, never exact per-key counts.
 
 The WhatPulse SQLite database is opened read-only and with query_only enabled.
 No window titles, URLs, key order, hourly buckets, or raw rows leave the Mac.
@@ -193,7 +193,7 @@ def main() -> None:
 
     today = date.today()
     software_day = env_date("SOFTWARE_DATE", today)
-    keyboard_day = env_date("KEYBOARD_DATE", today - timedelta(days=1))
+    keyboard_day = env_date("KEYBOARD_DATE", today)
 
     con = open_readonly(default_db_path())
     try:
