@@ -132,13 +132,13 @@ function DeviceGroup({title,items}){return <div><h4>{title}</h4>{items.map(([n,m
 function StatusCard({displayPresence}){const{status,label,source,detail}=displayPresence;return <article className="card status-card"><CardHead title="Status" meta={source}/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong><small>{detail}</small></div></article>}
 function MusicCard({music}){
   const labels={netease:"NetEase Music",apple_music:"Apple Music",spotify:"Spotify"};
+  const stateLabels={playing:"Now playing",paused:"Paused",last_played:"Last played"};
   const coverUrl=music?.artwork?.url||null;
   const[failedCover,setFailedCover]=useState(null);
   if(!music||music.state==="never")return <article className="card music-card"><CardHead title="Music" meta="Apple Music / NetEase"/><Empty label="Music not linked yet" detail="Waiting for the first local sync"/></article>;
   const service=labels[music.service]||"Music";
-  const meta=music.state==="playing"?service+" · now playing":music.state==="paused"?service+" · paused":service+" · last played";
   const showCover=coverUrl&&failedCover!==coverUrl;
-  return <article className="card music-card"><CardHead title="Music" meta={meta}/><div className="music-body">{showCover?<img className="music-cover" src={coverUrl} alt={music.track.title+" cover"} loading="lazy" decoding="async" onError={()=>setFailedCover(coverUrl)}/>:<div className="music-cover music-cover-empty">&#9834;</div>}<div className="track-info"><strong>{music.track.title}</strong><span>{music.track.artist}</span></div></div></article>;
+  return <article className="card music-card"><CardHead title="Music" meta={service}/><div className={`music-body music-${music.state}`}><div className="music-state">{stateLabels[music.state]||"Music"}</div><div className="music-cover-frame">{showCover?<img className="music-cover" src={coverUrl} alt={music.track.title+" cover"} loading="lazy" decoding="async" onError={()=>setFailedCover(coverUrl)}/>:<div className="music-cover music-cover-empty">&#9834;</div>}</div><div className="music-track"><strong>{music.track.title}</strong><span>{music.track.artist}</span></div></div></article>;
 }
 function VrcStatus({presence}){const vrc=presence?.activities?.find(a=>/vrchat/i.test(a.name||'')||/vrchat/i.test(a.details||''));return vrc?<div className="vrc-line">VRChat · {vrc.details||vrc.state||"active"}</div>:null}
 
