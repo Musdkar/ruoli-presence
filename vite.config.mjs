@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 
 // Artifact families this SPA ships. Anything else a misconfigured publicDir
 // or an added copy step drops into the output is removed after the build.
-const ALLOWED_PREFIXES = ["index.html", "assets/"];
+const ALLOWED_PREFIXES = ["index.html", "assets/", "staticwebapp.config.json"];
 
 function buildGuard() {
   let outDir = "";

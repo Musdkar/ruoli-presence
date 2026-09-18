@@ -1,0 +1,10 @@
+{
+  "name": "ruoli-presence-api",
+  "version": "1.0.0",
+  "description": "ruoli-presence ingest API (Azure Static Web Apps)",
+  "type": "commonjs",
+  "main": "health/index.js",
+  "engines": {
+    "node": ">=18"
+  }
+}

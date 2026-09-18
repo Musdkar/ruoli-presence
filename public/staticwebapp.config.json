@@ -1,0 +1,13 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "/api/*", "*.{png,jpg,jpeg,gif,svg,webp,ico,css,js}"]
+  },
+  "routes": [
+    {
+      "route": "/photos",
+      "redirect": "/photo",
+      "statusCode": 301
+    }
+  ]
+}
