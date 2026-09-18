@@ -90,7 +90,15 @@ def read_yesterday(db_path: Path) -> dict:
                 + ", ".join(sorted(required - columns))
             )
 
-        target = (date.today() - timedelta(days=1)).isoformat()
+        override = os.environ.get("KEYBOARD_DATE", "").strip()
+        if override:
+            try:
+                target = date.fromisoformat(override).isoformat()
+            except ValueError as exc:
+                raise RuntimeError("KEYBOARD_DATE must be YYYY-MM-DD") from exc
+        else:
+            target = (date.today() - timedelta(days=1)).isoformat()
+
         rows = con.execute(
             """
             SELECT key, SUM(count)
