@@ -121,7 +121,7 @@ function KeyboardCard(){
 
 function HomePhotoCard(){
   const photo=config.photos[0];
-  return <article className="card photos-card"><CardHead title="Photo / VRChat" meta="latest frame"/>{photo?<div className="photo-album"><img className="photo-backdrop" src={photo.src} alt="" aria-hidden="true"/><img className="photo-preview" src={photo.src} alt={photo.alt} width={photo.width} height={photo.height} decoding="async"/></div>:<Empty label="No photos yet"/>}<Link className="photo-open" to="/photo">open archive ↗</Link></article>;
+  return <article className="card photos-card"><CardHead title="Photo" meta="latest frame"/>{photo?<div className="photo-album"><img className="photo-backdrop" src={photo.src} alt="" aria-hidden="true"/><img className="photo-preview" src={photo.src} alt={photo.alt} width={photo.width} height={photo.height} decoding="async"/></div>:<Empty label="No photos yet"/>}<Link className="photo-open" to="/photo">open archive ↗</Link></article>;
 }
 
 function FitnessCard({health}){if(!health)return <article className="card fitness-card"><CardHead title="Fitness" meta="Health Auto Export"/><Empty label="Health not linked" detail="POST Step Count / Heart Rate to /api/health"/></article>;return <article className="card fitness-card"><CardHead title="Fitness" meta="Health Auto Export"/><div className="fitness-content"><div className="fitness-ring"><span>◎</span></div><div><strong>{Number(health.steps||0).toLocaleString()}</strong><small>steps today</small>{health.heartRate&&<em>{Math.round(health.heartRate)} bpm</em>}</div></div></article>}
@@ -168,7 +168,7 @@ function Home({presence,displayPresence,active,now}){
 }
 
 function PhotoPage(){
-  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">PHOTO / ARCHIVE</span><h2>VRChat, places,<br/>and fragments.</h2></div><p>A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.</p></div><div className="page-rule"/><div className="photo-wall"><MasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></div>{config.photos.length===1&&<div className="archive-note">One image in the archive for now. Add more files later and the layout will rebalance automatically.</div>}</div>;
+  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">PHOTO / ARCHIVE</span><h2>Places, moments,<br/>and fragments.</h2></div><p>A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.</p></div><div className="page-rule"/><div className="photo-wall"><MasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></div>{config.photos.length===1&&<div className="archive-note">One image in the archive for now. Add more files later and the layout will rebalance automatically.</div>}</div>;
 }
 
 const publishedPosts=posts.filter(post=>post.published!==false);
