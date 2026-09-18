@@ -162,7 +162,7 @@
 .fitness-steps {
   justify-self: end;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 9px;
   min-height: 34px;
 }
@@ -182,7 +182,8 @@
   display: inline-block;
   flex: 0 0 auto;
   opacity: .7;
-  transform: translateY(-3px) rotate(-8deg);
+  top: -1px;
+  transform: rotate(-8deg);
 }
 
 .fitness-footsteps i,
@@ -214,4 +215,19 @@
 
 @media (max-width: 900px) {
   .fitness-ring-wrap { width: min(126px, 75%); }
+}
+
+
+/* Keep MapLibre attribution compact by default; expand only while the
+   attribution control itself is being inspected, then collapse again. */
+.map-card .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-inner {
+  display: none;
+}
+.map-card .maplibregl-ctrl-attrib.maplibregl-compact:hover .maplibregl-ctrl-attrib-inner,
+.map-card .maplibregl-ctrl-attrib.maplibregl-compact:focus-within .maplibregl-ctrl-attrib-inner {
+  display: block;
+}
+.map-card .maplibregl-ctrl-attrib.maplibregl-compact:not(:hover):not(:focus-within) {
+  padding: 0;
+  background: transparent;
 }
