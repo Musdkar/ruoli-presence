@@ -137,11 +137,14 @@ function MapCard({active}){
     let idleId=null;
     let timerId=null;
     const schedule=()=>{
-      if("requestIdleCallback" in window){
-        idleId=window.requestIdleCallback(()=>setShouldLoad(true),{timeout:2200});
-      }else{
-        timerId=window.setTimeout(()=>setShouldLoad(true),900);
-      }
+      timerId=window.setTimeout(()=>{
+        timerId=null;
+        if("requestIdleCallback" in window){
+          idleId=window.requestIdleCallback(()=>setShouldLoad(true),{timeout:1500});
+        }else{
+          setShouldLoad(true);
+        }
+      },700);
     };
     if(!("IntersectionObserver" in window)){
       schedule();
