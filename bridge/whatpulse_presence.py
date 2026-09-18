@@ -18,8 +18,8 @@ import sys
 from collections import defaultdict
 from datetime import date, timedelta
 from pathlib import Path
-
-import requests
+from urllib import error as urlerror
+from urllib import request as urlrequest
 
 API_URL = os.environ.get("WHATPULSE_API_URL", "").strip()
 TOKEN = os.environ.get("INGEST_TOKEN", "").strip()
@@ -195,14 +195,28 @@ def main() -> None:
     if not payload:
         raise SystemExit("No WhatPulse aggregate data found for the requested dates.")
 
-    response = requests.post(
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req = urlrequest.Request(
         API_URL,
-        headers={"X-Ingest-Token": TOKEN, "Content-Type": "application/json"},
-        json=payload,
-        timeout=15,
+        data=body,
+        method="POST",
+        headers={
+            "X-Ingest-Token": TOKEN,
+            "Content-Type": "application/json",
+        },
     )
-    if not response.ok:
-        raise SystemExit(f"publish failed: {response.status_code} {response.text[:500]}")
+    try:
+        with urlrequest.urlopen(req, timeout=15) as response:
+            status = response.status
+            response_text = response.read(500).decode("utf-8", errors="replace")
+    except urlerror.HTTPError as exc:
+        response_text = exc.read(500).decode("utf-8", errors="replace")
+        raise SystemExit(f"publish failed: {exc.code} {response_text}") from exc
+    except urlerror.URLError as exc:
+        raise SystemExit(f"publish failed: {exc.reason}") from exc
+
+    if not 200 <= status < 300:
+        raise SystemExit(f"publish failed: {status} {response_text}")
 
     preview = {
         "software": software,
@@ -213,7 +227,7 @@ def main() -> None:
         },
     }
     print(json.dumps(preview, ensure_ascii=False, indent=2))
-    print("published:", response.status_code)
+    print("published:", status)
 
 
 if __name__ == "__main__":
