@@ -13,7 +13,7 @@ import remarkGfm from "remark-gfm";
 import {config} from "./config";
 import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
-import {normalizeApps,normalizeHealth,resolveMusic} from "./normalize";
+import {normalizeApps,normalizeHealth,normalizeKeyboard,resolveMusic} from "./normalize";
 import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
@@ -22,6 +22,39 @@ ChartJS.register(ArcElement,Tooltip);
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span><small>{meta}</small></div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
 const MAP_STYLE={dark:"https://tiles.openfreemap.org/styles/dark",light:"https://tiles.openfreemap.org/styles/positron"};
+const KEYBOARD_LAYOUT=[
+  [
+    {key:"ESC",label:"esc",u:1.15},
+    {key:"1",label:"1"},{key:"2",label:"2"},{key:"3",label:"3"},{key:"4",label:"4"},{key:"5",label:"5"},{key:"6",label:"6"},{key:"7",label:"7"},{key:"8",label:"8"},{key:"9",label:"9"},{key:"0",label:"0"},{key:"-",label:"-"},{key:"=",label:"="},
+    {key:"BACKSPACE",label:"delete",u:1.8},
+  ],
+  [
+    {key:"TAB",label:"tab",u:1.45},
+    {key:"Q",label:"Q"},{key:"W",label:"W"},{key:"E",label:"E"},{key:"R",label:"R"},{key:"T",label:"T"},{key:"Y",label:"Y"},{key:"U",label:"U"},{key:"I",label:"I"},{key:"O",label:"O"},{key:"P",label:"P"},{key:"[",label:"["},{key:"]",label:"]"},{key:"\\",label:"\\"},
+  ],
+  [
+    {key:"CAPS",label:"caps",u:1.7},
+    {key:"A",label:"A"},{key:"S",label:"S"},{key:"D",label:"D"},{key:"F",label:"F"},{key:"G",label:"G"},{key:"H",label:"H"},{key:"J",label:"J"},{key:"K",label:"K"},{key:"L",label:"L"},{key:";",label:";"},{key:"'",label:"'"},
+    {key:"RETURN",label:"return",u:2.15},
+  ],
+  [
+    {key:"SHIFT",label:"shift",u:2.15},
+    {key:"Z",label:"Z"},{key:"X",label:"X"},{key:"C",label:"C"},{key:"V",label:"V"},{key:"B",label:"B"},{key:"N",label:"N"},{key:"M",label:"M"},{key:",",label:","},{key:".",label:"."},{key:"/",label:"/"},
+    {key:"SHIFT",label:"shift",u:2.65},
+  ],
+  [
+    {key:"CONTROL",label:"control",u:1.15},
+    {key:"OPTION",label:"option",u:1.15},
+    {key:"COMMAND",label:"command",u:1.35},
+    {key:"SPACE",label:"",u:6},
+    {key:"COMMAND",label:"command",u:1.35},
+    {key:"OPTION",label:"option",u:1.15},
+    {key:"LEFT",label:"←",u:.8},
+    {key:"DOWN",label:"↓",u:.8},
+    {key:"UP",label:"↑",u:.8},
+    {key:"RIGHT",label:"→",u:.8},
+  ],
+];
 
 const THEME_KEY="theme";
 const THEME_MODES=["dark","light","system"];
@@ -115,8 +148,12 @@ function SoftwareCard({apps}){
   return <article className="card apps-card"><CardHead title="Software / today" meta="ActivityWatch"/><div className="apps-body"><div className="chart-wrap"><Doughnut data={data} options={{cutout:"72%",plugins:{legend:{display:false},tooltip:{enabled:true}},animation:false}}/></div><div className="usage-list">{top.map((a,i)=><div className="usage-row" key={a.name}><span>{a.name}</span><i><b style={{width:`${a.minutes/total*100}%`,background:colors[i]}}/></i><strong>{Math.round(a.minutes/total*100)}%</strong></div>)}</div></div></article>;
 }
 
-function KeyboardCard(){
-  return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta="WhatPulse · daily aggregate"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Yesterday keyboard heatmap"/></a>:<Empty label="Daily keyboard aggregate not linked" detail="Only the previous day’s privacy-filtered aggregate will be published here; no live keystroke feed."/>}</article>;
+function KeyboardCard({keyboard}){
+  if(!keyboard){
+    return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta="WhatPulse"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Yesterday keyboard heatmap"/></a>:<Empty label="Keyboard aggregate not linked" detail="Publish yesterday’s per-key totals from WhatPulse; no live keystrokes or key order leave the computer."/>}</article>;
+  }
+  const max=Math.max(1,...Object.values(keyboard.keys));
+  return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta={keyboard.total.toLocaleString()+" keys"}/><div className="keyboard-heatmap" aria-label={"Keyboard heatmap for "+keyboard.date}>{KEYBOARD_LAYOUT.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const count=keyboard.keys[item.key]||0;const heat=count>0?Math.sqrt(count/max):0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{"--key-u":item.u||1,"--heat":heat}} title={(item.label||"space")+" · "+count.toLocaleString()+" presses"}><span>{item.label}</span></div>})}</div>)}</div></article>;
 }
 
 function HomePhotoCard(){
@@ -172,8 +209,9 @@ function Layout({presence}){
 function Home({presence,displayPresence,active,now}){
   const apps=normalizeApps(presence&&presence.kv&&presence.kv.apps_today);
   const health=normalizeHealth(presence&&presence.kv&&presence.kv.health_today);
+  const keyboard=normalizeKeyboard(presence&&presence.kv&&presence.kv.keyboard_yesterday);
   const music=resolveMusic(presence&&presence.kv&&presence.kv.music_now,presence&&presence.spotify,now);
-  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard/></div></div>;
+  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard keyboard={keyboard}/></div></div>;
 }
 
 function PhotoPage(){
