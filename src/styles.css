@@ -100,3 +100,118 @@
 .sidebar-presence.sleeping { color: var(--violet); }
 .status-main { right: 14px; }
 .status-main strong { max-width: calc(100% - 18px); font-size: clamp(21px, 2vw, 31px); vertical-align: middle; }
+
+
+/* ==========================================================================
+   Fitness step ring
+   --------------------------------------------------------------------------
+   One metric, one ring: a rounded progress arc with the step count kept
+   separate, inspired by common wearable activity-ring patterns without
+   imitating any one vendor's three-ring system.
+   ========================================================================== */
+.fitness-content {
+  position: absolute;
+  inset: 43px 13px 13px;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.fitness-ring-wrap {
+  width: min(132px, 88%);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  align-self: center;
+}
+
+.fitness-ring {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.fitness-ring-track,
+.fitness-ring-progress {
+  fill: none;
+  stroke-width: 12;
+  transform: rotate(-90deg);
+  transform-origin: 60px 60px;
+}
+
+.fitness-ring-track {
+  stroke: #2b2e35;
+}
+
+.fitness-ring-progress {
+  stroke: url(#fitness-progress-gradient);
+  stroke-linecap: round;
+  transition: stroke-dashoffset .5s cubic-bezier(.2,.7,.2,1);
+  filter: drop-shadow(0 0 5px rgba(142,124,255,.14));
+}
+
+.fitness-content.is-empty .fitness-ring-track {
+  stroke: #262930;
+}
+
+.fitness-steps {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 34px;
+}
+
+.fitness-steps strong {
+  display: block;
+  margin: 0;
+  font: 700 clamp(25px, 2vw, 32px)/1 Georgia, "Times New Roman", serif;
+  letter-spacing: -.045em;
+  text-align: right;
+}
+
+.fitness-footsteps {
+  position: relative;
+  width: 24px;
+  height: 28px;
+  display: inline-block;
+  flex: 0 0 auto;
+  opacity: .7;
+  transform: rotate(-8deg);
+}
+
+.fitness-footsteps i,
+.fitness-footsteps b {
+  position: absolute;
+  display: block;
+  background: var(--muted);
+  border-radius: 999px;
+}
+
+.fitness-footsteps i {
+  width: 7px;
+  height: 12px;
+}
+
+.fitness-footsteps b {
+  width: 5px;
+  height: 5px;
+}
+
+.fitness-footsteps i:nth-child(1) { left: 3px; top: 10px; transform: rotate(-16deg); }
+.fitness-footsteps i:nth-child(2) { right: 2px; top: 2px; transform: rotate(16deg); }
+.fitness-footsteps b:nth-child(3) { left: 8px; top: 4px; }
+.fitness-footsteps b:nth-child(4) { right: 8px; top: 16px; }
+
+@media (max-width: 1260px) and (min-width: 901px) {
+  .fitness-ring-wrap { width: min(116px, 86%); }
+}
+
+@media (max-width: 900px) {
+  .fitness-ring-wrap { width: min(126px, 75%); }
+}
