@@ -14,6 +14,10 @@ The bridge distinguishes `playing`, `paused`, and `last_played`. When the
 player disappears for several polls it keeps the last track and artwork
 indefinitely, Ana-style, but changes the state to `last_played`.
 
+Artwork is resized locally before publishing. The bridge prefers about 384px JPEG
+covers and falls back through smaller sizes until the payload fits the conservative
+KV budget, so the public card stays crisp without adding a separate image store.
+
 While a track is `playing` or `paused`, the bridge republishes a small
 heartbeat. If the Mac or bridge goes offline, Home degrades an old live state
 to `last_played` instead of leaving a stale "now playing" claim forever.
