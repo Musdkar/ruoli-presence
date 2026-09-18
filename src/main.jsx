@@ -152,8 +152,7 @@ function KeyboardCard({keyboard}){
   if(!keyboard){
     return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta="WhatPulse"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Yesterday keyboard heatmap"/></a>:<Empty label="Keyboard aggregate not linked" detail="Publish yesterday’s per-key totals from WhatPulse; no live keystrokes or key order leave the computer."/>}</article>;
   }
-  const max=Math.max(1,...Object.values(keyboard.keys));
-  return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta={keyboard.total.toLocaleString()+" keys"}/><div className="keyboard-heatmap" aria-label={"Keyboard heatmap for "+keyboard.date}>{KEYBOARD_LAYOUT.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const count=keyboard.keys[item.key]||0;const heat=count>0?Math.sqrt(count/max):0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{"--key-u":item.u||1,"--heat":heat}} title={(item.label||"space")+" · "+count.toLocaleString()+" presses"}><span>{item.label}</span></div>})}</div>)}</div></article>;
+  return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta={keyboard.total.toLocaleString()+" keys"}/><div className="keyboard-heatmap" aria-label={"Keyboard heatmap for "+keyboard.date}>{KEYBOARD_LAYOUT.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const level=keyboard.heat[item.key]||0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{"--key-u":item.u||1,"--heat":level/15}} title={item.label||"space"}><span>{item.label}</span></div>})}</div>)}</div></article>;
 }
 
 function HomePhotoCard(){
