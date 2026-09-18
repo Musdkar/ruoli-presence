@@ -289,7 +289,8 @@ html.light .fun-facts ul { color: #4c4f57; }
   text-transform: uppercase;
   letter-spacing: .12em;
   color: var(--mint);
-  text-align: center;
+  width: min(100%, 360px);
+  text-align: left;
 }
 
 .music-paused .music-state { color: #b6adff; }
@@ -301,7 +302,7 @@ html.light .fun-facts ul { color: #4c4f57; }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  width: min(100%, 360px);
 }
 
 .music-cover {
@@ -326,9 +327,9 @@ html.light .fun-facts ul { color: #4c4f57; }
 
 .music-track {
   min-width: 0;
-  width: min(100%, 340px);
-  text-align: center;
-  padding-inline: 4px;
+  width: min(100%, 360px);
+  text-align: left;
+  padding-inline: 0;
 }
 
 .music-track strong {
