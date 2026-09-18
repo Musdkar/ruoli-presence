@@ -25,7 +25,7 @@ const MUSIC_SERVICES=["netease","apple_music","spotify"];
 const LEGACY_SERVICE={netease:"netease",appleMusic:"apple_music",apple_music:"apple_music",spotify:"spotify"};
 const text=(value)=>typeof value==="string"&&value.trim()!==""?value.trim().slice(0,200):null;
 const observedAt=(value)=>typeof value==="string"&&Number.isFinite(Date.parse(value))?value:null;
-const isDataCover=(value)=>typeof value==="string"&&value.length<=12000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value);
+const isDataCover=(value)=>typeof value==="string"&&value.length<=26000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value);
 const isHttpsCover=(value)=>typeof value==="string"&&value.length<=2048&&/^https:\/\//i.test(value);
 const artwork=(value)=>isDataCover(value)?{kind:"data",url:value}:isHttpsCover(value)?{kind:"https",url:value}:{kind:"none",url:null};
 const neverMusic=()=>({v:1,state:"never",service:null,collector:null,track:null,artwork:{kind:"none",url:null},observedAt:null});
