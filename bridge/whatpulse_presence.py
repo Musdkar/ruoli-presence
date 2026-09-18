@@ -184,6 +184,13 @@ def main() -> None:
     if not API_URL or not TOKEN:
         raise SystemExit("Set WHATPULSE_API_URL and INGEST_TOKEN before running.")
 
+    try:
+        TOKEN.encode("ascii")
+    except UnicodeEncodeError as exc:
+        raise SystemExit(
+            "INGEST_TOKEN must be the real ASCII token value, not a placeholder such as '你的token'."
+        ) from exc
+
     today = date.today()
     software_day = env_date("SOFTWARE_DATE", today)
     keyboard_day = env_date("KEYBOARD_DATE", today - timedelta(days=1))
