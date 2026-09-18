@@ -100,3 +100,41 @@
 .sidebar-presence.sleeping { color: var(--violet); }
 .status-main { right: 14px; }
 .status-main strong { max-width: calc(100% - 18px); font-size: clamp(21px, 2vw, 31px); vertical-align: middle; }
+
+
+/* ==========================================================================
+   Home canvas experiment
+   --------------------------------------------------------------------------
+   Desktop Home is allowed to be wider than the viewport. The content surface
+   becomes the scroll container so dense data cards (especially Keyboard) keep
+   useful width instead of being squeezed to fit one screen.
+   ========================================================================== */
+@media (min-width: 901px) {
+  .content.home-content {
+    overflow-x: auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: auto;
+  }
+
+  .home-content > .home-view {
+    min-width: 1680px;
+    width: 1680px;
+    min-height: 900px;
+    height: auto;
+  }
+
+  .home-content .home-view > .grid {
+    flex: none;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    grid-template-columns: repeat(18, minmax(0, 1fr));
+    grid-template-rows: 360px 250px 260px;
+    grid-template-areas:
+      "map map map map map map map map map map map music music music music music music music"
+      "status status status weather weather weather photo photo photo photo photo photo fitness fitness fitness devices devices devices"
+      "apps apps apps apps apps apps apps keyboard keyboard keyboard keyboard keyboard keyboard keyboard keyboard keyboard keyboard keyboard";
+    align-content: start;
+  }
+}
