@@ -133,9 +133,19 @@ def read_software(con: sqlite3.Connection, target: str) -> dict | None:
 
 
 def read_keyboard(con: sqlite3.Connection, target: str) -> dict | None:
-    columns = {row[1] for row in con.execute("PRAGMA table_info(keypress_frequency)")}
-    if not {"day", "key", "count"}.issubset(columns):
+    freq_columns = {row[1] for row in con.execute("PRAGMA table_info(keypress_frequency)")}
+    if not {"day", "key", "count"}.issubset(freq_columns):
         raise RuntimeError("Unsupported WhatPulse schema: keypress_frequency changed")
+
+    total_columns = {row[1] for row in con.execute("PRAGMA table_info(keypresses)")}
+    if not {"day", "count"}.issubset(total_columns):
+        raise RuntimeError("Unsupported WhatPulse schema: keypresses changed")
+
+    total_row = con.execute(
+        "SELECT COALESCE(SUM(count), 0) FROM keypresses WHERE day = ?",
+        (target,),
+    ).fetchone()
+    total = max(0, int((total_row or [0])[0] or 0))
 
     rows = con.execute(
         """
@@ -148,14 +158,12 @@ def read_keyboard(con: sqlite3.Connection, target: str) -> dict | None:
     ).fetchall()
 
     exact: dict[str, int] = {}
-    total = 0
     for raw_code, raw_count in rows:
         try:
             code = int(raw_code)
             count = max(0, int(raw_count or 0))
         except (TypeError, ValueError):
             continue
-        total += count
         label = canonical_key(code)
         if label is not None:
             exact[label] = exact.get(label, 0) + count
