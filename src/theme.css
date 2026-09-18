@@ -355,3 +355,10 @@ html.light .music-last_played .music-state { color: #7c7f88; }
 html.light .music-cover { border-color: #dedcd4; background: #f1f0ec; }
 html.light .music-cover-empty { color: #8a8d95; }
 
+
+
+/* Light fitness ring */
+html.light .fitness-ring-track { stroke: #e4e2db; }
+html.light .fitness-content.is-empty .fitness-ring-track { stroke: #ebe9e3; }
+html.light .fitness-footsteps i,
+html.light .fitness-footsteps b { background: #7c7f88; }
