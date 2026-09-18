@@ -2,6 +2,14 @@
 
 const { timingSafeEqual } = require("node:crypto");
 
+function jsonResponse(context, status, payload) {
+  context.res = {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify(payload),
+  };
+}
+
 const MAX_STEPS = 1000000;
 const MAX_HEART_RATE = 100000;
 
@@ -28,10 +36,17 @@ function readValues(metric, max) {
   return out;
 }
 
+function readScalar(value, max) {
+  const isNum = typeof value === "number";
+  const isStr = typeof value === "string" && value.trim() !== "";
+  const n = isNum ? value : isStr ? Number(value) : NaN;
+  return Number.isFinite(n) && n >= 0 && n <= max ? n : null;
+}
+
 module.exports = async function (context, req) {
   const method = (req.method || "").toUpperCase();
   if (method !== "POST") {
-    context.res = { status: 405, jsonBody: { error: "method_not_allowed" } };
+    jsonResponse(context, 405, { error: "method_not_allowed" });
     return;
   }
 
@@ -39,37 +54,48 @@ module.exports = async function (context, req) {
   const expected = process.env.INGEST_TOKEN || "";
   const provided = req.headers && (req.headers["x-ingest-token"] || req.headers["X-Ingest-Token"]);
   if (typeof provided !== "string" || safeEqual(provided, expected) === false || expected === "") {
-    context.res = { status: 401, jsonBody: { error: "unauthorized" } };
+    jsonResponse(context, 401, { error: "unauthorized" });
     return;
   }
 
   const userId = process.env.LANYARD_USER_ID;
   const apiKey = process.env.LANYARD_API_KEY;
   if (userId == null || apiKey == null || userId === "" || apiKey === "") {
-    context.res = { status: 503, jsonBody: { error: "lanyard_not_configured" } };
+    jsonResponse(context, 503, { error: "lanyard_not_configured" });
     return;
   }
 
   const payload = req.body || {};
-  const dataWrap = payload && payload.data;
-  const metrics = (dataWrap && dataWrap.metrics) || payload.metrics;
-  if (Array.isArray(metrics) === false) {
-    context.res = { status: 400, jsonBody: { error: "invalid_metrics" } };
-    return;
+
+  // Lightweight Shortcut format:
+  //   { "steps": 2257 }
+  // Keep the older Health Auto Export metrics format for compatibility.
+  let steps = readScalar(payload.steps, MAX_STEPS);
+  let heartRate = readScalar(payload.heartRate, MAX_HEART_RATE);
+
+  if (steps == null && heartRate == null) {
+    const dataWrap = payload && payload.data;
+    const metrics = (dataWrap && dataWrap.metrics) || payload.metrics;
+    if (Array.isArray(metrics) === false) {
+      jsonResponse(context, 400, { error: "invalid_health_payload" });
+      return;
+    }
+
+    const metric = (name) => metrics.find((m) => (m && m.name) === name);
+    const stepValues = readValues(metric("step_count"), MAX_STEPS);
+    const hrValues = readValues(metric("heart_rate"), MAX_HEART_RATE);
+    steps = stepValues.length ? stepValues.reduce((a, b) => a + b, 0) : null;
+    heartRate = hrValues.length ? hrValues[hrValues.length - 1] : null;
   }
 
-  const metric = (name) => metrics.find((m) => (m && m.name) === name);
-  const stepValues = readValues(metric("step_count"), MAX_STEPS);
-  const hrValues = readValues(metric("heart_rate"), MAX_HEART_RATE);
-
-  if (stepValues.length === 0 && hrValues.length === 0) {
-    context.res = { status: 400, jsonBody: { error: "no_valid_metrics" } };
+  if (steps == null && heartRate == null) {
+    jsonResponse(context, 400, { error: "no_valid_health_data" });
     return;
   }
 
   const summary = {
-    steps: stepValues.length ? stepValues.reduce((a, b) => a + b, 0) : null,
-    heartRate: hrValues.length ? hrValues[hrValues.length - 1] : null,
+    steps,
+    heartRate,
     updatedAt: new Date().toISOString(),
   };
 
@@ -81,14 +107,14 @@ module.exports = async function (context, req) {
       body: JSON.stringify({ health_today: JSON.stringify(summary) }),
     });
     if (r.ok === false) {
-      context.res = { status: 502, jsonBody: { error: "lanyard_update_failed", status: r.status } };
+      jsonResponse(context, 502, { error: "lanyard_update_failed", status: r.status });
       return;
     }
   } catch (err) {
     context.log.error("lanyard update failed", err && err.message);
-    context.res = { status: 502, jsonBody: { error: "lanyard_update_failed" } };
+    jsonResponse(context, 502, { error: "lanyard_update_failed" });
     return;
   }
 
-  context.res = { status: 200, jsonBody: { ok: true, summary } };
+  jsonResponse(context, 200, { ok: true, summary });
 };

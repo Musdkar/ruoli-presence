@@ -267,26 +267,54 @@ html.light .fun-facts ul { color: #4c4f57; }
 .map-card h2 { top: 14px; }
 
 /* ==========================================================================
-   Music card body: square cover + track text (ana.sh-style)
+   Music card: status -> artwork -> title / artist.
+   The card keeps the site's editorial framing while borrowing Ana's simple
+   listening hierarchy: a compact state label, artwork, then track metadata.
    ========================================================================== */
 .music-body {
   position: absolute;
   inset: 42px 14px 14px;
-  display: flex;
-  gap: 14px;
-  align-items: center;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
   min-width: 0;
+  min-height: 0;
+  justify-items: center;
+}
+
+.music-state {
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--mint);
+  text-align: center;
+}
+
+.music-paused .music-state { color: #b6adff; }
+.music-last_played .music-state { color: var(--muted); }
+
+.music-cover-frame {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .music-cover {
-  width: auto;
+  display: block;
   height: 100%;
-  max-height: 100%;
+  width: auto;
+  max-width: 100%;
   aspect-ratio: 1 / 1;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   border-radius: 12px;
   object-fit: cover;
   border: 1px solid #2d3038;
+  background: #141519;
 }
 
 .music-cover-empty {
@@ -294,28 +322,68 @@ html.light .fun-facts ul { color: #4c4f57; }
   place-items: center;
   font-size: 30px;
   color: #646974;
-  background: #141519;
 }
 
-.music-body .track-info {
-  position: static;
-  left: auto;
-  right: auto;
-  bottom: auto;
+.music-track {
   min-width: 0;
+  width: min(100%, 340px);
+  text-align: center;
+  padding-inline: 4px;
 }
 
-.music-body .track-info strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.music-track strong {
+  display: block;
+  font: 700 clamp(18px, 1.45vw, 25px)/1.06 Georgia, "Times New Roman", serif;
+  letter-spacing: -.025em;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
-.music-body .track-info span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.music-track span {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  line-height: 1.3;
+  color: #777c86;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
-html.light .music-cover { border-color: #dedcd4; }
-html.light .music-cover-empty { color: #8a8d95; background: #f1f0ec; }
+html.light .music-state { color: #248a72; }
+html.light .music-paused .music-state { color: #6a52e6; }
+html.light .music-last_played .music-state { color: #7c7f88; }
+html.light .music-cover { border-color: #dedcd4; background: #f1f0ec; }
+html.light .music-cover-empty { color: #8a8d95; }
+
+
+
+/* Light fitness ring */
+html.light .fitness-ring-track { stroke: #e4e2db; }
+html.light .fitness-content.is-empty .fitness-ring-track { stroke: #ebe9e3; }
+html.light .fitness-footsteps i,
+html.light .fitness-footsteps b { background: #7c7f88; }
+
+
+/* Light keyboard heatmap */
+html.light .keyboard-key {
+  border-color: #dedcd4;
+  background: #f3f2ee;
+  color: #666a73;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,.035);
+}
+html.light .keyboard-key::after {
+  background: linear-gradient(180deg, rgba(255,255,255,.65), transparent 48%);
+}
+html.light .keyboard-key span {
+  text-shadow: none;
+}
+html.light .keyboard-key:hover {
+  border-color: #b8b5ac;
+}
+
+
+/* Light WhatPulse software usage */
+html.light .software-usage-name > span { color: #aaa79f; }
+html.light .software-usage-name strong { color: #4b4e55; }
+html.light .software-usage-track { background: #e6e4dd; }
+html.light .software-usage-row time { color: #767981; }

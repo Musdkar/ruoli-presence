@@ -23,6 +23,7 @@ export const config = {
   timezone: "Asia/Shanghai",
   avatar: "/assets/avatar.webp",
   mapAvatar: "/assets/map-avatar.png",
+  fitness: { stepGoal: 6000 },
   socialLinks: [
     { label: "GH", name: "GitHub", href: "https://github.com/Musdkar" },
     { label: "VR", name: "VRChat", href: import.meta.env.VITE_VRCHAT_URL || "" },
@@ -44,8 +45,9 @@ export const config = {
       note: "things I build with",
       items: [
         { name: "VS Code", meta: "editor", icon: "visualstudiocode" },
+        { name: "PyCharm", meta: "Python IDE", icon: "pycharm" },
         { name: "Ghostty", meta: "terminal", monogram: "GT" },
-        { name: "GitHub", meta: "code + repos", icon: "github" }
+        { name: "Git", meta: "version control", icon: "git" }
       ]
     },
     {
@@ -53,8 +55,7 @@ export const config = {
       note: "thinking + coding",
       items: [
         { name: "ChatGPT", meta: "research + work", icon: "openai" },
-        { name: "Claude Code", meta: "coding", icon: "anthropic" },
-        { name: "Codex", meta: "coding agents", icon: "openai" }
+        { name: "Claude Code", meta: "coding", icon: "anthropic" }
       ]
     },
     {
@@ -72,6 +73,8 @@ export const config = {
       items: [
         { name: "Obsidian", meta: "notes", icon: "obsidian" },
         { name: "Notion", meta: "workspace", icon: "notion" },
+        { name: "Microsoft Edge", meta: "browser", icon: "microsoftedge" },
+        { name: "MarkEdit", meta: "Markdown", monogram: "ME" },
         { name: "Maccy", meta: "clipboard", monogram: "MC" }
       ]
     }

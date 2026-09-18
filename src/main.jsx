@@ -6,22 +6,52 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {MasonryPhotoAlbum} from "react-photo-album";
 import "react-photo-album/masonry.css";
-import {Doughnut} from "react-chartjs-2";
-import {ArcElement,Chart as ChartJS,Tooltip} from "chart.js";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {config} from "./config";
 import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
-import {normalizeApps,normalizeHealth,normalizeMusic} from "./normalize";
+import {normalizeApps,normalizeHealth,normalizeKeyboard,resolveMusic} from "./normalize";
 import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
 
-ChartJS.register(ArcElement,Tooltip);
-const CardHead=({title,meta})=><div className="card-head"><span>{title}</span><small>{meta}</small></div>;
+const CardHead=({title,meta})=><div className="card-head"><span>{title}</span>{meta?<small>{meta}</small>:null}</div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
 const MAP_STYLE={dark:"https://tiles.openfreemap.org/styles/dark",light:"https://tiles.openfreemap.org/styles/positron"};
+const KEYBOARD_LAYOUT=[
+  [
+    {key:"ESC",label:"esc",u:1.15},
+    {key:"1",label:"1"},{key:"2",label:"2"},{key:"3",label:"3"},{key:"4",label:"4"},{key:"5",label:"5"},{key:"6",label:"6"},{key:"7",label:"7"},{key:"8",label:"8"},{key:"9",label:"9"},{key:"0",label:"0"},{key:"-",label:"-"},{key:"=",label:"="},
+    {key:"BACKSPACE",label:"delete",u:1.8},
+  ],
+  [
+    {key:"TAB",label:"tab",u:1.45},
+    {key:"Q",label:"Q"},{key:"W",label:"W"},{key:"E",label:"E"},{key:"R",label:"R"},{key:"T",label:"T"},{key:"Y",label:"Y"},{key:"U",label:"U"},{key:"I",label:"I"},{key:"O",label:"O"},{key:"P",label:"P"},{key:"[",label:"["},{key:"]",label:"]"},{key:"\\",label:"\\"},
+  ],
+  [
+    {key:"CAPS",label:"caps",u:1.7},
+    {key:"A",label:"A"},{key:"S",label:"S"},{key:"D",label:"D"},{key:"F",label:"F"},{key:"G",label:"G"},{key:"H",label:"H"},{key:"J",label:"J"},{key:"K",label:"K"},{key:"L",label:"L"},{key:";",label:";"},{key:"'",label:"'"},
+    {key:"RETURN",label:"return",u:2.15},
+  ],
+  [
+    {key:"SHIFT",label:"shift",u:2.15},
+    {key:"Z",label:"Z"},{key:"X",label:"X"},{key:"C",label:"C"},{key:"V",label:"V"},{key:"B",label:"B"},{key:"N",label:"N"},{key:"M",label:"M"},{key:",",label:","},{key:".",label:"."},{key:"/",label:"/"},
+    {key:"SHIFT",label:"shift",u:2.65},
+  ],
+  [
+    {key:"CONTROL",label:"control",u:1.15},
+    {key:"OPTION",label:"option",u:1.15},
+    {key:"COMMAND",label:"command",u:1.35},
+    {key:"SPACE",label:"",u:6},
+    {key:"COMMAND",label:"command",u:1.35},
+    {key:"OPTION",label:"option",u:1.15},
+    {key:"LEFT",label:"←",u:.8},
+    {key:"DOWN",label:"↓",u:.8},
+    {key:"UP",label:"↑",u:.8},
+    {key:"RIGHT",label:"→",u:.8},
+  ],
+];
 
 const THEME_KEY="theme";
 const THEME_MODES=["dark","light","system"];
@@ -106,37 +136,61 @@ function WeatherCard(){
   const[weather,setWeather]=useState(null);
   useEffect(()=>{fetch(`https://api.open-meteo.com/v1/forecast?latitude=${config.weatherLat}&longitude=${config.weatherLng}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=${encodeURIComponent(config.timezone)}`).then(r=>r.json()).then(d=>setWeather(d.current||null)).catch(()=>setWeather(false))},[]);
   const names={0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",51:"Drizzle",61:"Rain",63:"Rain",65:"Heavy rain",80:"Showers",95:"Thunderstorm"};
-  return <article className="card weather-card"><CardHead title="Weather · Wuhan" meta="Open-Meteo"/><div className="weather-main"><div><strong>{weather&&weather.temperature_2m!=null?Math.round(weather.temperature_2m)+"°":"--°"}</strong><span>{weather?(names[weather.weather_code]||"Current weather"):weather===false?"unavailable":"loading…"}</span></div>{weather&&<small>feels {Math.round(weather.apparent_temperature)}°<br/>wind {Math.round(weather.wind_speed_10m)} km/h</small>}</div></article>;
+  return <article className="card weather-card"><CardHead title="Weather · Wuhan"/><div className="weather-main"><div><strong>{weather&&weather.temperature_2m!=null?Math.round(weather.temperature_2m)+"°":"--°"}</strong><span>{weather?(names[weather.weather_code]||"Current weather"):weather===false?"unavailable":"loading…"}</span></div>{weather&&<small>feels {Math.round(weather.apparent_temperature)}°<br/>wind {Math.round(weather.wind_speed_10m)} km/h</small>}</div></article>;
+}
+
+function formatUsageMinutes(minutes){
+  const seconds=Math.max(0,Math.round(Number(minutes||0)*60));
+  if(seconds<60)return seconds+"s";
+  const hours=Math.floor(seconds/3600);
+  const mins=Math.floor((seconds%3600)/60);
+  const secs=seconds%60;
+  if(hours>0)return hours+"h "+String(mins).padStart(2,"0")+"m";
+  if(mins<10&&secs>0)return mins+"m "+String(secs).padStart(2,"0")+"s";
+  return mins+"m";
 }
 
 function SoftwareCard({apps}){
-  if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="ActivityWatch"/><Empty label="ActivityWatch not linked" detail="Run bridge/activitywatch_bridge.py"/></article>;
-  const top=apps.slice(0,5),total=top.reduce((s,a)=>s+a.minutes,0)||1,colors=["#8e7cff","#70a7ff","#ed7997","#6fc9b3","#50545e"],data={labels:top.map(a=>a.name),datasets:[{data:top.map(a=>a.minutes),backgroundColor:colors,borderWidth:0}]};
-  return <article className="card apps-card"><CardHead title="Software / today" meta="ActivityWatch"/><div className="apps-body"><div className="chart-wrap"><Doughnut data={data} options={{cutout:"72%",plugins:{legend:{display:false},tooltip:{enabled:true}},animation:false}}/></div><div className="usage-list">{top.map((a,i)=><div className="usage-row" key={a.name}><span>{a.name}</span><i><b style={{width:`${a.minutes/total*100}%`,background:colors[i]}}/></i><strong>{Math.round(a.minutes/total*100)}%</strong></div>)}</div></div></article>;
+  if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="foreground"/><Empty label="Software aggregate not linked" detail="Run bridge/whatpulse_presence.py to publish today’s foreground application time."/></article>;
+  const top=apps.slice(0,5);
+  const max=Math.max(1,...top.map(app=>app.minutes));
+  return <article className="card apps-card"><CardHead title="Software / today" meta="foreground"/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
 }
 
-function KeyboardCard(){
-  return <article className="card keyboard-card"><CardHead title="Keyboard / yesterday" meta="WhatPulse · daily aggregate"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Yesterday keyboard heatmap"/></a>:<Empty label="Daily keyboard aggregate not linked" detail="Only the previous day’s privacy-filtered aggregate will be published here; no live keystroke feed."/>}</article>;
+function KeyboardCard({keyboard}){
+  if(!keyboard){
+    return <article className="card keyboard-card"><CardHead title="Keyboard / today"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Today keyboard heatmap"/></a>:<Empty label="Keyboard aggregate not linked" detail="Publish today’s privacy-filtered keyboard aggregate; no live keystrokes or key order leave the computer."/>}</article>;
+  }
+  return <article className="card keyboard-card"><CardHead title="Keyboard / today" meta={keyboard.total.toLocaleString()+" keys"}/><div className="keyboard-heatmap" aria-label={"Keyboard heatmap for "+keyboard.date}>{KEYBOARD_LAYOUT.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const level=keyboard.heat[item.key]||0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{"--key-u":item.u||1,"--heat":level/15}} title={item.label||"space"}><span>{item.label}</span></div>})}</div>)}</div></article>;
 }
 
 function HomePhotoCard(){
   const photo=config.photos[0];
-  return <article className="card photos-card"><CardHead title="Photo / VRChat" meta="latest frame"/>{photo?<div className="photo-album"><img className="photo-backdrop" src={photo.src} alt="" aria-hidden="true"/><img className="photo-preview" src={photo.src} alt={photo.alt} width={photo.width} height={photo.height} decoding="async"/></div>:<Empty label="No photos yet"/>}<Link className="photo-open" to="/photo">open archive ↗</Link></article>;
+  return <article className="card photos-card"><CardHead title="Photo" meta="latest frame"/>{photo?<div className="photo-album"><img className="photo-backdrop" src={photo.src} alt="" aria-hidden="true"/><img className="photo-preview" src={photo.src} alt={photo.alt} width={photo.width} height={photo.height} decoding="async"/></div>:<Empty label="No photos yet"/>}<Link className="photo-open" to="/photo">open archive ↗</Link></article>;
 }
 
-function FitnessCard({health}){if(!health)return <article className="card fitness-card"><CardHead title="Fitness" meta="Health Auto Export"/><Empty label="Health not linked" detail="POST Step Count / Heart Rate to /api/health"/></article>;return <article className="card fitness-card"><CardHead title="Fitness" meta="Health Auto Export"/><div className="fitness-content"><div className="fitness-ring"><span>◎</span></div><div><strong>{Number(health.steps||0).toLocaleString()}</strong><small>steps today</small>{health.heartRate&&<em>{Math.round(health.heartRate)} bpm</em>}</div></div></article>}
+function FitnessCard({health}){
+  const steps=Math.max(0,Number(health?.steps||0));
+  const goal=Math.max(1,Number(config.fitness?.stepGoal||8000));
+  const progress=Math.min(1,steps/goal);
+  const radius=46;
+  const circumference=2*Math.PI*radius;
+  const offset=circumference*(1-progress);
+  const synced=health!=null;
+  return <article className="card fitness-card"><CardHead title="Fitness" meta={synced?"steps · today":"not synced"}/><div className={`fitness-content${synced?"":" is-empty"}`}><div className="fitness-ring-wrap" role="img" aria-label={`${steps.toLocaleString()} of ${goal.toLocaleString()} steps`}><svg className="fitness-ring" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="fitness-progress-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="var(--violet)"/><stop offset="100%" stopColor="var(--mint)"/></linearGradient></defs><circle className="fitness-ring-track" cx="60" cy="60" r={radius}/><circle className="fitness-ring-progress" cx="60" cy="60" r={radius} strokeDasharray={circumference} strokeDashoffset={offset} style={{opacity:progress>0?1:0}}/></svg></div><div className="fitness-steps"><span className="fitness-footsteps" aria-hidden="true"><i/><i/><b/><b/></span><strong>{synced?steps.toLocaleString():"--"}</strong></div></div></article>;
+}
 
 function DevicesCard(){return <article className="card devices-card"><CardHead title="Devices" meta="daily / play"/><div className="device-columns"><DeviceGroup title="daily" items={[["MacBook Pro · M1 Pro","macOS"],["iPhone 16 Pro Max","mobile"],["AirPods Pro 3","audio"]]}/><DeviceGroup title="play" items={[["Quest 3","VR"],["Gaming Laptop","7945HX · RTX 5070 Ti"],["Desktop PC","5800X · RX 6900 XT"],["Xiaomi Pad 7S Pro","tablet"]]}/></div></article>}
 function DeviceGroup({title,items}){return <div><h4>{title}</h4>{items.map(([n,m])=><div className="device" key={n}><b>{n}</b><span>{m}</span></div>)}</div>}
 
-function StatusCard({displayPresence}){const{status,label,source,detail}=displayPresence;return <article className="card status-card"><CardHead title="Status" meta={source}/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong><small>{detail}</small></div></article>}
-function MusicCard({presence,music}){
-  const spot=presence&&presence.spotify;
-  const src=music||(spot?{title:spot.song,artist:spot.artist,album:spot.album,source:"spotify",playing:true,cover:spot.album_art_url}:null);
-  const labels={netease:"Netease",appleMusic:"Apple Music",spotify:"Spotify"};
-  if(src==null)return <article className="card music-card"><CardHead title="Currently listening" meta="Lanyard"/><Empty label="nothing playing" detail={presence?"No music detected":"Set VITE_DISCORD_ID after joining Lanyard"}/></article>;
-  const meta=src.playing?(labels[src.source]||"Now playing"):("Last played - "+(labels[src.source]||""));
-  return <article className="card music-card"><CardHead title="Currently listening" meta={meta}/><div className="music-body">{src.cover?<img className="music-cover" src={src.cover} alt="" loading="lazy" decoding="async"/>:<div className="music-cover music-cover-empty">&#9834;</div>}<div className="track-info"><strong>{src.title}</strong><span>{src.artist}</span></div></div></article>;
+function StatusCard({displayPresence}){const{status,label}=displayPresence;return <article className="card status-card"><CardHead title="Status"/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong></div></article>}
+function MusicCard({music}){
+  const stateLabels={playing:"Now playing",paused:"Paused",last_played:"Last played"};
+  const coverUrl=music?.artwork?.url||null;
+  const[failedCover,setFailedCover]=useState(null);
+  if(!music||music.state==="never")return <article className="card music-card"><CardHead title="Music Status"/><Empty label="Music not linked yet" detail="Waiting for the first local sync"/></article>;
+  const showCover=coverUrl&&failedCover!==coverUrl;
+  return <article className="card music-card"><CardHead title="Music Status"/><div className={`music-body music-${music.state}`}><div className="music-state">{stateLabels[music.state]||"Music"}</div><div className="music-cover-frame">{showCover?<img className="music-cover" src={coverUrl} alt={music.track.title+" cover"} loading="lazy" decoding="async" onError={()=>setFailedCover(coverUrl)}/>:<div className="music-cover music-cover-empty">&#9834;</div>}</div><div className="music-track"><strong>{music.track.title}</strong><span>{music.track.artist}</span></div></div></article>;
 }
 function VrcStatus({presence}){const vrc=presence?.activities?.find(a=>/vrchat/i.test(a.name||'')||/vrchat/i.test(a.details||''));return vrc?<div className="vrc-line">VRChat · {vrc.details||vrc.state||"active"}</div>:null}
 
@@ -155,18 +209,19 @@ function Layout({presence}){
   useEffect(()=>{if(isHome)setHasVisitedHome(true)},[isHome]);
   useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer)},[]);
   const displayPresence=getDisplayPresence(presence,now);
-  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><ThemeToggle/><div className="edition">digital presence<br/>2026 edition</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome}/>}<Outlet/></section></main></>;
+  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><ThemeToggle/><div className="edition">digital presence<br/>2026 edition</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome} now={now}/>}<Outlet/></section></main></>;
 }
 
-function Home({presence,displayPresence,active}){
+function Home({presence,displayPresence,active,now}){
   const apps=normalizeApps(presence&&presence.kv&&presence.kv.apps_today);
   const health=normalizeHealth(presence&&presence.kv&&presence.kv.health_today);
-  const music=normalizeMusic(presence&&presence.kv&&presence.kv.music_now);
-  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard presence={presence} music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard/></div></div>;
+  const keyboard=normalizeKeyboard(presence&&presence.kv&&(presence.kv.keyboard_today||presence.kv.keyboard_yesterday));
+  const music=resolveMusic(presence&&presence.kv&&presence.kv.music_now,presence&&presence.spotify,now);
+  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard keyboard={keyboard}/></div></div>;
 }
 
 function PhotoPage(){
-  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">PHOTO / ARCHIVE</span><h2>VRChat, places,<br/>and fragments.</h2></div><p>A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.</p></div><div className="page-rule"/><div className="photo-wall"><MasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></div>{config.photos.length===1&&<div className="archive-note">One image in the archive for now. Add more files later and the layout will rebalance automatically.</div>}</div>;
+  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">PHOTO / ARCHIVE</span><h2>Places, moments,<br/>and fragments.</h2></div><p>A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.</p></div><div className="page-rule"/><div className="photo-wall"><MasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></div>{config.photos.length===1&&<div className="archive-note">One image in the archive for now. Add more files later and the layout will rebalance automatically.</div>}</div>;
 }
 
 const publishedPosts=posts.filter(post=>post.published!==false);
