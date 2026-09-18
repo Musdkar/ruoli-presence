@@ -6,8 +6,6 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {MasonryPhotoAlbum} from "react-photo-album";
 import "react-photo-album/masonry.css";
-import {Doughnut} from "react-chartjs-2";
-import {ArcElement,Chart as ChartJS,Tooltip} from "chart.js";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {config} from "./config";
@@ -18,7 +16,6 @@ import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
 
-ChartJS.register(ArcElement,Tooltip);
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span><small>{meta}</small></div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
 const MAP_STYLE={dark:"https://tiles.openfreemap.org/styles/dark",light:"https://tiles.openfreemap.org/styles/positron"};
@@ -142,10 +139,22 @@ function WeatherCard(){
   return <article className="card weather-card"><CardHead title="Weather · Wuhan" meta="Open-Meteo"/><div className="weather-main"><div><strong>{weather&&weather.temperature_2m!=null?Math.round(weather.temperature_2m)+"°":"--°"}</strong><span>{weather?(names[weather.weather_code]||"Current weather"):weather===false?"unavailable":"loading…"}</span></div>{weather&&<small>feels {Math.round(weather.apparent_temperature)}°<br/>wind {Math.round(weather.wind_speed_10m)} km/h</small>}</div></article>;
 }
 
+function formatUsageMinutes(minutes){
+  const seconds=Math.max(0,Math.round(Number(minutes||0)*60));
+  if(seconds<60)return seconds+"s";
+  const hours=Math.floor(seconds/3600);
+  const mins=Math.floor((seconds%3600)/60);
+  const secs=seconds%60;
+  if(hours>0)return hours+"h "+String(mins).padStart(2,"0")+"m";
+  if(mins<10&&secs>0)return mins+"m "+String(secs).padStart(2,"0")+"s";
+  return mins+"m";
+}
+
 function SoftwareCard({apps}){
-  if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="ActivityWatch"/><Empty label="ActivityWatch not linked" detail="Run bridge/activitywatch_bridge.py"/></article>;
-  const top=apps.slice(0,5),total=top.reduce((s,a)=>s+a.minutes,0)||1,colors=["#8e7cff","#70a7ff","#ed7997","#6fc9b3","#50545e"],data={labels:top.map(a=>a.name),datasets:[{data:top.map(a=>a.minutes),backgroundColor:colors,borderWidth:0}]};
-  return <article className="card apps-card"><CardHead title="Software / today" meta="ActivityWatch"/><div className="apps-body"><div className="chart-wrap"><Doughnut data={data} options={{cutout:"72%",plugins:{legend:{display:false},tooltip:{enabled:true}},animation:false}}/></div><div className="usage-list">{top.map((a,i)=><div className="usage-row" key={a.name}><span>{a.name}</span><i><b style={{width:`${a.minutes/total*100}%`,background:colors[i]}}/></i><strong>{Math.round(a.minutes/total*100)}%</strong></div>)}</div></div></article>;
+  if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="WhatPulse · active"/><Empty label="Software aggregate not linked" detail="Run bridge/whatpulse_presence.py to publish today’s active application time."/></article>;
+  const top=apps.slice(0,5);
+  const max=Math.max(1,...top.map(app=>app.minutes));
+  return <article className="card apps-card"><CardHead title="Software / today" meta="WhatPulse · active"/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
 }
 
 function KeyboardCard({keyboard}){
