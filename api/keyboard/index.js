@@ -4,6 +4,7 @@ const { timingSafeEqual } = require("node:crypto");
 
 const MAX_KEYS = 100;
 const MAX_COUNT = 10000000;
+const MAX_LEVEL = 15;
 const KEY_RE = /^(?:[A-Z0-9]|SPACE|TAB|BACKSPACE|RETURN|SHIFT|COMMAND|CONTROL|OPTION|CAPS|ESC|LEFT|RIGHT|UP|DOWN|[-=\[\]\\;'\x60,.\/])$/;
 
 function safeEqual(a, b) {
@@ -18,9 +19,9 @@ function validDate(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
 }
 
-function readCount(value) {
+function readNumber(value, max) {
   const n = typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN;
-  return Number.isFinite(n) && n >= 0 && n <= MAX_COUNT ? Math.round(n) : null;
+  return Number.isFinite(n) && n >= 0 && n <= max ? Math.round(n) : null;
 }
 
 module.exports = async function (context, req) {
@@ -45,30 +46,34 @@ module.exports = async function (context, req) {
 
   const payload = req.body || {};
   const date = validDate(payload.date);
-  if (date == null || payload.keys == null || typeof payload.keys !== "object" || Array.isArray(payload.keys)) {
+  if (date == null || payload.heat == null || typeof payload.heat !== "object" || Array.isArray(payload.heat)) {
     context.res = { status: 400, jsonBody: { error: "invalid_keyboard_payload" } };
     return;
   }
 
-  const keys = {};
-  for (const [rawKey, rawCount] of Object.entries(payload.keys).slice(0, MAX_KEYS)) {
+  const heat = {};
+  for (const [rawKey, rawLevel] of Object.entries(payload.heat).slice(0, MAX_KEYS)) {
     const key = String(rawKey).toUpperCase();
-    const count = readCount(rawCount);
-    if (KEY_RE.test(key) && count != null) keys[key] = count;
+    const level = readNumber(rawLevel, MAX_LEVEL);
+    if (KEY_RE.test(key) && level != null) heat[key] = level;
   }
-  if (Object.keys(keys).length === 0) {
+  if (Object.keys(heat).length === 0) {
     context.res = { status: 400, jsonBody: { error: "no_valid_keys" } };
     return;
   }
 
-  const providedTotal = readCount(payload.total);
-  const derivedTotal = Object.values(keys).reduce((a, b) => a + b, 0);
+  const total = readNumber(payload.total, MAX_COUNT);
+  if (total == null) {
+    context.res = { status: 400, jsonBody: { error: "invalid_total" } };
+    return;
+  }
+
   const summary = {
     v: 1,
     date,
     collector: "whatpulse_sqlite_daily",
-    total: providedTotal == null ? derivedTotal : providedTotal,
-    keys,
+    total,
+    heat,
     updatedAt: new Date().toISOString(),
   };
 
