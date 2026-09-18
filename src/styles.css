@@ -182,7 +182,7 @@
   display: inline-block;
   flex: 0 0 auto;
   opacity: .7;
-  transform: rotate(-8deg);
+  transform: translateY(-3px) rotate(-8deg);
 }
 
 .fitness-footsteps i,
