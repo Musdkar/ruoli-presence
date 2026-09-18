@@ -154,7 +154,7 @@ function SoftwareCard({apps}){
   if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="active time"/><Empty label="Software aggregate not linked" detail="Run bridge/whatpulse_presence.py to publish today’s active application time."/></article>;
   const top=apps.slice(0,5);
   const max=Math.max(1,...top.map(app=>app.minutes));
-  return <article className="card apps-card"><CardHead title="Software / today" meta="WhatPulse · active"/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
+  return <article className="card apps-card"><CardHead title="Software / today" meta="active time"/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
 }
 
 function KeyboardCard({keyboard}){
@@ -183,7 +183,7 @@ function FitnessCard({health}){
 function DevicesCard(){return <article className="card devices-card"><CardHead title="Devices" meta="daily / play"/><div className="device-columns"><DeviceGroup title="daily" items={[["MacBook Pro · M1 Pro","macOS"],["iPhone 16 Pro Max","mobile"],["AirPods Pro 3","audio"]]}/><DeviceGroup title="play" items={[["Quest 3","VR"],["Gaming Laptop","7945HX · RTX 5070 Ti"],["Desktop PC","5800X · RX 6900 XT"],["Xiaomi Pad 7S Pro","tablet"]]}/></div></article>}
 function DeviceGroup({title,items}){return <div><h4>{title}</h4>{items.map(([n,m])=><div className="device" key={n}><b>{n}</b><span>{m}</span></div>)}</div>}
 
-function StatusCard({displayPresence}){const{status,label,detail}=displayPresence;return <article className="card status-card"><CardHead title="Status"/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong><small>{detail}</small></div></article>}
+function StatusCard({displayPresence}){const{status,label}=displayPresence;return <article className="card status-card"><CardHead title="Status"/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong></div></article>}
 function MusicCard({music}){
   const stateLabels={playing:"Now playing",paused:"Paused",last_played:"Last played"};
   const coverUrl=music?.artwork?.url||null;
