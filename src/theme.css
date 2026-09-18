@@ -279,6 +279,7 @@ html.light .fun-facts ul { color: #4c4f57; }
   gap: 8px;
   min-width: 0;
   min-height: 0;
+  justify-items: center;
 }
 
 .music-state {
@@ -288,6 +289,7 @@ html.light .fun-facts ul { color: #4c4f57; }
   text-transform: uppercase;
   letter-spacing: .12em;
   color: var(--mint);
+  text-align: center;
 }
 
 .music-paused .music-state { color: #b6adff; }
@@ -297,8 +299,9 @@ html.light .fun-facts ul { color: #4c4f57; }
   min-width: 0;
   min-height: 0;
   display: flex;
-  align-items: stretch;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .music-cover {
@@ -323,6 +326,9 @@ html.light .fun-facts ul { color: #4c4f57; }
 
 .music-track {
   min-width: 0;
+  width: min(100%, 340px);
+  text-align: center;
+  padding-inline: 4px;
 }
 
 .music-track strong {
