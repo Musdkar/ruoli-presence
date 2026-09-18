@@ -3,7 +3,7 @@
 
 Reads WhatPulse's local SQLite database in read-only mode, collapses all hourly
 per-key counters for *yesterday* into one daily total, and sends only
-{date, total, keys} to /api/keyboard. No key order, window titles, application
+{date, total, heat} to /api/keyboard. No key order, window titles, application
 names, hourly buckets, URLs, or raw database rows leave the Mac.
 """
 
@@ -117,7 +117,15 @@ def read_yesterday(db_path: Path) -> dict:
         if total <= 0 or not keys:
             raise RuntimeError(f"No keyboard data found for {target}")
 
-        return {"date": target, "total": total, "keys": keys}
+        peak = max(keys.values())
+        # Publish only coarse relative heat (0..15), never exact per-key counts.
+        # sqrt() keeps low-frequency keys visible without revealing raw ratios.
+        heat = {
+            label: max(1, min(15, round(((count / peak) ** 0.5) * 15)))
+            for label, count in keys.items()
+            if count > 0
+        }
+        return {"date": target, "total": total, "heat": heat}
     finally:
         con.close()
 
