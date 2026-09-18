@@ -46,9 +46,22 @@ Hard budgets:
 
 The CI workflow also runs the same build on PRs and `main`. Lazy chunks are reported separately so large on-demand dependencies stay visible without being counted as first-load regressions.
 
+## Map runtime removal
+
+The fixed Wuhan map is decorative and non-interactive, so the MapLibre/WebGL runtime was removed from the rendered application. The replacement uses a deferred 3×3 raster-tile mosaic with a CSS fallback surface and visible OpenStreetMap attribution.
+
+Measured after the replacement:
+
+| Asset | Before | After |
+|---|---:|---:|
+| Initial JS gzip | 71.3 kB | **68.0 kB** |
+| Initial CSS gzip | 7.5 kB | **7.8 kB** |
+| Largest on-demand JS chunk | MapLibre **278.3 kB** | route chunk **34.4 kB** |
+
+The map tiles are requested only when the map approaches the viewport and the browser becomes idle. If the tile service is slow or unavailable, the card keeps its local CSS surface, avatar, city label and location pill instead of blocking Home.
+
 ## Next targets
 
-- Remove the non-interactive MapLibre runtime entirely if a static map treatment preserves the current visual quality.
 - Convert oversized decorative imagery to appropriately sized WebP/AVIF assets.
 - Add long-lived immutable cache headers only to content-hashed assets.
 - Keep Lanyard storage architecture separate from performance work unless measurements justify a migration.
