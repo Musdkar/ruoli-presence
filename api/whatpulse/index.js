@@ -40,7 +40,7 @@ function normalizeSoftware(value) {
     apps.push({ name, minutes: Math.round(minutes * 10) / 10 });
   }
   if (!apps.length) return null;
-  return { date: day, apps, source: "whatpulse_active_time" };
+  return { date: day, apps, source: "activitywatch_foreground" };
 }
 
 function normalizeKeyboard(value) {
