@@ -2,12 +2,6 @@ import React,{useEffect,useMemo,useRef,useState} from "react";
 import {createRoot} from "react-dom/client";
 import {BrowserRouter,Link,NavLink,Navigate,Outlet,Route,Routes,useLocation,useParams} from "react-router-dom";
 import {useLanyard} from "use-lanyard";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import {MasonryPhotoAlbum} from "react-photo-album";
-import "react-photo-album/masonry.css";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {config} from "./config";
 import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
@@ -15,6 +9,9 @@ import {normalizeApps,normalizeHealth,normalizeKeyboard,resolveMusic} from "./no
 import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
+
+const LazyMasonryPhotoAlbum=React.lazy(async()=>{ await import("react-photo-album/masonry.css"); const mod=await import("react-photo-album"); return{default:mod.MasonryPhotoAlbum}; });
+const LazyMarkdown=React.lazy(async()=>{ const[{default:Markdown},{default:gfm}]=await Promise.all([import("react-markdown"),import("remark-gfm")]); return{default:function MarkdownRenderer({children}){return <Markdown remarkPlugins={[gfm]}>{children}</Markdown>}}; });
 
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span>{meta?<small>{meta}</small>:null}</div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
@@ -105,18 +102,28 @@ function MapCard({active}){
   const[ready,setReady]=useState(false);
   useEffect(()=>{
     if(!ref.current)return;
+    let disposed=false;
     let map;
-    try{
-      map=new maplibregl.Map({container:ref.current,style:MAP_STYLE[resolvedTheme],center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
-      mapRef.current=map;
-      map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
-      map.on("error",()=>{});
-      map.once("load",()=>setReady(true));
-    }catch(error){
-      console.error("Map failed to initialise",error);
-      setFailed(true);
-    }
-    return()=>{mapRef.current=null;try{map?.remove()}catch{}};
+    const init=async()=>{
+      try{
+        const[{default:maplibregl}]=await Promise.all([
+          import("maplibre-gl"),
+          import("maplibre-gl/dist/maplibre-gl.css"),
+        ]);
+        if(disposed||!ref.current)return;
+        map=new maplibregl.Map({container:ref.current,style:MAP_STYLE[resolvedTheme],center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
+        mapRef.current=map;
+        map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
+        map.on("error",()=>{});
+        map.once("load",()=>{if(!disposed)setReady(true)});
+      }catch(error){
+        if(disposed)return;
+        console.error("Map failed to initialise",error);
+        setFailed(true);
+      }
+    };
+    init();
+    return()=>{disposed=true;mapRef.current=null;try{map?.remove()}catch{}};
   },[]);
   useEffect(()=>{
     const map=mapRef.current;
@@ -221,7 +228,7 @@ function Home({presence,displayPresence,active,now}){
 }
 
 function PhotoPage(){
-  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">PHOTO / ARCHIVE</span><h2>Places, moments,<br/>and fragments.</h2></div><p>A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.</p></div><div className="page-rule"/><div className="photo-wall"><MasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></div>{config.photos.length===1&&<div className="archive-note">One image in the archive for now. Add more files later and the layout will rebalance automatically.</div>}</div>;
+  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">PHOTO / ARCHIVE</span><h2>Places, moments,<br/>and fragments.</h2></div><p>A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.</p></div><div className="page-rule"/><div className="photo-wall"><React.Suspense fallback={<div className="archive-note">Loading archive…</div>}><LazyMasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></React.Suspense></div>{config.photos.length===1&&<div className="archive-note">One image in the archive for now. Add more files later and the layout will rebalance automatically.</div>}</div>;
 }
 
 const publishedPosts=posts.filter(post=>post.published!==false);
@@ -233,7 +240,7 @@ function BlogPost(){
   const{slug}=useParams();
   const post=posts.find(item=>item.slug===slug&&item.published!==false);
   if(!post)return <div className="view page-view"><div className="blog-empty"><span>404</span><h3>Post not found.</h3><Link to="/blog">← back to blog</Link></div></div>;
-  return <article className="view article-view"><Link className="back-link" to="/blog">← BLOG</Link><header className="article-head"><time>{post.date}</time><h2>{post.title}</h2><p>{post.summary}</p></header><div className="article-body"><ReactMarkdown remarkPlugins={[remarkGfm]}>{post.body}</ReactMarkdown></div></article>;
+  return <article className="view article-view"><Link className="back-link" to="/blog">← BLOG</Link><header className="article-head"><time>{post.date}</time><h2>{post.title}</h2><p>{post.summary}</p></header><div className="article-body"><React.Suspense fallback={<p>Loading article…</p>}><LazyMarkdown>{post.body}</LazyMarkdown></React.Suspense></div></article>;
 }
 
 function BrandMark({item}){

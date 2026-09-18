@@ -1,0 +1,24 @@
+name: Performance budget
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+jobs:
+  budget:
+    runs-on: ubuntu-latest
+    name: Build + bundle budget
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Build and enforce bundle budget
+        run: npm run build
