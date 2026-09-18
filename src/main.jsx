@@ -124,7 +124,16 @@ function HomePhotoCard(){
   return <article className="card photos-card"><CardHead title="Photo" meta="latest frame"/>{photo?<div className="photo-album"><img className="photo-backdrop" src={photo.src} alt="" aria-hidden="true"/><img className="photo-preview" src={photo.src} alt={photo.alt} width={photo.width} height={photo.height} decoding="async"/></div>:<Empty label="No photos yet"/>}<Link className="photo-open" to="/photo">open archive ↗</Link></article>;
 }
 
-function FitnessCard({health}){if(!health)return <article className="card fitness-card"><CardHead title="Fitness" meta="Health Auto Export"/><Empty label="Health not linked" detail="POST Step Count / Heart Rate to /api/health"/></article>;return <article className="card fitness-card"><CardHead title="Fitness" meta="Health Auto Export"/><div className="fitness-content"><div className="fitness-ring"><span>◎</span></div><div><strong>{Number(health.steps||0).toLocaleString()}</strong><small>steps today</small>{health.heartRate&&<em>{Math.round(health.heartRate)} bpm</em>}</div></div></article>}
+function FitnessCard({health}){
+  const steps=Math.max(0,Number(health?.steps||0));
+  const goal=Math.max(1,Number(config.fitness?.stepGoal||8000));
+  const progress=Math.min(1,steps/goal);
+  const radius=46;
+  const circumference=2*Math.PI*radius;
+  const offset=circumference*(1-progress);
+  const synced=health!=null;
+  return <article className="card fitness-card"><CardHead title="Fitness" meta={synced?"steps · today":"not synced"}/><div className={`fitness-content${synced?"":" is-empty"}`}><div className="fitness-ring-wrap" role="img" aria-label={`${steps.toLocaleString()} of ${goal.toLocaleString()} steps`}><svg className="fitness-ring" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="fitness-progress-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="var(--violet)"/><stop offset="100%" stopColor="var(--mint)"/></linearGradient></defs><circle className="fitness-ring-track" cx="60" cy="60" r={radius}/><circle className="fitness-ring-progress" cx="60" cy="60" r={radius} strokeDasharray={circumference} strokeDashoffset={offset} style={{opacity:progress>0?1:0}}/></svg></div><div className="fitness-steps"><span className="fitness-footsteps" aria-hidden="true"><i/><i/><b/><b/></span><strong>{steps.toLocaleString()}</strong><small>{synced?"steps":"waiting for sync"}</small></div></div></article>;
+}
 
 function DevicesCard(){return <article className="card devices-card"><CardHead title="Devices" meta="daily / play"/><div className="device-columns"><DeviceGroup title="daily" items={[["MacBook Pro · M1 Pro","macOS"],["iPhone 16 Pro Max","mobile"],["AirPods Pro 3","audio"]]}/><DeviceGroup title="play" items={[["Quest 3","VR"],["Gaming Laptop","7945HX · RTX 5070 Ti"],["Desktop PC","5800X · RX 6900 XT"],["Xiaomi Pad 7S Pro","tablet"]]}/></div></article>}
 function DeviceGroup({title,items}){return <div><h4>{title}</h4>{items.map(([n,m])=><div className="device" key={n}><b>{n}</b><span>{m}</span></div>)}</div>}
