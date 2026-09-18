@@ -25,7 +25,7 @@ const NP_CLI = process.env.NP_CLI || join(__dirname, "nowplaying", "nowplaying-c
 const INTERVAL = Math.max(2000, Number(process.env.NP_INTERVAL_MS || 8000));
 const HEARTBEAT = Math.max(INTERVAL, Number(process.env.NP_HEARTBEAT_MS || 30000));
 const MISS_LIMIT = Math.max(1, Number(process.env.NP_MISS_LIMIT || 3));
-const MAX_COVER_CHARS = 12000;
+const MAX_COVER_CHARS = 26000;
 
 const SERVICE_BY_BUNDLE = {
   "com.netease.163music": "netease",
@@ -65,9 +65,11 @@ async function shrinkCover(base64) {
   const { mkdtemp, writeFile, readFile, rm } = await import("node:fs/promises");
   const { tmpdir } = await import("node:os");
   const tries = [
-    ["-s", "format", "jpeg", "-s", "formatOptions", "60"],
-    ["-Z", "96", "-s", "format", "jpeg", "-s", "formatOptions", "50"],
-    ["-Z", "64", "-s", "format", "jpeg", "-s", "formatOptions", "40"],
+    ["-Z", "320", "-s", "format", "jpeg", "-s", "formatOptions", "65"],
+    ["-Z", "288", "-s", "format", "jpeg", "-s", "formatOptions", "60"],
+    ["-Z", "256", "-s", "format", "jpeg", "-s", "formatOptions", "55"],
+    ["-Z", "224", "-s", "format", "jpeg", "-s", "formatOptions", "50"],
+    ["-Z", "192", "-s", "format", "jpeg", "-s", "formatOptions", "45"],
   ];
   const dir = await mkdtemp(join(tmpdir(), "npmusic-"));
   const src = join(dir, "in.dat");
@@ -176,5 +178,16 @@ if (Number.isFinite(INTERVAL) === false || Number.isFinite(HEARTBEAT) === false 
 
 console.log("music bridge started; polling every", INTERVAL, "ms; heartbeat", HEARTBEAT, "ms");
 console.log("api:", API_URL);
-tick();
-setInterval(tick, INTERVAL);
+let tickRunning = false;
+async function guardedTick() {
+  if (tickRunning) return;
+  tickRunning = true;
+  try {
+    await tick();
+  } finally {
+    tickRunning = false;
+  }
+}
+
+guardedTick();
+setInterval(guardedTick, INTERVAL);
