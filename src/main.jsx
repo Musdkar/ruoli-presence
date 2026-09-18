@@ -162,7 +162,7 @@ function MapCard({active}){
 
   return <article className="card map-card" ref={ref}>
     <div className="map-static" aria-hidden="true">
-      {shouldLoad?<div className="map-static-tiles">{MAP_TILES.map(([x,y])=><img key={x+"-"+y} src={`https://tile.openstreetmap.org/9/${x}/${y}.png`} alt="" width="256" height="256" loading="lazy" decoding="async" style={{left:(x-417)*256,top:(y-209)*256}}/>)}</div>:null}
+      {shouldLoad?<div className="map-static-tiles">{MAP_TILES.map(([x,y])=><img key={x+"-"+y} src={`https://tile.openstreetmap.org/9/${x}/${y}.png`} alt="" width="256" height="256" loading="lazy" fetchPriority="low" decoding="async" referrerPolicy="strict-origin-when-cross-origin" onError={e=>{e.currentTarget.style.visibility="hidden"}} style={{left:(x-417)*256,top:(y-209)*256}}/>)}</div>:null}
     </div>
     <div className="map-shade"/>
     <h2>{config.city}</h2>
