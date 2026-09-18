@@ -167,7 +167,7 @@ function MapCard({active}){
     </div>
     <div className="map-shade"/>
     <h2>{config.city}</h2>
-    <div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" loading="lazy" decoding="async"/></div>
+    <div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" loading="lazy" fetchPriority="low" decoding="async"/></div>
     <a className="map-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>
     <div className="map-pill">◎ {config.city}, {config.region}</div>
   </article>;
