@@ -29,7 +29,6 @@ const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><sp
 const MAP_TILES=[
   [417,209],[418,209],[419,209],
   [417,210],[418,210],[419,210],
-  [417,211],[418,211],[419,211],
 ];
 const KEYBOARD_LAYOUT=[
   [
