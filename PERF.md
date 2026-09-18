@@ -48,7 +48,7 @@ The CI workflow also runs the same build on PRs and `main`. Lazy chunks are repo
 
 ## Map runtime removal
 
-The fixed Wuhan map is decorative and non-interactive, so the MapLibre/WebGL runtime was removed from the rendered application. The replacement uses a deferred 3×3 raster-tile mosaic with a CSS fallback surface and visible OpenStreetMap attribution.
+The fixed Wuhan map is decorative and non-interactive, so the MapLibre/WebGL runtime was removed from the rendered application. The replacement uses a deferred 3×2 raster-tile mosaic with a CSS fallback surface and visible OpenStreetMap attribution.
 
 Measured after the replacement:
 
@@ -59,6 +59,10 @@ Measured after the replacement:
 | Largest on-demand JS chunk | MapLibre **278.3 kB** | route chunk **34.4 kB** |
 
 The map tiles are requested only when the map approaches the viewport and the browser becomes idle. If the tile service is slow or unavailable, the card keeps its local CSS surface, avatar, city label and location pill instead of blocking Home.
+
+## Dependency cleanup
+
+After removing the runtime map and confirming Chart.js is unused, `maplibre-gl`, `chart.js` and `react-chartjs-2` were removed from the app dependencies and the lockfile was pruned. CI now installs 170 packages and the production browser bundle is unchanged.
 
 ## Next targets
 
