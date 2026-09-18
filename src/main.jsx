@@ -151,10 +151,10 @@ function formatUsageMinutes(minutes){
 }
 
 function SoftwareCard({apps}){
-  if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="foreground"/><Empty label="Software aggregate not linked" detail="Run bridge/whatpulse_presence.py to publish today’s active application time."/></article>;
+  if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="foreground"/><Empty label="Software aggregate not linked" detail="Run bridge/whatpulse_presence.py to publish today’s foreground application time."/></article>;
   const top=apps.slice(0,5);
   const max=Math.max(1,...top.map(app=>app.minutes));
-  return <article className="card apps-card"><CardHead title="Software / today" meta="active time"/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
+  return <article className="card apps-card"><CardHead title="Software / today" meta="foreground"/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
 }
 
 function KeyboardCard({keyboard}){
