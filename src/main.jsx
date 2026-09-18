@@ -151,13 +151,26 @@ function MapCard({active}){
       setShouldLoad(true);
       return;
     }
+    let idleId=null;
+    let timerId=null;
+    const scheduleLoad=()=>{
+      if("requestIdleCallback" in window){
+        idleId=window.requestIdleCallback(()=>setShouldLoad(true),{timeout:1500});
+      }else{
+        timerId=window.setTimeout(()=>setShouldLoad(true),500);
+      }
+    };
     const observer=new IntersectionObserver(([entry])=>{
       if(!entry?.isIntersecting)return;
-      setShouldLoad(true);
       observer.disconnect();
-    },{root:null,rootMargin:"320px 0px"});
+      scheduleLoad();
+    },{root:null,rootMargin:"160px 0px"});
     observer.observe(node);
-    return()=>observer.disconnect();
+    return()=>{
+      observer.disconnect();
+      if(idleId!=null&&"cancelIdleCallback" in window)window.cancelIdleCallback(idleId);
+      if(timerId!=null)window.clearTimeout(timerId);
+    };
   },[active,shouldLoad]);
 
   useEffect(()=>{
