@@ -23,6 +23,7 @@ export const config = {
   timezone: "Asia/Shanghai",
   avatar: "/assets/avatar.webp",
   mapAvatar: "/assets/map-avatar.png",
+  fitness: { stepGoal: 8000 },
   socialLinks: [
     { label: "GH", name: "GitHub", href: "https://github.com/Musdkar" },
     { label: "VR", name: "VRChat", href: import.meta.env.VITE_VRCHAT_URL || "" },
