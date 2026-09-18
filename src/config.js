@@ -45,8 +45,9 @@ export const config = {
       note: "things I build with",
       items: [
         { name: "VS Code", meta: "editor", icon: "visualstudiocode" },
+        { name: "PyCharm", meta: "Python IDE", icon: "pycharm" },
         { name: "Ghostty", meta: "terminal", monogram: "GT" },
-        { name: "GitHub", meta: "code + repos", icon: "github" }
+        { name: "Git", meta: "version control", icon: "git" }
       ]
     },
     {
@@ -72,6 +73,8 @@ export const config = {
       items: [
         { name: "Obsidian", meta: "notes", icon: "obsidian" },
         { name: "Notion", meta: "workspace", icon: "notion" },
+        { name: "Microsoft Edge", meta: "browser", icon: "microsoftedge" },
+        { name: "MarkEdit", meta: "Markdown", monogram: "ME" },
         { name: "Maccy", meta: "clipboard", monogram: "MC" }
       ]
     }
