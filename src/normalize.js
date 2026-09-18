@@ -21,21 +21,21 @@ export const normalizeKeyboard=(value)=>{
   const parsed=safeJSON(value,null);
   if(parsed==null||typeof parsed!=="object"||Array.isArray(parsed))return null;
   if(parsed.v!==1||typeof parsed.date!=="string"||/^\d{4}-\d{2}-\d{2}$/.test(parsed.date)===false)return null;
-  if(parsed.keys==null||typeof parsed.keys!=="object"||Array.isArray(parsed.keys))return null;
-  const keys={};
+  if(parsed.heat==null||typeof parsed.heat!=="object"||Array.isArray(parsed.heat))return null;
+  const heat={};
   let seen=0;
-  for(const [rawKey,rawCount] of Object.entries(parsed.keys)){
+  for(const [rawKey,rawLevel] of Object.entries(parsed.heat)){
     if(seen>=100)break;
     const key=String(rawKey).toUpperCase().slice(0,16);
-    const count=toFiniteNumber(rawCount,10000000);
-    if(key===""||count==null)continue;
-    keys[key]=Math.round(count);
+    const level=toFiniteNumber(rawLevel,15);
+    if(key===""||level==null)continue;
+    heat[key]=Math.round(level);
     seen+=1;
   }
-  if(Object.keys(keys).length===0)return null;
+  if(Object.keys(heat).length===0)return null;
   const total=toFiniteNumber(parsed.total,10000000);
-  const derived=Object.values(keys).reduce((a,b)=>a+b,0);
-  return{v:1,date:parsed.date,total:Math.round(total==null?derived:total),keys};
+  if(total==null)return null;
+  return{v:1,date:parsed.date,total:Math.round(total),heat};
 };
 
 // Music is a separate domain from Discord presence. Local collectors publish a
