@@ -5,7 +5,7 @@ const { timingSafeEqual } = require("node:crypto");
 // Keep artwork small enough that music_now remains cheap to push through
 // Lanyard KV and fast to render. This is an application limit, not Lanyard's
 // protocol ceiling.
-const MAX_COVER_CHARS = 12000;
+const MAX_COVER_CHARS = 26000;
 const MAX_TEXT = 200;
 const VALID_STATES = ["playing", "paused", "last_played"];
 const VALID_SERVICES = ["netease", "apple_music"];
