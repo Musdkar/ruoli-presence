@@ -26,10 +26,6 @@ const LazyMarkdown=React.lazy(async()=>{
 
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span>{meta?<small>{meta}</small>:null}</div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
-const MAP_TILES=[
-  [417,209],[418,209],[419,209],
-  [417,210],[418,210],[419,210],
-];
 const KEYBOARD_LAYOUT=[
   [
     {key:"ESC",label:"esc",u:1.15},
@@ -127,49 +123,12 @@ function ThemeToggle(){
   return <button type="button" className="theme-toggle" onClick={cycle} title={`Theme: ${stored} — switch to ${next}`} aria-label={`Theme: ${stored}. Switch to ${next}`}><span className="theme-toggle-icon" aria-hidden="true">{themeIcon(stored)}</span><span className="theme-toggle-label">{stored}</span></button>;
 }
 
-function MapCard({active}){
-  const ref=useRef(null);
-  const[shouldLoad,setShouldLoad]=useState(false);
-
-  useEffect(()=>{
-    if(!active||shouldLoad||!ref.current)return;
-    const node=ref.current;
-    let idleId=null;
-    let timerId=null;
-    const schedule=()=>{
-      timerId=window.setTimeout(()=>{
-        timerId=null;
-        if("requestIdleCallback" in window){
-          idleId=window.requestIdleCallback(()=>setShouldLoad(true),{timeout:1500});
-        }else{
-          setShouldLoad(true);
-        }
-      },700);
-    };
-    if(!("IntersectionObserver" in window)){
-      schedule();
-      return()=>{};
-    }
-    const observer=new IntersectionObserver(([entry])=>{
-      if(!entry?.isIntersecting)return;
-      observer.disconnect();
-      schedule();
-    },{root:null,rootMargin:"180px 0px"});
-    observer.observe(node);
-    return()=>{
-      observer.disconnect();
-      if(idleId!=null&&"cancelIdleCallback" in window)window.cancelIdleCallback(idleId);
-      if(timerId!=null)window.clearTimeout(timerId);
-    };
-  },[active,shouldLoad]);
-
-  return <article className="card map-card" ref={ref}>
-    <div className="map-static" aria-hidden="true">
-      {shouldLoad?<div className="map-static-tiles">{MAP_TILES.map(([x,y])=><img key={x+"-"+y} src={`https://tile.openstreetmap.org/9/${x}/${y}.png`} alt="" width="256" height="256" loading="lazy" fetchPriority="low" decoding="async" referrerPolicy="strict-origin-when-cross-origin" onError={e=>{e.currentTarget.style.visibility="hidden"}} style={{left:(x-417)*256,top:(y-209)*256}}/>)}</div>:null}
-    </div>
+function MapCard(){
+  return <article className="card map-card">
+    <div className="map-static" aria-hidden="true"/>
     <div className="map-shade"/>
     <h2>{config.city}</h2>
-    <div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" loading="lazy" fetchPriority="low" decoding="async"/></div>
+    <div className="map-avatar"><img src={config.mapAvatar} alt="" width="66" height="66" loading="lazy" fetchPriority="low" decoding="async"/></div>
     <a className="map-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>
     <div className="map-pill">◎ {config.city}, {config.region}</div>
   </article>;
@@ -284,7 +243,7 @@ function Home({presence,displayPresence,active,now}){
   const health=normalizeHealth(presence&&presence.kv&&presence.kv.health_today);
   const keyboard=normalizeKeyboard(presence&&presence.kv&&(presence.kv.keyboard_today||presence.kv.keyboard_yesterday));
   const music=resolveMusic(presence&&presence.kv&&presence.kv.music_now,presence&&presence.spotify,now);
-  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard keyboard={keyboard}/></div></div>;
+  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard keyboard={keyboard}/></div></div>;
 }
 
 function PhotoPage(){
