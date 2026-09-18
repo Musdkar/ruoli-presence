@@ -17,8 +17,68 @@ export const normalizeApps=(value)=>{const parsed=safeJSON(value,null);const raw
 // heartRate (0..300); otherwise "not linked".
 export const normalizeHealth=(value)=>{const parsed=safeJSON(value,null);if(parsed==null||typeof parsed!=="object"||Array.isArray(parsed))return null;const steps=toFiniteNumber(parsed.steps,1000000);const hr=toFiniteNumber(parsed.heartRate,300);if(steps==null&&hr==null)return null;return{steps:steps==null?0:steps,heartRate:hr}};
 
-// Accept only { title, artist: non-empty strings, source in whitelist };
-// cover must be a small data:image URL. Anything else is "not linked".
-const MUSIC_SOURCES = ["netease", "appleMusic", "spotify"];
-const isCover = (v) => typeof v === "string" && v.length <= 12000 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v);
-export const normalizeMusic=(value)=>{const parsed=safeJSON(value,null);if(parsed==null||typeof parsed!=="object"||Array.isArray(parsed))return null;if(typeof parsed.title!=="string"||parsed.title.trim()==="")return null;if(typeof parsed.artist!=="string"||parsed.artist.trim()==="")return null;const source=MUSIC_SOURCES.includes(parsed.source)?parsed.source:null;if(source==null)return null;return{title:parsed.title.slice(0,200),artist:parsed.artist.slice(0,200),album:typeof parsed.album==="string"?parsed.album.slice(0,200):null,source:source,playing:parsed.playing===true,cover:isCover(parsed.cover)?parsed.cover:null};};
+// Music is a separate domain from Discord presence. Local collectors publish a
+// canonical record; Spotify is adapted into the same shape only as a fallback.
+export const MUSIC_LIVE_MAX_AGE=90*1000;
+const MUSIC_STATES=["playing","paused","last_played"];
+const MUSIC_SERVICES=["netease","apple_music","spotify"];
+const LEGACY_SERVICE={netease:"netease",appleMusic:"apple_music",apple_music:"apple_music",spotify:"spotify"};
+const text=(value)=>typeof value==="string"&&value.trim()!==""?value.trim().slice(0,200):null;
+const observedAt=(value)=>typeof value==="string"&&Number.isFinite(Date.parse(value))?value:null;
+const isDataCover=(value)=>typeof value==="string"&&value.length<=12000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value);
+const isHttpsCover=(value)=>typeof value==="string"&&value.length<=2048&&/^https:\/\//i.test(value);
+const artwork=(value)=>isDataCover(value)?{kind:"data",url:value}:isHttpsCover(value)?{kind:"https",url:value}:{kind:"none",url:null};
+const neverMusic=()=>({v:1,state:"never",service:null,collector:null,track:null,artwork:{kind:"none",url:null},observedAt:null});
+
+export const normalizeMusic=(value)=>{
+  const parsed=safeJSON(value,null);
+  if(parsed==null||typeof parsed!=="object"||Array.isArray(parsed))return null;
+
+  // Canonical v1 record written by /api/music.
+  if(parsed.v===1&&parsed.track&&typeof parsed.track==="object"&&!Array.isArray(parsed.track)){
+    const state=MUSIC_STATES.includes(parsed.state)?parsed.state:null;
+    const service=MUSIC_SERVICES.includes(parsed.service)?parsed.service:null;
+    const title=text(parsed.track.title),artist=text(parsed.track.artist);
+    if(state==null||service==null||title==null||artist==null)return null;
+    const rawArtwork=parsed.artwork&&typeof parsed.artwork==="object"&&!Array.isArray(parsed.artwork)?parsed.artwork.url:null;
+    return{v:1,state,service,collector:typeof parsed.collector==="string"?parsed.collector:"unknown",track:{title,artist,album:text(parsed.track.album)},artwork:artwork(rawArtwork),observedAt:observedAt(parsed.observedAt)};
+  }
+
+  // Transitional support for the pre-schema music_now payload already present
+  // in Lanyard KV. Missing timestamps are intentionally not trusted as live.
+  const title=text(parsed.title),artist=text(parsed.artist);
+  const service=LEGACY_SERVICE[parsed.source]||null;
+  if(title==null||artist==null||service==null)return null;
+  const ts=observedAt(parsed.updatedAt);
+  let state=MUSIC_STATES.includes(parsed.state)?parsed.state:(parsed.playing===true?"playing":"last_played");
+  if((state==="playing"||state==="paused")&&ts==null)state="last_played";
+  return{v:1,state,service,collector:"legacy",track:{title,artist,album:text(parsed.album)},artwork:artwork(parsed.cover),observedAt:ts};
+};
+
+export const normalizeSpotify=(spot)=>{
+  if(spot==null||typeof spot!=="object")return null;
+  const title=text(spot.song),artist=text(spot.artist);
+  if(title==null||artist==null)return null;
+  return{v:1,state:"playing",service:"spotify",collector:"lanyard_spotify",track:{title,artist,album:text(spot.album)},artwork:artwork(spot.album_art_url),observedAt:null};
+};
+
+export const resolveMusic=(localValue,spotifyValue,now=Date.now())=>{
+  const local=normalizeMusic(localValue);
+  const spotify=normalizeSpotify(spotifyValue);
+  let resolvedLocal=local;
+
+  // A live local state requires a fresh collector heartbeat. If the bridge or
+  // Mac disappears, preserve the track forever but degrade it to last_played.
+  if(local&&(local.state==="playing"||local.state==="paused")){
+    const seen=local.observedAt==null?NaN:Date.parse(local.observedAt);
+    if(Number.isFinite(seen)===false||seen>now+5*60*1000||now-seen>MUSIC_LIVE_MAX_AGE){
+      resolvedLocal={...local,state:"last_played"};
+    }
+  }
+
+  if(resolvedLocal?.state==="playing")return resolvedLocal;
+  if(resolvedLocal?.state==="paused")return resolvedLocal;
+  if(spotify)return spotify;
+  if(resolvedLocal)return resolvedLocal;
+  return neverMusic();
+};
