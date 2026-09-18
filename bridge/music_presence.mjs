@@ -65,11 +65,11 @@ async function shrinkCover(base64) {
   const { mkdtemp, writeFile, readFile, rm } = await import("node:fs/promises");
   const { tmpdir } = await import("node:os");
   const tries = [
-    ["-Z", "320", "-s", "format", "jpeg", "-s", "formatOptions", "65"],
-    ["-Z", "288", "-s", "format", "jpeg", "-s", "formatOptions", "60"],
-    ["-Z", "256", "-s", "format", "jpeg", "-s", "formatOptions", "55"],
-    ["-Z", "224", "-s", "format", "jpeg", "-s", "formatOptions", "50"],
-    ["-Z", "192", "-s", "format", "jpeg", "-s", "formatOptions", "45"],
+    ["-Z", "384", "-s", "format", "jpeg", "-s", "formatOptions", "60"],
+    ["-Z", "320", "-s", "format", "jpeg", "-s", "formatOptions", "60"],
+    ["-Z", "288", "-s", "format", "jpeg", "-s", "formatOptions", "55"],
+    ["-Z", "256", "-s", "format", "jpeg", "-s", "formatOptions", "50"],
+    ["-Z", "224", "-s", "format", "jpeg", "-s", "formatOptions", "45"],
   ];
   const dir = await mkdtemp(join(tmpdir(), "npmusic-"));
   const src = join(dir, "in.dat");
