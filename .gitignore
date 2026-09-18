@@ -8,3 +8,6 @@ dist/
 
 # Local XSS/security test scaffolding (not for publication)
 test/
+
+# Local music bridge binary (arm64 macOS build; build from source, see bridge/README.md)
+bridge/nowplaying/

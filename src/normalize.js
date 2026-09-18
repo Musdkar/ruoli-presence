@@ -16,3 +16,9 @@ export const normalizeApps=(value)=>{const parsed=safeJSON(value,null);const raw
 // Accept only an object with plausible steps (0..1000000) and/or
 // heartRate (0..300); otherwise "not linked".
 export const normalizeHealth=(value)=>{const parsed=safeJSON(value,null);if(parsed==null||typeof parsed!=="object"||Array.isArray(parsed))return null;const steps=toFiniteNumber(parsed.steps,1000000);const hr=toFiniteNumber(parsed.heartRate,300);if(steps==null&&hr==null)return null;return{steps:steps==null?0:steps,heartRate:hr}};
+
+// Accept only { title, artist: non-empty strings, source in whitelist };
+// cover must be a small data:image URL. Anything else is "not linked".
+const MUSIC_SOURCES = ["netease", "appleMusic", "spotify"];
+const isCover = (v) => typeof v === "string" && v.length <= 12000 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v);
+export const normalizeMusic=(value)=>{const parsed=safeJSON(value,null);if(parsed==null||typeof parsed!=="object"||Array.isArray(parsed))return null;if(typeof parsed.title!=="string"||parsed.title.trim()==="")return null;if(typeof parsed.artist!=="string"||parsed.artist.trim()==="")return null;const source=MUSIC_SOURCES.includes(parsed.source)?parsed.source:null;if(source==null)return null;return{title:parsed.title.slice(0,200),artist:parsed.artist.slice(0,200),album:typeof parsed.album==="string"?parsed.album.slice(0,200):null,source:source,playing:parsed.playing===true,cover:isCover(parsed.cover)?parsed.cover:null};};

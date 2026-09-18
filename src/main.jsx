@@ -13,7 +13,7 @@ import remarkGfm from "remark-gfm";
 import {config} from "./config";
 import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
-import {normalizeApps,normalizeHealth} from "./normalize";
+import {normalizeApps,normalizeHealth,normalizeMusic} from "./normalize";
 import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
@@ -130,7 +130,14 @@ function DevicesCard(){return <article className="card devices-card"><CardHead t
 function DeviceGroup({title,items}){return <div><h4>{title}</h4>{items.map(([n,m])=><div className="device" key={n}><b>{n}</b><span>{m}</span></div>)}</div>}
 
 function StatusCard({displayPresence}){const{status,label,source,detail}=displayPresence;return <article className="card status-card"><CardHead title="Status" meta={source}/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong><small>{detail}</small></div></article>}
-function MusicCard({presence}){const s=presence?.spotify;return <article className="card music-card"><CardHead title="Currently listening" meta="Lanyard / Spotify"/>{s?<><img className="album-art" src={s.album_art_url} alt={s.album}/><div className="track-info"><strong>{s.song}</strong><span>{s.artist}</span></div></>:<Empty label="nothing playing" detail={presence?"Spotify is idle":"Set VITE_DISCORD_ID after joining Lanyard"}/>}</article>}
+function MusicCard({presence,music}){
+  const spot=presence&&presence.spotify;
+  const src=music||(spot?{title:spot.song,artist:spot.artist,album:spot.album,source:"spotify",playing:true,cover:spot.album_art_url}:null);
+  const labels={netease:"Netease",appleMusic:"Apple Music",spotify:"Spotify"};
+  if(src==null)return <article className="card music-card"><CardHead title="Currently listening" meta="Lanyard"/><Empty label="nothing playing" detail={presence?"No music detected":"Set VITE_DISCORD_ID after joining Lanyard"}/></article>;
+  const meta=src.playing?(labels[src.source]||"Now playing"):("Last played - "+(labels[src.source]||""));
+  return <article className="card music-card"><CardHead title="Currently listening" meta={meta}/><div className="music-body">{src.cover?<img className="music-cover" src={src.cover} alt="" loading="lazy" decoding="async"/>:<div className="music-cover music-cover-empty">&#9834;</div>}<div className="track-info"><strong>{src.title}</strong><span>{src.artist}</span></div></div></article>;
+}
 function VrcStatus({presence}){const vrc=presence?.activities?.find(a=>/vrchat/i.test(a.name||'')||/vrchat/i.test(a.details||''));return vrc?<div className="vrc-line">VRChat · {vrc.details||vrc.state||"active"}</div>:null}
 
 function Sidebar({presence,displayPresence}){
@@ -154,7 +161,8 @@ function Layout({presence}){
 function Home({presence,displayPresence,active}){
   const apps=normalizeApps(presence&&presence.kv&&presence.kv.apps_today);
   const health=normalizeHealth(presence&&presence.kv&&presence.kv.health_today);
-  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard presence={presence}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard/></div></div>;
+  const music=normalizeMusic(presence&&presence.kv&&presence.kv.music_now);
+  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard presence={presence} music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard/></div></div>;
 }
 
 function PhotoPage(){
