@@ -28,6 +28,13 @@ function readValues(metric, max) {
   return out;
 }
 
+function readScalar(value, max) {
+  const isNum = typeof value === "number";
+  const isStr = typeof value === "string" && value.trim() !== "";
+  const n = isNum ? value : isStr ? Number(value) : NaN;
+  return Number.isFinite(n) && n >= 0 && n <= max ? n : null;
+}
+
 module.exports = async function (context, req) {
   const method = (req.method || "").toUpperCase();
   if (method !== "POST") {
@@ -51,25 +58,36 @@ module.exports = async function (context, req) {
   }
 
   const payload = req.body || {};
-  const dataWrap = payload && payload.data;
-  const metrics = (dataWrap && dataWrap.metrics) || payload.metrics;
-  if (Array.isArray(metrics) === false) {
-    context.res = { status: 400, jsonBody: { error: "invalid_metrics" } };
-    return;
+
+  // Lightweight Shortcut format:
+  //   { "steps": 2257 }
+  // Keep the older Health Auto Export metrics format for compatibility.
+  let steps = readScalar(payload.steps, MAX_STEPS);
+  let heartRate = readScalar(payload.heartRate, MAX_HEART_RATE);
+
+  if (steps == null && heartRate == null) {
+    const dataWrap = payload && payload.data;
+    const metrics = (dataWrap && dataWrap.metrics) || payload.metrics;
+    if (Array.isArray(metrics) === false) {
+      context.res = { status: 400, jsonBody: { error: "invalid_health_payload" } };
+      return;
+    }
+
+    const metric = (name) => metrics.find((m) => (m && m.name) === name);
+    const stepValues = readValues(metric("step_count"), MAX_STEPS);
+    const hrValues = readValues(metric("heart_rate"), MAX_HEART_RATE);
+    steps = stepValues.length ? stepValues.reduce((a, b) => a + b, 0) : null;
+    heartRate = hrValues.length ? hrValues[hrValues.length - 1] : null;
   }
 
-  const metric = (name) => metrics.find((m) => (m && m.name) === name);
-  const stepValues = readValues(metric("step_count"), MAX_STEPS);
-  const hrValues = readValues(metric("heart_rate"), MAX_HEART_RATE);
-
-  if (stepValues.length === 0 && hrValues.length === 0) {
-    context.res = { status: 400, jsonBody: { error: "no_valid_metrics" } };
+  if (steps == null && heartRate == null) {
+    context.res = { status: 400, jsonBody: { error: "no_valid_health_data" } };
     return;
   }
 
   const summary = {
-    steps: stepValues.length ? stepValues.reduce((a, b) => a + b, 0) : null,
-    heartRate: hrValues.length ? hrValues[hrValues.length - 1] : null,
+    steps,
+    heartRate,
     updatedAt: new Date().toISOString(),
   };
 
