@@ -380,3 +380,10 @@ html.light .keyboard-key span {
 html.light .keyboard-key:hover {
   border-color: #b8b5ac;
 }
+
+
+/* Light WhatPulse software usage */
+html.light .software-usage-name > span { color: #aaa79f; }
+html.light .software-usage-name strong { color: #4b4e55; }
+html.light .software-usage-track { background: #e6e4dd; }
+html.light .software-usage-row time { color: #767981; }
