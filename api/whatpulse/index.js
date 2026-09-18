@@ -2,6 +2,14 @@
 
 const { timingSafeEqual } = require("node:crypto");
 
+function jsonResponse(context, status, payload) {
+  context.res = {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify(payload),
+  };
+}
+
 const MAX_APPS = 8;
 const MAX_MINUTES = 1440;
 const MAX_KEYS = 100;
@@ -61,21 +69,21 @@ function normalizeKeyboard(value) {
 
 module.exports = async function (context, req) {
   if ((req.method || "").toUpperCase() !== "POST") {
-    context.res = { status: 405, jsonBody: { error: "method_not_allowed" } };
+    jsonResponse(context, 405, { error: "method_not_allowed" });
     return;
   }
 
   const expected = process.env.INGEST_TOKEN || "";
   const provided = req.headers && (req.headers["x-ingest-token"] || req.headers["X-Ingest-Token"]);
   if (!expected || typeof provided !== "string" || !safeEqual(provided, expected)) {
-    context.res = { status: 401, jsonBody: { error: "unauthorized" } };
+    jsonResponse(context, 401, { error: "unauthorized" });
     return;
   }
 
   const userId = process.env.LANYARD_USER_ID;
   const apiKey = process.env.LANYARD_API_KEY;
   if (!userId || !apiKey) {
-    context.res = { status: 503, jsonBody: { error: "lanyard_not_configured" } };
+    jsonResponse(context, 503, { error: "lanyard_not_configured" });
     return;
   }
 
@@ -83,7 +91,7 @@ module.exports = async function (context, req) {
   const software = normalizeSoftware(payload.software);
   const keyboard = normalizeKeyboard(payload.keyboard);
   if (!software && !keyboard) {
-    context.res = { status: 400, jsonBody: { error: "no_valid_whatpulse_data" } };
+    jsonResponse(context, 400, { error: "no_valid_whatpulse_data" });
     return;
   }
 
@@ -98,20 +106,17 @@ module.exports = async function (context, req) {
       body: JSON.stringify(kv),
     });
     if (!r.ok) {
-      context.res = { status: 502, jsonBody: { error: "lanyard_update_failed", status: r.status } };
+      jsonResponse(context, 502, { error: "lanyard_update_failed", status: r.status });
       return;
     }
   } catch (err) {
     context.log.error("whatpulse update failed", err && err.message);
-    context.res = { status: 502, jsonBody: { error: "lanyard_update_failed" } };
+    jsonResponse(context, 502, { error: "lanyard_update_failed" });
     return;
   }
 
-  context.res = {
-    status: 200,
-    jsonBody: {
-      ok: true,
-      updated: { software: Boolean(software), keyboard: Boolean(keyboard) },
-    },
-  };
+  jsonResponse(context, 200, {
+    ok: true,
+    updated: { software: Boolean(software), keyboard: Boolean(keyboard) },
+  });
 };
