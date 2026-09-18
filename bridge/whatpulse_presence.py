@@ -223,7 +223,7 @@ def main() -> None:
     try:
         with urlrequest.urlopen(req, timeout=15) as response:
             status = response.status
-            response_text = response.read(500).decode("utf-8", errors="replace")
+            response_text = response.read(2000).decode("utf-8", errors="replace")
     except urlerror.HTTPError as exc:
         response_text = exc.read(500).decode("utf-8", errors="replace")
         raise SystemExit(f"publish failed: {exc.code} {response_text}") from exc
@@ -242,7 +242,11 @@ def main() -> None:
         },
     }
     print(json.dumps(preview, ensure_ascii=False, indent=2))
-    print("published:", status)
+    try:
+        server_result = json.loads(response_text) if response_text else {}
+    except json.JSONDecodeError:
+        server_result = {}
+    print("published:", status, server_result.get("updated", server_result))
 
 
 if __name__ == "__main__":
