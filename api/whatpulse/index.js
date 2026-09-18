@@ -89,7 +89,7 @@ module.exports = async function (context, req) {
 
   const kv = {};
   if (software) kv.apps_today = JSON.stringify(software);
-  if (keyboard) kv.keyboard_yesterday = JSON.stringify(keyboard);
+  if (keyboard) kv.keyboard_today = JSON.stringify(keyboard);
 
   try {
     const r = await fetch("https://api.lanyard.rest/v1/users/" + userId + "/kv", {
