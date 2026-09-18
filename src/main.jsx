@@ -2,19 +2,27 @@ import React,{useEffect,useMemo,useRef,useState} from "react";
 import {createRoot} from "react-dom/client";
 import {BrowserRouter,Link,NavLink,Navigate,Outlet,Route,Routes,useLocation,useParams} from "react-router-dom";
 import {useLanyard} from "use-lanyard";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import {MasonryPhotoAlbum} from "react-photo-album";
-import "react-photo-album/masonry.css";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {config} from "./config";
 import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
+import {fetchLanyardPresence,readCachedPresence,sanitizePresence,writeCachedPresence} from "./lanyard-cache";
 import {normalizeApps,normalizeHealth,normalizeKeyboard,resolveMusic} from "./normalize";
 import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
+
+const LazyMasonryPhotoAlbum=React.lazy(async()=>{
+  await import("react-photo-album/masonry.css");
+  const mod=await import("react-photo-album");
+  return{default:mod.MasonryPhotoAlbum};
+});
+const LazyMarkdown=React.lazy(async()=>{
+  const[{default:Markdown},{default:gfm}]=await Promise.all([
+    import("react-markdown"),
+    import("remark-gfm"),
+  ]);
+  return{default:function MarkdownRenderer({children}){return <Markdown remarkPlugins={[gfm]}>{children}</Markdown>}};
+});
 
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span>{meta?<small>{meta}</small>:null}</div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
@@ -79,6 +87,43 @@ function useTheme(){
   return{stored,cycle};
 }
 
+function useFastLanyard(userId){
+  const live=useLanyard(userId);
+  const liveRef=useRef(live);
+  liveRef.current=live;
+  const[cached,setCached]=useState(()=>readCachedPresence(userId));
+
+  useEffect(()=>{
+    if(!userId)return;
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),2500);
+    fetchLanyardPresence(userId,{signal:controller.signal}).then((next)=>{
+      if(!next||liveRef.current)return;
+      setCached(next);
+      writeCachedPresence(userId,next);
+    }).catch(()=>{}).finally(()=>clearTimeout(timeout));
+    return()=>{
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  },[userId]);
+
+  useEffect(()=>{
+    const next=sanitizePresence(live);
+    if(!next)return;
+    setCached(next);
+    writeCachedPresence(userId,next);
+  },[live,userId]);
+
+  return live||cached;
+}
+
+function ThemeToggle(){
+  const{stored,cycle}=useTheme();
+  const next=THEME_MODES[(THEME_MODES.indexOf(stored)+1)%THEME_MODES.length];
+  return <button type="button" className="theme-toggle" onClick={cycle} title={`Theme: ${stored} — switch to ${next}`} aria-label={`Theme: ${stored}. Switch to ${next}`}><span className="theme-toggle-icon" aria-hidden="true">{themeIcon(stored)}</span><span className="theme-toggle-label">{stored}</span></button>;
+}
+
 function useResolvedTheme(){
   const read=()=>document.documentElement.classList.contains("light")?"light":"dark";
   const[resolved,setResolved]=useState(read);
@@ -91,54 +136,121 @@ function useResolvedTheme(){
   },[]);
   return resolved;
 }
-function ThemeToggle(){
-  const{stored,cycle}=useTheme();
-  const next=THEME_MODES[(THEME_MODES.indexOf(stored)+1)%THEME_MODES.length];
-  return <button type="button" className="theme-toggle" onClick={cycle} title={`Theme: ${stored} — switch to ${next}`} aria-label={`Theme: ${stored}. Switch to ${next}`}><span className="theme-toggle-icon" aria-hidden="true">{themeIcon(stored)}</span><span className="theme-toggle-label">{stored}</span></button>;
-}
-
 function MapCard({active}){
   const ref=useRef(null);
   const resolvedTheme=useResolvedTheme();
   const mapRef=useRef(null);
   const[failed,setFailed]=useState(false);
   const[ready,setReady]=useState(false);
+  const[shouldLoad,setShouldLoad]=useState(false);
+
   useEffect(()=>{
-    if(!ref.current)return;
-    let map;
-    try{
-      map=new maplibregl.Map({container:ref.current,style:MAP_STYLE[resolvedTheme],center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
-      mapRef.current=map;
-      map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
-      map.on("error",()=>{});
-      map.once("load",()=>setReady(true));
-    }catch(error){
-      console.error("Map failed to initialise",error);
-      setFailed(true);
+    if(!active||shouldLoad||!ref.current)return;
+    const node=ref.current;
+    if(!("IntersectionObserver" in window)){
+      setShouldLoad(true);
+      return;
     }
-    return()=>{mapRef.current=null;try{map?.remove()}catch{}};
-  },[]);
+    let idleId=null;
+    let timerId=null;
+    const scheduleLoad=()=>{
+      if("requestIdleCallback" in window){
+        idleId=window.requestIdleCallback(()=>setShouldLoad(true),{timeout:1500});
+      }else{
+        timerId=window.setTimeout(()=>setShouldLoad(true),500);
+      }
+    };
+    const observer=new IntersectionObserver(([entry])=>{
+      if(!entry?.isIntersecting)return;
+      observer.disconnect();
+      scheduleLoad();
+    },{root:null,rootMargin:"160px 0px"});
+    observer.observe(node);
+    return()=>{
+      observer.disconnect();
+      if(idleId!=null&&"cancelIdleCallback" in window)window.cancelIdleCallback(idleId);
+      if(timerId!=null)window.clearTimeout(timerId);
+    };
+  },[active,shouldLoad]);
+
+  useEffect(()=>{
+    if(!shouldLoad||!ref.current)return;
+    let disposed=false;
+    let map;
+    const init=async()=>{
+      try{
+        const[{default:maplibregl}]=await Promise.all([
+          import("maplibre-gl"),
+          import("maplibre-gl/dist/maplibre-gl.css"),
+        ]);
+        if(disposed||!ref.current)return;
+        const theme=document.documentElement.classList.contains("light")?"light":"dark";
+        map=new maplibregl.Map({container:ref.current,style:MAP_STYLE[theme],center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
+        mapRef.current=map;
+        map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
+        map.on("error",()=>{});
+        map.once("load",()=>{if(!disposed)setReady(true)});
+      }catch(error){
+        if(disposed)return;
+        console.error("Map failed to initialise",error);
+        setFailed(true);
+      }
+    };
+    init();
+    return()=>{
+      disposed=true;
+      mapRef.current=null;
+      try{map?.remove()}catch{}
+    };
+  },[shouldLoad]);
+
   useEffect(()=>{
     const map=mapRef.current;
-    if (map === null) return;
-    try { map.setStyle(MAP_STYLE[resolvedTheme]); }
-    catch (error) { console.error("Map style switch failed", error); }
-  }, [resolvedTheme]);
+    if(map===null)return;
+    try{map.setStyle(MAP_STYLE[resolvedTheme])}
+    catch(error){console.error("Map style switch failed",error)}
+  },[resolvedTheme]);
+
   useEffect(()=>{
     if(!active)return;
     const frame=requestAnimationFrame(()=>mapRef.current?.resize());
     return()=>cancelAnimationFrame(frame);
   },[active]);
-  return <article className="card map-card" aria-busy={!ready&&!failed}><div ref={ref} className={`map-canvas${ready?" is-ready":""}`}/><div className="map-shade"/><h2>{config.city}</h2>{/* This non-interactive map is always centered on Wuhan, so its city marker can render before WebGL/tiles load. */}<div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" fetchPriority="high"/></div>{!ready&&<span className="map-loading" role="status">{failed?"Map unavailable":"Loading map…"}</span>}<div className="map-pill">◎ {config.city}, {config.region}</div></article>;
-}
 
+  return <article className="card map-card" aria-busy={shouldLoad&&!ready&&!failed}><div ref={ref} className={`map-canvas${ready?" is-ready":""}`}/><div className="map-shade"/><h2>{config.city}</h2><div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" loading="lazy" decoding="async"/></div>{shouldLoad&&!ready&&<span className="map-loading" role="status">{failed?"Map unavailable":"Loading map…"}</span>}<div className="map-pill">◎ {config.city}, {config.region}</div></article>;
+}
+const WEATHER_CACHE_KEY="ruoli:weather:v1";
+const WEATHER_CACHE_MAX_AGE=30*60*1000;
+function readWeatherCache(){
+  try{
+    const parsed=JSON.parse(localStorage.getItem(WEATHER_CACHE_KEY)||"null");
+    if(!parsed||!Number.isFinite(parsed.savedAt)||Date.now()-parsed.savedAt>WEATHER_CACHE_MAX_AGE)return null;
+    return parsed.weather&&typeof parsed.weather==="object"?parsed.weather:null;
+  }catch{return null}
+}
 function WeatherCard(){
-  const[weather,setWeather]=useState(null);
-  useEffect(()=>{fetch(`https://api.open-meteo.com/v1/forecast?latitude=${config.weatherLat}&longitude=${config.weatherLng}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=${encodeURIComponent(config.timezone)}`).then(r=>r.json()).then(d=>setWeather(d.current||null)).catch(()=>setWeather(false))},[]);
+  const[weather,setWeather]=useState(readWeatherCache);
+  useEffect(()=>{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),3000);
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${config.weatherLat}&longitude=${config.weatherLng}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=${encodeURIComponent(config.timezone)}`,{signal:controller.signal})
+      .then((r)=>{if(!r.ok)throw new Error("weather "+r.status);return r.json()})
+      .then((data)=>{
+        const next=data.current||null;
+        if(!next)throw new Error("weather missing current");
+        setWeather(next);
+        try{localStorage.setItem(WEATHER_CACHE_KEY,JSON.stringify({savedAt:Date.now(),weather:next}))}catch{}
+      })
+      .catch(()=>setWeather((current)=>current||false))
+      .finally(()=>clearTimeout(timeout));
+    return()=>{
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  },[]);
   const names={0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",51:"Drizzle",61:"Rain",63:"Rain",65:"Heavy rain",80:"Showers",95:"Thunderstorm"};
   return <article className="card weather-card"><CardHead title="Weather · Wuhan"/><div className="weather-main"><div><strong>{weather&&weather.temperature_2m!=null?Math.round(weather.temperature_2m)+"°":"--°"}</strong><span>{weather?(names[weather.weather_code]||"Current weather"):weather===false?"unavailable":"loading…"}</span></div>{weather&&<small>feels {Math.round(weather.apparent_temperature)}°<br/>wind {Math.round(weather.wind_speed_10m)} km/h</small>}</div></article>;
 }
-
 function formatUsageMinutes(minutes){
   const seconds=Math.max(0,Math.round(Number(minutes||0)*60));
   if(seconds<60)return seconds+"s";
@@ -198,7 +310,7 @@ function Sidebar({presence,displayPresence}){
   const[now,setNow]=useState(new Date());
   useEffect(()=>{const t=setInterval(()=>setNow(new Date()),30000);return()=>clearInterval(t)},[]);
   const local=useMemo(()=>new Intl.DateTimeFormat('en-GB',{timeZone:config.timezone,hour:'2-digit',minute:'2-digit',hour12:false}).format(now),[now]);
-  return <aside><div className="sidebar"><div className="sidebar-top"><div className="kicker">About me</div><span className="sidebar-motto">mostly<br/><i>online.</i></span></div><div className="identity"><img className="avatar" src={config.avatar} alt="avatar"/><div><h1>{config.name}<br/><i>{config.nameJa}</i></h1><p>{config.greeting} I&apos;m {config.name}. {config.about}</p></div></div><div className="rule"/><div className="fun-facts"><div className="fun-facts-title">Fun facts</div><ul>{config.funFacts.map(fact=><li key={fact}>{fact}</li>)}</ul></div><dl><div><dt>local time</dt><dd>{local}</dd></div><div><dt>presence</dt><dd className={`sidebar-presence ${displayPresence.status}`}>● {displayPresence.label}</dd></div></dl><VrcStatus presence={presence}/><div className="social-block"><div className="social-title">Connect</div><div className="socials">{config.socialLinks.map(link=>link.href?<a key={link.label} href={link.href} target="_blank" rel="noreferrer" title={link.name}>{link.label}</a>:<span key={link.label} className="disabled" title={`${link.name} not linked`}>{link.label}</span>)}</div></div><div className="sidebar-note"><b>One identity, four views.</b><br/>Home is the live surface; Blog, Photo and Uses reuse the same fixed identity rail.</div></div></aside>;
+  return <aside><div className="sidebar"><div className="sidebar-top"><div className="kicker">About me</div><span className="sidebar-motto">mostly<br/><i>online.</i></span></div><div className="identity"><img className="avatar" src={config.avatar} alt="avatar" width="78" height="78" fetchPriority="high" decoding="async"/><div><h1>{config.name}<br/><i>{config.nameJa}</i></h1><p>{config.greeting} I&apos;m {config.name}. {config.about}</p></div></div><div className="rule"/><div className="fun-facts"><div className="fun-facts-title">Fun facts</div><ul>{config.funFacts.map(fact=><li key={fact}>{fact}</li>)}</ul></div><dl><div><dt>local time</dt><dd>{local}</dd></div><div><dt>presence</dt><dd className={`sidebar-presence ${displayPresence.status}`}>● {displayPresence.label}</dd></div></dl><VrcStatus presence={presence}/><div className="social-block"><div className="social-title">Connect</div><div className="socials">{config.socialLinks.map(link=>link.href?<a key={link.label} href={link.href} target="_blank" rel="noreferrer" title={link.name}>{link.label}</a>:<span key={link.label} className="disabled" title={`${link.name} not linked`}>{link.label}</span>)}</div></div><div className="sidebar-note"><b>One identity, four views.</b><br/>Home is the live surface; Blog, Photo and Uses reuse the same fixed identity rail.</div></div></aside>;
 }
 
 function Layout({presence}){
@@ -221,7 +333,7 @@ function Home({presence,displayPresence,active,now}){
 }
 
 function PhotoPage(){
-  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">PHOTO / ARCHIVE</span><h2>Places, moments,<br/>and fragments.</h2></div><p>A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.</p></div><div className="page-rule"/><div className="photo-wall"><MasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></div>{config.photos.length===1&&<div className="archive-note">One image in the archive for now. Add more files later and the layout will rebalance automatically.</div>}</div>;
+  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">PHOTO / ARCHIVE</span><h2>Places, moments,<br/>and fragments.</h2></div><p>A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.</p></div><div className="page-rule"/><div className="photo-wall"><React.Suspense fallback={<div className="archive-note">Loading archive…</div>}><LazyMasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></React.Suspense></div>{config.photos.length===1&&<div className="archive-note">One image in the archive for now. Add more files later and the layout will rebalance automatically.</div>}</div>;
 }
 
 const publishedPosts=posts.filter(post=>post.published!==false);
@@ -233,7 +345,7 @@ function BlogPost(){
   const{slug}=useParams();
   const post=posts.find(item=>item.slug===slug&&item.published!==false);
   if(!post)return <div className="view page-view"><div className="blog-empty"><span>404</span><h3>Post not found.</h3><Link to="/blog">← back to blog</Link></div></div>;
-  return <article className="view article-view"><Link className="back-link" to="/blog">← BLOG</Link><header className="article-head"><time>{post.date}</time><h2>{post.title}</h2><p>{post.summary}</p></header><div className="article-body"><ReactMarkdown remarkPlugins={[remarkGfm]}>{post.body}</ReactMarkdown></div></article>;
+  return <article className="view article-view"><Link className="back-link" to="/blog">← BLOG</Link><header className="article-head"><time>{post.date}</time><h2>{post.title}</h2><p>{post.summary}</p></header><div className="article-body"><React.Suspense fallback={<p>Loading article…</p>}><LazyMarkdown>{post.body}</LazyMarkdown></React.Suspense></div></article>;
 }
 
 function BrandMark({item}){
@@ -248,6 +360,6 @@ function UsesPage(){
 function SiteRouter({presence}){
   return <BrowserRouter><Routes><Route element={<Layout presence={presence}/>}><Route index element={null}/><Route path="photo" element={<PhotoPage/>}/><Route path="photos" element={<Navigate to="/photo" replace/>}/><Route path="blog" element={<BlogPage/>}/><Route path="blog/:slug" element={<BlogPost/>}/><Route path="uses" element={<UsesPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Route></Routes></BrowserRouter>;
 }
-function LanyardApp(){const presence=useLanyard(config.discordId);return <SiteRouter presence={presence}/>}
+function LanyardApp(){const presence=useFastLanyard(config.discordId);return <SiteRouter presence={presence}/>}
 function App(){return config.discordId?<LanyardApp/>:<SiteRouter presence={null}/>}
 createRoot(document.getElementById("root")).render(<React.StrictMode><App/></React.StrictMode>);
