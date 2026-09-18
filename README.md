@@ -12,7 +12,7 @@ The UI is custom; mature projects own the data collection and common rendering p
 ## Existing wheels used
 
 - **React Router** — shared layout + Home / Photo / Blog / Uses routing while keeping About Me stable.
-- **Lanyard + `use-lanyard`** — Discord status, Spotify Now Playing, and VRCX/VRChat Rich Presence.
+- **Lanyard + `use-lanyard`** — Discord status, VRCX/VRChat Rich Presence, iPhone Focus KV, and Spotify as a fallback music source.\n- **Local music bridge** — macOS Now Playing for Apple Music / Netease Music → `/api/music` → canonical `music_now`; live states expire to `last_played`, while the last track and artwork are retained indefinitely.
 - **ActivityWatch + official `aw-client`** — application usage. `bridge/activitywatch_bridge.py` publishes only aggregated app/minute totals; no window titles or URLs leave the computer.
 - **WhatPulse** — keyboard heatmap. The page embeds WhatPulse's shared heatmap instead of implementing its own key collection/heatmap engine.
 - **Health Auto Export** — Apple Health. POST JSON to `/api/health`; the endpoint reduces it to steps/latest heart rate and writes the summary to Lanyard KV.
@@ -40,7 +40,7 @@ The implementation studies the interaction/layout patterns of `ana.sh`, the conf
    ```
 6. In WhatPulse, use **Input → Share/Post Online**, then set `VITE_WHATPULSE_HEATMAP_URL`.
 7. In Health Auto Export, create a REST API automation for **Step Count** and **Heart Rate**, JSON format, posting to `https://YOUR_DOMAIN/api/health` with an `X-Ingest-Token` matching `INGEST_TOKEN`.
-8. Add VRChat / Discord / contact links through the corresponding `VITE_*` variables.
+8. For Apple Music / Netease Music, build `nowplaying-cli` and run `bridge/music_presence.mjs` as documented in [`bridge/README.md`](bridge/README.md).\n9. Add VRChat / Discord / contact links through the corresponding `VITE_*` variables.
 
 When a live source is not configured, the corresponding card says **not linked** rather than presenting fake data.
 
