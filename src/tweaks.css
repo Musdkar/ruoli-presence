@@ -37,29 +37,6 @@
   letter-spacing: .035em;
 }
 
-/* Public heatmap is intentionally a delayed daily aggregate, not live input. */
-.keyboard-card .card-head > span,
-.keyboard-card .card-head > small {
-  font-size: 0;
-}
-
-.keyboard-card .card-head > span::after {
-  content: "Keyboard / yesterday";
-  font-size: 8px;
-  text-transform: uppercase;
-  letter-spacing: .16em;
-  color: #777c87;
-  font-weight: 700;
-}
-
-.keyboard-card .card-head > small::after {
-  content: "WhatPulse · daily aggregate";
-  font-size: 8px;
-  color: #626772;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-
 @media (min-width: 1101px) and (max-height: 760px) {
   .social-block { margin-top: 16px; }
   .socials a,
