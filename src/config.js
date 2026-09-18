@@ -22,7 +22,7 @@ export const config = {
   weatherLng: 114.361,
   timezone: "Asia/Shanghai",
   avatar: "/assets/avatar.webp",
-  mapAvatar: "/assets/avatar.webp",
+  mapAvatar: "/assets/map-avatar.png",
   fitness: { stepGoal: 6000 },
   socialLinks: [
     { label: "GH", name: "GitHub", href: "https://github.com/Musdkar" },
