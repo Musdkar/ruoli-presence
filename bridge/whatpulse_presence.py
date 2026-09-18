@@ -16,7 +16,7 @@ import os
 import sqlite3
 import sys
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 from urllib import error as urlerror
 from urllib import request as urlrequest
