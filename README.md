@@ -14,7 +14,7 @@ The UI is custom; mature projects own the data collection and common rendering p
 - **React Router** — shared layout + Home / Photo / Blog / Uses routing while keeping About Me stable.
 - **Lanyard + `use-lanyard`** — Discord status, VRCX/VRChat Rich Presence, iPhone Focus KV, and Spotify as a fallback music source.\n- **Local music bridge** — macOS Now Playing for Apple Music / Netease Music → `/api/music` → canonical `music_now`; live states expire to `last_played`, while the last track and artwork are retained indefinitely.
 - **ActivityWatch + official `aw-client`** — application usage. `bridge/activitywatch_bridge.py` publishes only aggregated app/minute totals; no window titles or URLs leave the computer.
-- **WhatPulse** — keyboard heatmap. The page embeds WhatPulse's shared heatmap instead of implementing its own key collection/heatmap engine.
+- **WhatPulse** — yesterday-only keyboard heatmap. A local read-only bridge collapses per-key counters into one daily aggregate and publishes only key/count totals; the site renders the responsive keyboard itself.
 - **Health Auto Export** — Apple Health. POST JSON to `/api/health`; the endpoint reduces it to steps/latest heart rate and writes the summary to Lanyard KV.
 - **React Photo Album** — Masonry archive. Home uses one contained photo over a blurred copy so the whole frame remains visible.
 - **react-markdown + remark-gfm** — blog rendering without a custom Markdown parser.
@@ -38,7 +38,14 @@ The implementation studies the interaction/layout patterns of `ana.sh`, the conf
    pip install -r bridge/requirements.txt
    LANYARD_USER_ID=... LANYARD_API_KEY=... python bridge/activitywatch_bridge.py
    ```
-6. In WhatPulse, use **Input → Share/Post Online**, then set `VITE_WHATPULSE_HEATMAP_URL`.
+6. Install WhatPulse and enable keyboard heat-map collection. To publish the previous day’s aggregate:
+   ```bash
+   pip install -r bridge/requirements.txt
+   KEYBOARD_API_URL="https://YOUR_DOMAIN/api/keyboard" \
+   INGEST_TOKEN="..." \
+   python3 bridge/whatpulse_keyboard.py
+   ```
+   The bridge opens `whatpulse.db` read-only and uploads only one daily per-key aggregate. `VITE_WHATPULSE_HEATMAP_URL` remains an optional legacy image fallback.
 7. In Health Auto Export, create a REST API automation for **Step Count** and **Heart Rate**, JSON format, posting to `https://YOUR_DOMAIN/api/health` with an `X-Ingest-Token` matching `INGEST_TOKEN`.
 8. For Apple Music / Netease Music, build `nowplaying-cli` and run `bridge/music_presence.mjs` as documented in [`bridge/README.md`](bridge/README.md).\n9. Add VRChat / Discord / contact links through the corresponding `VITE_*` variables.
 
