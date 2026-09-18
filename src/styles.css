@@ -162,9 +162,9 @@
 .fitness-steps {
   justify-self: end;
   display: flex;
-  align-items: baseline;
-  gap: 9px;
-  min-height: 34px;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
 }
 
 .fitness-steps strong {
@@ -177,13 +177,12 @@
 
 .fitness-footsteps {
   position: relative;
-  width: 24px;
-  height: 28px;
+  width: 22px;
+  height: 26px;
   display: inline-block;
   flex: 0 0 auto;
   opacity: .7;
-  top: -1px;
-  transform: rotate(-8deg);
+  transform: translateY(5px) rotate(-8deg);
 }
 
 .fitness-footsteps i,
