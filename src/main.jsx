@@ -157,7 +157,7 @@ function Layout({presence}){
   useEffect(()=>{if(isHome)setHasVisitedHome(true)},[isHome]);
   useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer)},[]);
   const displayPresence=getDisplayPresence(presence,now);
-  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><ThemeToggle/><div className="edition">digital presence<br/>2026 edition</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome} now={now}/>}<Outlet/></section></main></>;
+  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><ThemeToggle/><div className="edition">digital presence<br/>2026 edition</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className={`content${isHome?" home-content":""}`}>{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome} now={now}/>}<Outlet/></section></main></>;
 }
 
 function Home({presence,displayPresence,active,now}){
