@@ -26,6 +26,7 @@ const LazyMarkdown=React.lazy(async()=>{
 
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span>{meta?<small>{meta}</small>:null}</div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
+const MAP_STYLE={dark:"https://tiles.openfreemap.org/styles/dark",light:"https://tiles.openfreemap.org/styles/positron"};
 const KEYBOARD_LAYOUT=[
   [
     {key:"ESC",label:"esc",u:1.15},
@@ -123,15 +124,100 @@ function ThemeToggle(){
   return <button type="button" className="theme-toggle" onClick={cycle} title={`Theme: ${stored} — switch to ${next}`} aria-label={`Theme: ${stored}. Switch to ${next}`}><span className="theme-toggle-icon" aria-hidden="true">{themeIcon(stored)}</span><span className="theme-toggle-label">{stored}</span></button>;
 }
 
-function MapCard(){
-  return <article className="card map-card">
-    <div className="map-static" aria-hidden="true"/>
-    <div className="map-shade"/>
-    <h2>{config.city}</h2>
-    <div className="map-avatar"><img src={config.mapAvatar} alt="" width="66" height="66" loading="lazy" fetchPriority="low" decoding="async"/></div>
-    <a className="map-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>
-    <div className="map-pill">◎ {config.city}, {config.region}</div>
-  </article>;
+function useResolvedTheme(){
+  const read=()=>document.documentElement.classList.contains("light")?"light":"dark";
+  const[resolved,setResolved]=useState(read);
+  useEffect(()=>{
+    const el=document.documentElement;
+    const obs=new MutationObserver(()=>setResolved(read()));
+    obs.observe(el,{attributes:true,attributeFilter:["class"]});
+    setResolved(read());
+    return()=>obs.disconnect();
+  },[]);
+  return resolved;
+}
+function MapCard({active}){
+  const ref=useRef(null);
+  const resolvedTheme=useResolvedTheme();
+  const mapRef=useRef(null);
+  const[failed,setFailed]=useState(false);
+  const[ready,setReady]=useState(false);
+  const[shouldLoad,setShouldLoad]=useState(false);
+
+  useEffect(()=>{
+    if(!active||shouldLoad||!ref.current)return;
+    const node=ref.current;
+    if(!("IntersectionObserver" in window)){
+      setShouldLoad(true);
+      return;
+    }
+    let idleId=null;
+    let timerId=null;
+    const scheduleLoad=()=>{
+      if("requestIdleCallback" in window){
+        idleId=window.requestIdleCallback(()=>setShouldLoad(true),{timeout:1500});
+      }else{
+        timerId=window.setTimeout(()=>setShouldLoad(true),500);
+      }
+    };
+    const observer=new IntersectionObserver(([entry])=>{
+      if(!entry?.isIntersecting)return;
+      observer.disconnect();
+      scheduleLoad();
+    },{root:null,rootMargin:"160px 0px"});
+    observer.observe(node);
+    return()=>{
+      observer.disconnect();
+      if(idleId!=null&&"cancelIdleCallback" in window)window.cancelIdleCallback(idleId);
+      if(timerId!=null)window.clearTimeout(timerId);
+    };
+  },[active,shouldLoad]);
+
+  useEffect(()=>{
+    if(!shouldLoad||!ref.current)return;
+    let disposed=false;
+    let map;
+    const init=async()=>{
+      try{
+        const[{default:maplibregl}]=await Promise.all([
+          import("maplibre-gl"),
+          import("maplibre-gl/dist/maplibre-gl.css"),
+        ]);
+        if(disposed||!ref.current)return;
+        const theme=document.documentElement.classList.contains("light")?"light":"dark";
+        map=new maplibregl.Map({container:ref.current,style:MAP_STYLE[theme],center:[config.lng,config.lat],zoom:8.4,attributionControl:false,interactive:false});
+        mapRef.current=map;
+        map.addControl(new maplibregl.AttributionControl({compact:true}),"bottom-right");
+        map.on("error",()=>{});
+        map.once("load",()=>{if(!disposed)setReady(true)});
+      }catch(error){
+        if(disposed)return;
+        console.error("Map failed to initialise",error);
+        setFailed(true);
+      }
+    };
+    init();
+    return()=>{
+      disposed=true;
+      mapRef.current=null;
+      try{map?.remove()}catch{}
+    };
+  },[shouldLoad]);
+
+  useEffect(()=>{
+    const map=mapRef.current;
+    if(map===null)return;
+    try{map.setStyle(MAP_STYLE[resolvedTheme])}
+    catch(error){console.error("Map style switch failed",error)}
+  },[resolvedTheme]);
+
+  useEffect(()=>{
+    if(!active)return;
+    const frame=requestAnimationFrame(()=>mapRef.current?.resize());
+    return()=>cancelAnimationFrame(frame);
+  },[active]);
+
+  return <article className="card map-card" aria-busy={shouldLoad&&!ready&&!failed}><div ref={ref} className={`map-canvas${ready?" is-ready":""}`}/><div className="map-shade"/><h2>{config.city}</h2><div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" loading="lazy" decoding="async"/></div>{shouldLoad&&!ready&&<span className="map-loading" role="status">{failed?"Map unavailable":"Loading map…"}</span>}<div className="map-pill">◎ {config.city}, {config.region}</div></article>;
 }
 const WEATHER_CACHE_KEY="ruoli:weather:v1";
 const WEATHER_CACHE_MAX_AGE=30*60*1000;
@@ -243,7 +329,7 @@ function Home({presence,displayPresence,active,now}){
   const health=normalizeHealth(presence&&presence.kv&&presence.kv.health_today);
   const keyboard=normalizeKeyboard(presence&&presence.kv&&(presence.kv.keyboard_today||presence.kv.keyboard_yesterday));
   const music=resolveMusic(presence&&presence.kv&&presence.kv.music_now,presence&&presence.spotify,now);
-  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard keyboard={keyboard}/></div></div>;
+  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard keyboard={keyboard}/></div></div>;
 }
 
 function PhotoPage(){

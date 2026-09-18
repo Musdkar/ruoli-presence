@@ -46,30 +46,60 @@ Hard budgets:
 
 The CI workflow also runs the same build on PRs and `main`. Lazy chunks are reported separately so large on-demand dependencies stay visible without being counted as first-load regressions.
 
-## Map runtime removal
+## Map architecture (MapLibre restored, lazily)
 
-The fixed Wuhan map is decorative and non-interactive, so the MapLibre/WebGL runtime was removed from the rendered application. The final replacement is a pair of pre-rendered Wuhan WebP assets (dark/light) generated from OpenStreetMap tiles outside the production build. The browser renders only a CSS background, the dedicated avatar, city label, location pill and visible OpenStreetMap attribution. There are no runtime tile requests, map API calls, WebGL contexts or map-engine JavaScript.
+A previous iteration replaced the runtime map with pre-rendered static WebP images. That
+removed the MapLibre cost but visibly degraded the card (missing map avatar, flat texture,
+inconsistent with the ana.sh / enscribe.dev look). The static-image approach was reverted.
 
-Measured after the replacement:
+Current architecture keeps the performance win while restoring the real map:
 
-| Asset | Before | After |
-|---|---:|---:|
-| Initial JS gzip | 71.3 kB | **68.0 kB** |
-| Initial CSS gzip | 7.5 kB | **7.8 kB** |
-| Largest on-demand JS chunk | MapLibre **278.3 kB** | route chunk **34.4 kB** |
+1. `MapCard` renders a `.map-canvas` container plus the decorative shade, avatar, city label
+   and location pill. No map code is in the initial bundle.
+2. An `IntersectionObserver` fires only when the card approaches the viewport; a subsequent
+   `requestIdleCallback` schedules the work off the critical path.
+3. Only then does `dynamic import("maplibre-gl")` (and its CSS) load, followed by map init.
 
-The map generator lives in `scripts/generate-map-assets.sh` and is intentionally not part of `npm run build`. A small GitHub Actions utility regenerates the assets only when the map-generation tooling itself changes, so ordinary deploys have no dependency on OpenStreetMap availability. The active theme selects one local WebP asset; switching themes loads the alternate asset on demand.
+The map is an identity card, not an interactive map, so it is locked down:
 
-## Image reuse
+- fixed center on Wuhan, fixed zoom 8.4
+- `interactive: false` (no drag, rotate, pitch, scroll-zoom or keyboard pan)
+- `attributionControl: false`, no markers, no popups
+- `.map-card canvas { pointer-events: none }` as a belt-and-suspenders guard
 
-The map marker keeps the previous dedicated map artwork rather than reusing the sidebar portrait. Its original ~414 kB PNG is treated only as the source asset during regeneration; the production branch carries a ~4 kB `map-avatar.webp` sized for the 66×66 marker. This preserves the old map identity without reintroducing the oversized transfer.
+Because the map only loads after intersection + idle, the first paint requests no map JS,
+no map CSS and no tiles.
+
+Removed in this change:
+
+- `public/assets/wuhan-map-dark.webp`, `public/assets/wuhan-map-light.webp`
+- `scripts/generate-map-assets.sh`
+- `.github/workflows/generate-map-assets.yml`
+- the `.map-static` CSS block in `src/hotfix.css`
+
+### Map avatar
+
+The map card keeps its dedicated circular avatar overlay (separate from the sidebar portrait).
+PR #4 had shrunk it to a 192x144 WebP that looked soft. It is restored at the source
+resolution (800x600) as a high-quality WebP, which is still ~15x smaller than the original
+~414 kB PNG and crisp at the 66px display size.
+
+### Verified result
+
+| Asset | Value |
+|---|---:|
+| Initial JS gzip | **68.4 kB** (budget 120 kB) |
+| Initial CSS gzip | **7.4 kB** (budget 15 kB) |
+| MapLibre chunk (on-demand only) | 283.6 kB gzip |
+| maplibre-gl in initial bundle | none |
 
 ## Dependency cleanup
 
-After removing the runtime map and confirming Chart.js is unused, `maplibre-gl`, `chart.js` and `react-chartjs-2` were removed from the app dependencies and the lockfile was pruned. CI now installs 170 packages and the production browser bundle is unchanged.
+`chart.js` and `react-chartjs-2` remain removed (confirmed unused). `maplibre-gl` is kept as a
+dependency again, but it is only ever reached through a dynamic import, so it never enters the
+initial bundle. The lockfile reflects both facts: map engine present, charting library gone.
 
 ## Next targets
 
-- Re-check the pre-rendered map WebP quality/size after visual QA and reduce dimensions further only if the card still looks crisp.
 - Add long-lived immutable cache headers only to content-hashed assets.
 - Keep Lanyard storage architecture separate from performance work unless measurements justify a migration.

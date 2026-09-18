@@ -15,6 +15,7 @@
     "react-photo-album": "^3.6.1",
     "react-router-dom": "^7.18.3",
     "remark-gfm": "^4.0.1",
+    "maplibre-gl": "^5.6.1",
     "use-lanyard": "^2.0.0"
   },
   "devDependencies": {

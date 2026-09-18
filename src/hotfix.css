@@ -1,40 +1,5 @@
 .view{animation:none!important;opacity:1!important;transform:none!important}.home-view{display:block!important;visibility:visible!important}.home-view>.grid{display:grid!important;visibility:visible!important;opacity:1!important}
 
-/* Static Wuhan map: repository asset only, no map engine or runtime tile requests. */
-.map-static{
-  position:absolute;
-  inset:0;
-  overflow:hidden;
-  background-color:#101217;
-  background-image:url("/assets/wuhan-map-dark.webp");
-  background-position:center 52%;
-  background-size:cover;
-  background-repeat:no-repeat;
-}
-.map-static::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    radial-gradient(circle at 51% 48%,rgba(142,124,255,.10),transparent 31%),
-    linear-gradient(90deg,rgba(15,16,19,.08),transparent 35%,transparent 65%,rgba(15,16,19,.08));
-  pointer-events:none;
-}
-.map-attribution{position:absolute;right:8px;bottom:7px;z-index:3;font-size:6px;line-height:1;color:rgba(255,255,255,.48);text-decoration:none;text-shadow:0 1px 2px rgba(0,0,0,.8)}
-.map-attribution:hover{color:rgba(255,255,255,.8)}
-html.light .map-static{
-  background-color:#efede7;
-  background-image:url("/assets/wuhan-map-light.webp");
-}
-html.light .map-static::after{
-  background:
-    radial-gradient(circle at 51% 48%,rgba(106,82,230,.055),transparent 32%),
-    linear-gradient(90deg,rgba(246,245,242,.10),transparent 35%,transparent 65%,rgba(246,245,242,.10));
-}
-html.light .map-attribution{color:rgba(0,0,0,.5);text-shadow:0 1px 1px rgba(255,255,255,.8)}
-html.light .map-attribution:hover{color:rgba(0,0,0,.78)}
-
 @media(max-width:900px){
   .card{content-visibility:auto;contain-intrinsic-size:190px}
-  .map-static{background-position:center 52%}
 }
