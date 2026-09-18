@@ -13,7 +13,7 @@ The UI is custom; mature projects own the data collection and common rendering p
 
 - **React Router** — shared layout + Home / Photo / Blog / Uses routing while keeping About Me stable.
 - **Lanyard + `use-lanyard`** — Discord status, VRCX/VRChat Rich Presence, iPhone Focus KV, and Spotify as a fallback music source.\n- **Local music bridge** — macOS Now Playing for Apple Music / Netease Music → `/api/music` → canonical `music_now`; live states expire to `last_played`, while the last track and artwork are retained indefinitely.
-- **WhatPulse** — one local, read-only collector for both Software and Keyboard. Today’s foreground active time comes from `application_activeuptime_hour`; today’s keyboard counters are quantized locally to 0–15 heat levels before upload. No window titles, URLs, key order, hourly buckets, or exact per-key counts leave the computer.
+- **WhatPulse** — one local, read-only collector for both Software and Keyboard. Today’s Software aggregate comes from raw ActivityWatch `aw-watcher-window` events without AFK intersection, so foreground reading/thinking/video time still counts. Today’s keyboard counters come from WhatPulse and are quantized locally to 0–15 heat levels before upload. No window titles, URLs, key order, hourly buckets, or exact per-key counts leave the computer.
 - **Health Auto Export** — Apple Health. POST JSON to `/api/health`; the endpoint reduces it to steps/latest heart rate and writes the summary to Lanyard KV.
 - **React Photo Album** — Masonry archive. Home uses one contained photo over a blurred copy so the whole frame remains visible.
 - **react-markdown + remark-gfm** — blog rendering without a custom Markdown parser.
@@ -31,7 +31,7 @@ The implementation studies the interaction/layout patterns of `ana.sh`, the conf
 2. Copy `.env.example` to `.env.local`.
 3. Join the Lanyard Discord server and set `VITE_DISCORD_ID`.
 4. Enable VRCX Discord Rich Presence if you want VRChat activity to surface through Lanyard.
-5. Install WhatPulse and keep collection local (Work Offline is recommended). Publish both today’s Software active time and today’s Keyboard heat with one bridge:
+5. Install WhatPulse and keep collection local (Work Offline is recommended). Publish both today’s Software foreground time and today’s Keyboard heat with one bridge:
    ```bash
    WHATPULSE_API_URL="https://YOUR_DOMAIN/api/whatpulse" \
    INGEST_TOKEN="..." \
