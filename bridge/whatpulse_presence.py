@@ -93,9 +93,9 @@ def canonical_key(code: int) -> str | None:
 
 
 def read_software(con: sqlite3.Connection, target: str) -> dict | None:
-    columns = {row[1] for row in con.execute("PRAGMA table_info(application_active_hour)")}
+    columns = {row[1] for row in con.execute("PRAGMA table_info(application_activeuptime_hour)")}
     if not {"day", "path", "msec_active"}.issubset(columns):
-        raise RuntimeError("Unsupported WhatPulse schema: application_active_hour changed")
+        raise RuntimeError("Unsupported WhatPulse schema: application_activeuptime_hour changed")
 
     app_columns = {row[1] for row in con.execute("PRAGMA table_info(applications)")}
     if not {"path", "name"}.issubset(app_columns):
@@ -104,7 +104,7 @@ def read_software(con: sqlite3.Connection, target: str) -> dict | None:
     rows = con.execute(
         """
         SELECT a.name, h.path, SUM(h.msec_active)
-        FROM application_active_hour h
+        FROM application_activeuptime_hour h
         JOIN applications a ON a.path = h.path
         WHERE h.day = ?
         GROUP BY a.name, h.path
@@ -121,7 +121,7 @@ def read_software(con: sqlite3.Connection, target: str) -> dict | None:
             minutes = float(raw_msec or 0) / 60000.0
         except (TypeError, ValueError):
             continue
-        if not name or minutes < 0.1:
+        if not name or name == "WhatPulse" or minutes < 0.1:
             continue
         minutes_by_name[name] += minutes
 
