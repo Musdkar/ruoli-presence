@@ -2,6 +2,14 @@
 
 const { timingSafeEqual } = require("node:crypto");
 
+function jsonResponse(context, status, payload) {
+  context.res = {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify(payload),
+  };
+}
+
 // Keep artwork small enough that music_now remains cheap to push through
 // Lanyard KV and fast to render. This is an application limit, not Lanyard's
 // protocol ceiling.
@@ -40,21 +48,21 @@ function service(value) {
 module.exports = async function (context, req) {
   const method = (req.method || "").toUpperCase();
   if (method !== "POST") {
-    context.res = { status: 405, jsonBody: { error: "method_not_allowed" } };
+    jsonResponse(context, 405, { error: "method_not_allowed" });
     return;
   }
 
   const expected = process.env.INGEST_TOKEN || "";
   const provided = req.headers && (req.headers["x-ingest-token"] || req.headers["X-Ingest-Token"]);
   if (typeof provided !== "string" || safeEqual(provided, expected) === false || expected === "") {
-    context.res = { status: 401, jsonBody: { error: "unauthorized" } };
+    jsonResponse(context, 401, { error: "unauthorized" });
     return;
   }
 
   const userId = process.env.LANYARD_USER_ID;
   const apiKey = process.env.LANYARD_API_KEY;
   if (userId == null || apiKey == null || userId === "" || apiKey === "") {
-    context.res = { status: 503, jsonBody: { error: "lanyard_not_configured" } };
+    jsonResponse(context, 503, { error: "lanyard_not_configured" });
     return;
   }
 
@@ -73,7 +81,7 @@ module.exports = async function (context, req) {
         : null;
 
   if (title == null || artist == null || musicService == null || state == null) {
-    context.res = { status: 400, jsonBody: { error: "invalid_music" } };
+    jsonResponse(context, 400, { error: "invalid_music" });
     return;
   }
 
@@ -100,14 +108,14 @@ module.exports = async function (context, req) {
       body: JSON.stringify({ music_now: JSON.stringify(summary) }),
     });
     if (r.ok === false) {
-      context.res = { status: 502, jsonBody: { error: "lanyard_update_failed", status: r.status } };
+      jsonResponse(context, 502, { error: "lanyard_update_failed", status: r.status });
       return;
     }
   } catch (err) {
     context.log.error("music update failed", err && err.message);
-    context.res = { status: 502, jsonBody: { error: "lanyard_update_failed" } };
+    jsonResponse(context, 502, { error: "lanyard_update_failed" });
     return;
   }
 
-  context.res = { status: 200, jsonBody: { ok: true, summary } };
+  jsonResponse(context, 200, { ok: true, summary });
 };
