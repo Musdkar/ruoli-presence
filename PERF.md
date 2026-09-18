@@ -60,6 +60,10 @@ Measured after the replacement:
 
 The map tiles are requested only when the map approaches the viewport and the browser becomes idle. If the tile service is slow or unavailable, the card keeps its local CSS surface, avatar, city label and location pill instead of blocking Home.
 
+## Image reuse
+
+The map marker previously downloaded a separate 413,974-byte PNG only to display it at 66×66 CSS pixels. The map card now reuses the already-preloaded 30,054-byte profile WebP, so it adds no second avatar transfer. The oversized `public/assets/map-avatar.png` file was removed.
+
 ## Dependency cleanup
 
 After removing the runtime map and confirming Chart.js is unused, `maplibre-gl`, `chart.js` and `react-chartjs-2` were removed from the app dependencies and the lockfile was pruned. CI now installs 170 packages and the production browser bundle is unchanged.
