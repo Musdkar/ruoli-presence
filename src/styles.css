@@ -230,3 +230,95 @@
   padding: 0;
   background: transparent;
 }
+
+
+/* ==========================================================================
+   Responsive keyboard heatmap
+   --------------------------------------------------------------------------
+   The site draws its own keyboard from yesterday's per-key aggregate instead
+   of stretching a pre-rendered WhatPulse PNG. Heat intensity is normalized
+   locally in the browser; the published payload contains counts only.
+   ========================================================================== */
+.keyboard-heatmap {
+  position: absolute;
+  inset: 42px 14px 14px;
+  display: grid;
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.keyboard-key {
+  --key-u: 1;
+  --heat: 0;
+  position: relative;
+  flex: var(--key-u) 1 0;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #30333b;
+  border-radius: 7px;
+  background: #1a1b20;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,.025);
+  color: #8c909a;
+  font-size: clamp(6px, .62vw, 9px);
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: lowercase;
+  transition: border-color .16s ease, transform .16s ease;
+}
+
+.keyboard-key::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--violet), var(--mint));
+  opacity: calc(var(--heat) * .82);
+  pointer-events: none;
+}
+
+.keyboard-key::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(255,255,255,.055), transparent 42%);
+  pointer-events: none;
+}
+
+.keyboard-key span {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,.45);
+}
+
+.keyboard-key:hover {
+  border-color: #555a66;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1260px) and (min-width: 901px) {
+  .keyboard-heatmap,
+  .keyboard-row { gap: 4px; }
+  .keyboard-key { border-radius: 6px; }
+}
+
+@media (max-width: 620px) {
+  .keyboard-heatmap { inset: 42px 10px 12px; gap: 4px; }
+  .keyboard-row { gap: 4px; }
+  .keyboard-key { font-size: 6px; border-radius: 5px; }
+}
