@@ -48,7 +48,7 @@ The CI workflow also runs the same build on PRs and `main`. Lazy chunks are repo
 
 ## Map runtime removal
 
-The fixed Wuhan map is decorative and non-interactive, so the MapLibre/WebGL runtime was removed from the rendered application. The replacement uses a deferred 3×2 raster-tile mosaic with a CSS fallback surface and visible OpenStreetMap attribution.
+The fixed Wuhan map is decorative and non-interactive, so the MapLibre/WebGL runtime was removed from the rendered application. The final replacement is a pair of pre-rendered Wuhan WebP assets (dark/light) generated from OpenStreetMap tiles outside the production build. The browser renders only a CSS background, the dedicated avatar, city label, location pill and visible OpenStreetMap attribution. There are no runtime tile requests, map API calls, WebGL contexts or map-engine JavaScript.
 
 Measured after the replacement:
 
@@ -58,11 +58,11 @@ Measured after the replacement:
 | Initial CSS gzip | 7.5 kB | **7.8 kB** |
 | Largest on-demand JS chunk | MapLibre **278.3 kB** | route chunk **34.4 kB** |
 
-The map tiles are requested only when the map approaches the viewport and the browser becomes idle. If the tile service is slow or unavailable, the card keeps its local CSS surface, avatar, city label and location pill instead of blocking Home.
+The map generator lives in `scripts/generate-map-assets.sh` and is intentionally not part of `npm run build`. A small GitHub Actions utility regenerates the assets only when the map-generation tooling itself changes, so ordinary deploys have no dependency on OpenStreetMap availability. The active theme selects one local WebP asset; switching themes loads the alternate asset on demand.
 
 ## Image reuse
 
-The map marker previously downloaded a separate 413,974-byte PNG only to display it at 66×66 CSS pixels. The map card now reuses the already-preloaded 30,054-byte profile WebP, so it adds no second avatar transfer. The oversized `public/assets/map-avatar.png` file was removed.
+The map marker keeps the previous dedicated map artwork rather than reusing the sidebar portrait. Its original ~414 kB PNG is treated only as the source asset during regeneration; the production branch carries a ~4 kB `map-avatar.webp` sized for the 66×66 marker. This preserves the old map identity without reintroducing the oversized transfer.
 
 ## Dependency cleanup
 
@@ -70,6 +70,6 @@ After removing the runtime map and confirming Chart.js is unused, `maplibre-gl`,
 
 ## Next targets
 
-- Convert oversized decorative imagery to appropriately sized WebP/AVIF assets.
+- Re-check the pre-rendered map WebP quality/size after visual QA and reduce dimensions further only if the card still looks crisp.
 - Add long-lived immutable cache headers only to content-hashed assets.
 - Keep Lanyard storage architecture separate from performance work unless measurements justify a migration.
