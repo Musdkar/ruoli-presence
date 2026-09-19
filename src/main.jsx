@@ -27,7 +27,11 @@ const LazyMarkdown=React.lazy(async()=>{
 const CardHead=({title,meta})=><div className="card-head"><span>{title}</span>{meta?<small>{meta}</small>:null}</div>;
 const Empty=({label,detail})=><div className="empty"><strong>{label}</strong><span>{detail}</span></div>;
 const MAP_STYLE={dark:"https://tiles.openfreemap.org/styles/dark",light:"https://tiles.openfreemap.org/styles/positron"};
-const KEYBOARD_LAYOUT=[
+// Two physical layouts, kept separate per device. Nothing is merged: the Mac
+// keyboard shows macOS key names (command/option/control) and the Windows 87-key
+// TKL shows Windows names (win/alt/ctrl). Shared keys (letters, ESC, RETURN,
+// SHIFT, BACKSPACE, TAB, CAPS, arrows) use the same logical name on both.
+const KEYBOARD_MAC=[
   [
     {key:"ESC",label:"esc",u:1.15},
     {key:"1",label:"1"},{key:"2",label:"2"},{key:"3",label:"3"},{key:"4",label:"4"},{key:"5",label:"5"},{key:"6",label:"6"},{key:"7",label:"7"},{key:"8",label:"8"},{key:"9",label:"9"},{key:"0",label:"0"},{key:"-",label:"-"},{key:"=",label:"="},
@@ -43,21 +47,63 @@ const KEYBOARD_LAYOUT=[
     {key:"RETURN",label:"return",u:2.15},
   ],
   [
-    {key:"SHIFT",label:"shift",u:2.15},
+    {key:"SHIFT",label:"shift",u:2.35},
     {key:"Z",label:"Z"},{key:"X",label:"X"},{key:"C",label:"C"},{key:"V",label:"V"},{key:"B",label:"B"},{key:"N",label:"N"},{key:"M",label:"M"},{key:",",label:","},{key:".",label:"."},{key:"/",label:"/"},
     {key:"SHIFT",label:"shift",u:2.65},
   ],
   [
-    {key:"CONTROL",label:"control",u:1.15},
-    {key:"OPTION",label:"option",u:1.15},
-    {key:"COMMAND",label:"command",u:1.35},
-    {key:"SPACE",label:"",u:6},
-    {key:"COMMAND",label:"command",u:1.35},
-    {key:"OPTION",label:"option",u:1.15},
-    {key:"LEFT",label:"←",u:.8},
-    {key:"DOWN",label:"↓",u:.8},
-    {key:"UP",label:"↑",u:.8},
-    {key:"RIGHT",label:"→",u:.8},
+    {key:"CONTROL",label:"control",u:1.0},
+    {key:"OPTION",label:"option",u:1.0},
+    {key:"COMMAND",label:"command",u:1.25},
+    {key:"SPACE",label:"",u:5},
+    {key:"COMMAND",label:"command",u:1.25},
+    {key:"OPTION",label:"option",u:1.0},
+    {key:"LEFT",label:"\u2190",u:.8},
+    {key:"DOWN",label:"\u2193",u:.8},
+    {key:"UP",label:"\u2191",u:.8},
+    {key:"RIGHT",label:"\u2192",u:.8},
+  ],
+];
+
+// Windows 87-key TKL (no numpad): function row + standard ANSI body.
+const KEYBOARD_WIN_87=[
+  [
+    {key:"ESC",label:"esc",u:1},
+    {key:"F1",label:"F1"},{key:"F2",label:"F2"},{key:"F3",label:"F3"},{key:"F4",label:"F4"},
+    {key:"F5",label:"F5"},{key:"F6",label:"F6"},{key:"F7",label:"F7"},{key:"F8",label:"F8"},
+    {key:"F9",label:"F9"},{key:"F10",label:"F10"},{key:"F11",label:"F11"},{key:"F12",label:"F12"},
+  ],
+  [
+    {key:"`",label:"`"},{key:"1",label:"1"},{key:"2",label:"2"},{key:"3",label:"3"},{key:"4",label:"4"},{key:"5",label:"5"},{key:"6",label:"6"},{key:"7",label:"7"},{key:"8",label:"8"},{key:"9",label:"9"},{key:"0",label:"0"},{key:"-",label:"-"},{key:"=",label:"="},
+    {key:"BACKSPACE",label:"backspace",u:2},
+  ],
+  [
+    {key:"TAB",label:"tab",u:1.5},
+    {key:"Q",label:"Q"},{key:"W",label:"W"},{key:"E",label:"E"},{key:"R",label:"R"},{key:"T",label:"T"},{key:"Y",label:"Y"},{key:"U",label:"U"},{key:"I",label:"I"},{key:"O",label:"O"},{key:"P",label:"P"},{key:"[",label:"["},{key:"]",label:"]"},{key:"\\",label:"\\",u:1.5},
+  ],
+  [
+    {key:"CAPS",label:"caps",u:1.75},
+    {key:"A",label:"A"},{key:"S",label:"S"},{key:"D",label:"D"},{key:"F",label:"F"},{key:"G",label:"G"},{key:"H",label:"H"},{key:"J",label:"J"},{key:"K",label:"K"},{key:"L",label:"L"},{key:";",label:";"},{key:"'",label:"'"},
+    {key:"RETURN",label:"enter",u:2.25},
+  ],
+  [
+    {key:"SHIFT",label:"shift",u:2.25},
+    {key:"Z",label:"Z"},{key:"X",label:"X"},{key:"C",label:"C"},{key:"V",label:"V"},{key:"B",label:"B"},{key:"N",label:"N"},{key:"M",label:"M"},{key:",",label:","},{key:".",label:"."},{key:"/",label:"/"},
+    {key:"SHIFT",label:"shift",u:2.75},
+  ],
+  [
+    {key:"CTRL",label:"ctrl",u:1.25},
+    {key:"WIN",label:"win",u:1.25},
+    {key:"ALT",label:"alt",u:1.25},
+    {key:"SPACE",label:"",u:6.25},
+    {key:"ALT",label:"alt",u:1.25},
+    {key:"WIN",label:"win",u:1.25},
+    {key:"MENU",label:"menu",u:1.25},
+    {key:"CTRL",label:"ctrl",u:1.25},
+    {key:"LEFT",label:"\u2190",u:.85},
+    {key:"DOWN",label:"\u2193",u:.85},
+    {key:"UP",label:"\u2191",u:.85},
+    {key:"RIGHT",label:"\u2192",u:.85},
   ],
 ];
 
@@ -264,16 +310,16 @@ function formatUsageMinutes(minutes){
 
 function SoftwareCard({apps}){
   if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="foreground"/><Empty label="Software aggregate not linked" detail="Run bridge/whatpulse_presence.py to publish today’s foreground application time."/></article>;
-  const top=apps.slice(0,5);
+  const top=apps.slice(0,8);
   const max=Math.max(1,...top.map(app=>app.minutes));
   return <article className="card apps-card"><CardHead title="Software / today" meta="foreground"/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
 }
 
-function KeyboardCard({keyboard}){
+function KeyboardCard({keyboard,layout,title,note,device}){
   if(!keyboard){
-    return <article className="card keyboard-card"><CardHead title="Keyboard / today"/>{config.whatPulseHeatmapUrl?<a className="heatmap-link" href={config.whatPulseProfileUrl||config.whatPulseHeatmapUrl} target="_blank" rel="noreferrer"><img src={config.whatPulseHeatmapUrl} alt="Today keyboard heatmap"/></a>:<Empty label="Keyboard aggregate not linked" detail="Publish today’s privacy-filtered keyboard aggregate; no live keystrokes or key order leave the computer."/>}</article>;
+    return <article className={"card keyboard-card keyboard-card--"+(device||"mac")}><CardHead title={title||"Keyboard / today"}/><Empty label="Keyboard aggregate not linked" detail={note||"Publish a privacy-filtered keyboard aggregate for this device; no live keystrokes or key order leave the computer."}/></article>;
   }
-  return <article className="card keyboard-card"><CardHead title="Keyboard / today" meta={keyboard.total.toLocaleString()+" keys"}/><div className="keyboard-heatmap" aria-label={"Keyboard heatmap for "+keyboard.date}>{KEYBOARD_LAYOUT.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const level=keyboard.heat[item.key]||0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{"--key-u":item.u||1,"--heat":level/15}} title={item.label||"space"}><span>{item.label}</span></div>})}</div>)}</div></article>;
+  return <article className={"card keyboard-card keyboard-card--"+(device||"mac")}><CardHead title={title||"Keyboard / today"} meta={keyboard.total.toLocaleString()+" keys"}/><div className="keyboard-heatmap" style={{"--kb-rows":layout.length}} aria-label={(title||"Keyboard")+" heatmap for "+keyboard.date}>{layout.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const level=keyboard.heat[item.key]||0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{'--key-u':item.u||1,'--heat':level/15}} title={item.label||"space"}><span>{item.label}</span></div>})}</div>)}</div></article>;
 }
 
 function HomePhotoCard(){
@@ -325,11 +371,15 @@ function Layout({presence}){
 }
 
 function Home({presence,displayPresence,active,now}){
-  const apps=normalizeApps(presence&&presence.kv&&presence.kv.apps_today);
-  const health=normalizeHealth(presence&&presence.kv&&presence.kv.health_today);
-  const keyboard=normalizeKeyboard(presence&&presence.kv&&(presence.kv.keyboard_today||presence.kv.keyboard_yesterday));
-  const music=resolveMusic(presence&&presence.kv&&presence.kv.music_now,presence&&presence.spotify,now);
-  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard keyboard={keyboard}/></div></div>;
+  const kv=presence&&presence.kv?presence.kv:{};
+  // Software usage combines every device so the list can show more rows.
+  const apps=normalizeApps(kv.apps_today_win).concat(normalizeApps(kv.apps_today_mac||kv.apps_today)).sort((a,b)=>b.minutes-a.minutes);
+  const health=normalizeHealth(kv.health_today);
+  // Keyboards are per device and never merged.
+  const keyboardMac=normalizeKeyboard(kv.keyboard_today_mac||kv.keyboard_today||kv.keyboard_yesterday);
+  const keyboardWin=normalizeKeyboard(kv.keyboard_today_win);
+  const music=resolveMusic(kv.music_now,presence&&presence.spotify,now);
+  return <div className="view home-view" hidden={!active}><div className="grid"><StatusCard displayPresence={displayPresence}/><WeatherCard/><MapCard active={active}/><MusicCard music={music}/><HomePhotoCard/><FitnessCard health={health}/><DevicesCard/><SoftwareCard apps={apps}/><KeyboardCard keyboard={keyboardMac} layout={KEYBOARD_MAC} device="mac" title="Keyboard · Mac" note="Run bridge/whatpulse_presence.py on the Mac to publish a privacy-filtered keyboard aggregate."/><KeyboardCard keyboard={keyboardWin} layout={KEYBOARD_WIN_87} device="win" title="Keyboard · Windows" note="Run the Windows bridge (DEVICE=win) to publish a privacy-filtered keyboard aggregate."/></div></div>;
 }
 
 function PhotoPage(){

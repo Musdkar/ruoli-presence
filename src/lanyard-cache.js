@@ -1,5 +1,7 @@
 const CACHE_VERSION=1;
 const CACHE_MAX_AGE=30*60*1000;
+// Exact keys plus per-device slots like apps_today_mac / keyboard_today_win.
+// Device suffixes stay separate; nothing is merged across machines.
 const KV_KEYS=[
   "phone_presence",
   "apps_today",
@@ -8,6 +10,8 @@ const KV_KEYS=[
   "keyboard_yesterday",
   "music_now",
 ];
+const KV_KEY_RE=/^(?:apps_today|keyboard_today|keyboard_yesterday|health_today)_[a-z0-9_-]{1,16}$/;
+const isAllowedKvKey=(key)=>KV_KEYS.includes(key)||KV_KEY_RE.test(key);
 
 const cacheKey=(userId)=>`ruoli:lanyard:${CACHE_VERSION}:${userId}`;
 
@@ -19,7 +23,8 @@ export function sanitizePresence(value){
   if(value==null||typeof value!=="object"||Array.isArray(value))return null;
   const kv={};
   if(value.kv&&typeof value.kv==="object"&&!Array.isArray(value.kv)){
-    for(const key of KV_KEYS){
+    for(const key of Object.keys(value.kv)){
+      if(isAllowedKvKey(key)===false)continue;
       const item=value.kv[key];
       if(typeof item==="string"||item&&typeof item==="object")kv[key]=item;
     }

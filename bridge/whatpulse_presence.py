@@ -26,6 +26,7 @@ from urllib import parse as urlparse
 from urllib import request as urlrequest
 
 API_URL = os.environ.get("WHATPULSE_API_URL", "").strip()
+DEVICE = os.environ.get("DEVICE", "mac").strip().lower() or "mac"
 TOKEN = os.environ.get("INGEST_TOKEN", "").strip()
 ACTIVITYWATCH_API_URL = os.environ.get(
     "ACTIVITYWATCH_API_URL", "http://127.0.0.1:5600/api/0"
@@ -55,6 +56,26 @@ else:
     SPECIAL[16777250] = "COMMAND"
 
 ALLOWED_PRINTABLE = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-= []\\;'\x60,./")
+
+# Processes that are not user-facing software: login/lock surfaces, shell
+# placeholders, and system UI agents. Their foreground time is not "app usage"
+# and must not appear in the Software list. Matched case-insensitively.
+# Covers both English and Simplified-Chinese localized names.
+NON_USER_APPS = {
+    "loginwindow",
+    "securityagent",
+    "universalaccessauthwarn",
+    "usernotificationcenter",
+    "notificationcenter",
+    "controlcenter",
+    "systemuiserver",
+    "windowmanager",
+    "dock",
+    "st",
+    "system settings",
+    "\u7cfb\u7edf\u8bbe\u7f6e",
+    "\u5408\u76d6\u8fd0\u884c",  # clamshell state pseudo-app
+}
 
 
 def default_db_path() -> Path:
@@ -179,7 +200,7 @@ def read_software(target: str) -> dict | None:
         if not isinstance(data, dict):
             continue
         app = str(data.get("app") or "").strip()
-        if not app or app.lower() in {"activitywatch", "aw-qt"}:
+        if not app or app.lower() in {"activitywatch", "aw-qt"} or app.lower() in NON_USER_APPS:
             continue
         try:
             duration = max(0.0, float(event.get("duration") or 0))
@@ -303,7 +324,7 @@ def main() -> None:
     except Exception as exc:
         print(f"warning: WhatPulse keyboard aggregate unavailable: {exc}", file=sys.stderr)
 
-    payload = {}
+    payload = {"device": DEVICE}
     if software:
         payload["software"] = software
     if keyboard:

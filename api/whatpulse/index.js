@@ -17,6 +17,18 @@ const MAX_TOTAL_KEYS = 10000000;
 const MAX_LEVEL = 15;
 const KEY_RE = /^(?:[A-Z0-9]|SPACE|TAB|BACKSPACE|RETURN|SHIFT|COMMAND|CONTROL|OPTION|CAPS|ESC|LEFT|RIGHT|UP|DOWN|[-=\[\]\\;'\x60,.\/])$/;
 
+// Device slots keep each machine's keyboard/software data separate; nothing is
+// merged across devices. Only a short, safe slug is accepted as a slot.
+const DEVICE_RE = /^[a-z0-9_-]{1,16}$/;
+const MAX_DEVICES = 8;
+const LEGACY_DEVICE = "mac";
+
+function deviceSlot(value) {
+  if (typeof value !== "string") return LEGACY_DEVICE;
+  const slug = value.trim().toLowerCase();
+  return DEVICE_RE.test(slug) ? slug : LEGACY_DEVICE;
+}
+
 function safeEqual(a, b) {
   if (typeof a !== "string" || typeof b !== "string") return false;
   const ab = Buffer.from(a);
@@ -95,9 +107,18 @@ module.exports = async function (context, req) {
     return;
   }
 
+  const device = deviceSlot(payload.device);
   const kv = {};
-  if (software) kv.apps_today = JSON.stringify(software);
-  if (keyboard) kv.keyboard_today = JSON.stringify(keyboard);
+  if (software) {
+    kv["apps_today_" + device] = JSON.stringify(software);
+    // Keep the legacy unsuffixed key populated for the primary device so older
+    // clients and cached reads keep working.
+    if (device === LEGACY_DEVICE) kv.apps_today = JSON.stringify(software);
+  }
+  if (keyboard) {
+    kv["keyboard_today_" + device] = JSON.stringify(keyboard);
+    if (device === LEGACY_DEVICE) kv.keyboard_today = JSON.stringify(keyboard);
+  }
 
   try {
     const r = await fetch("https://api.lanyard.rest/v1/users/" + userId + "/kv", {
@@ -117,6 +138,7 @@ module.exports = async function (context, req) {
 
   jsonResponse(context, 200, {
     ok: true,
+    device,
     updated: { software: Boolean(software), keyboard: Boolean(keyboard) },
   });
 };
