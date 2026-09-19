@@ -156,13 +156,13 @@ html.light .article-body blockquote { color: #55585f; }
 html.light .uses-group-head { border-color: var(--soft-line); }
 html.light .uses-group-head span { color: #8a8d95; }
 html.light .software-item { border-color: var(--soft-line); }
-html.light .software-icon { border-color: var(--chip-line); background: #f6f5f1; }
 html.light .brand-fallback { color: #4c4f57; }
 html.light .software-item span:not(.brand-fallback) { color: #8a8d95; }
 html.light .uses-foot { color: #8a8d95; }
 
-/* simple-icons are requested as light greys on dark; invert for day */
-html.light .software-icon img { filter: invert(1) hue-rotate(180deg); }
+/* Software icons are the official full-color app marks. They sit on a light
+   tile (set in styles.css) so both transparent marks and white-background
+   brand icons render consistently in dark and light themes. Do NOT invert. */
 
 /* ==========================================================================
    Theme toggle button (in the header)

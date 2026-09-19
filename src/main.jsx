@@ -349,12 +349,12 @@ function BlogPost(){
 }
 
 function BrandMark({item}){
-  if(item.icon)return <img src={`https://cdn.simpleicons.org/${item.icon}/d7d9df`} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display="none";e.currentTarget.nextElementSibling?.classList.add("show")}}/>;
+  if(item.icon)return <img src={`/assets/software-icons/${item.icon}`} alt="" width="18" height="18" loading="lazy" decoding="async" onError={e=>{e.currentTarget.style.display="none";e.currentTarget.nextElementSibling?.classList.add("show")}}/>;
   return <span className="brand-fallback show">{item.monogram||item.name.slice(0,2).toUpperCase()}</span>;
 }
 
 function UsesPage(){
-  return <div className="view page-view uses-page"><div className="page-mast"><div><span className="eyebrow">USES / SOFTWARE</span><h2>The tools behind<br/>my screen time.</h2></div><p>A personal software shelf, not a recommendation list. The live “today” percentages stay on Home; this page is the slower, more permanent inventory.</p></div><div className="page-rule"/><div className="uses-grid">{config.software.map(group=><section className="uses-group" key={group.group}><div className="uses-group-head"><h3>{group.group}</h3><span>{group.note}</span></div><div className="software-list">{group.items.map(item=><div className="software-item" key={item.name}><div className="software-icon"><BrandMark item={item}/>{item.icon&&<span className="brand-fallback">{item.monogram||item.name.slice(0,2).toUpperCase()}</span>}</div><div><b>{item.name}</b><span>{item.meta}</span></div></div>)}</div></section>)}</div><div className="uses-foot"><span>Hardware stays on Home for now.</span><span>Software icons · Simple Icons CDN</span></div></div>;
+  return <div className="view page-view uses-page"><div className="page-mast"><div><span className="eyebrow">USES / SOFTWARE</span><h2>The tools behind<br/>my screen time.</h2></div><p>A personal software shelf, not a recommendation list. The live “today” percentages stay on Home; this page is the slower, more permanent inventory.</p></div><div className="page-rule"/><div className="uses-grid">{config.software.map(group=><section className="uses-group" key={group.group}><div className="uses-group-head"><h3>{group.group}</h3><span>{group.note}</span></div><div className="software-list">{group.items.map(item=><div className="software-item" key={item.name}><div className="software-icon"><BrandMark item={item}/>{item.icon&&<span className="brand-fallback">{item.monogram||item.name.slice(0,2).toUpperCase()}</span>}</div><div><b>{item.name}</b><span>{item.meta}</span></div></div>)}</div></section>)}</div><div className="uses-foot"><span>Hardware stays on Home for now.</span><span>Software icons · self-hosted</span></div></div>;
 }
 
 function SiteRouter({presence}){
