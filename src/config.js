@@ -44,38 +44,38 @@ export const config = {
       group: "Development",
       note: "things I build with",
       items: [
-        { name: "VS Code", meta: "editor", icon: "visualstudiocode" },
-        { name: "PyCharm", meta: "Python IDE", icon: "pycharm" },
-        { name: "Ghostty", meta: "terminal", monogram: "GT" },
-        { name: "Git", meta: "version control", icon: "git" }
+        { name: "VS Code", meta: "editor", icon: "vscode.png" },
+        { name: "PyCharm", meta: "Python IDE", icon: "pycharm.png" },
+        { name: "Ghostty", meta: "terminal", icon: "ghostty.png" },
+        { name: "Git", meta: "version control", icon: "git.png" }
       ]
     },
     {
       group: "AI",
       note: "thinking + coding",
       items: [
-        { name: "ChatGPT", meta: "research + work", icon: "openai" },
-        { name: "Claude Code", meta: "coding", icon: "anthropic" }
+        { name: "ChatGPT", meta: "research + work", icon: "chatgpt.png" },
+        { name: "Claude Code", meta: "coding", icon: "claude.png" }
       ]
     },
     {
       group: "VR",
       note: "social + PCVR",
       items: [
-        { name: "VRChat", meta: "social VR", icon: "vrchat" },
-        { name: "VRCX", meta: "VRChat companion", monogram: "VX" },
-        { name: "Virtual Desktop", meta: "Quest streaming", monogram: "VD" }
+        { name: "VRChat", meta: "social VR", icon: "vrchat.png" },
+        { name: "VRCX", meta: "VRChat companion", icon: "vrcx.png" },
+        { name: "Virtual Desktop", meta: "Quest streaming", icon: "virtualdesktop.png" }
       ]
     },
     {
       group: "Daily",
       note: "notes + utilities",
       items: [
-        { name: "Obsidian", meta: "notes", icon: "obsidian" },
-        { name: "Notion", meta: "workspace", icon: "notion" },
-        { name: "Microsoft Edge", meta: "browser", icon: "microsoftedge" },
-        { name: "MarkEdit", meta: "Markdown", monogram: "ME" },
-        { name: "Maccy", meta: "clipboard", monogram: "MC" }
+        { name: "Obsidian", meta: "notes", icon: "obsidian.png" },
+        { name: "Notion", meta: "workspace", icon: "notion.png" },
+        { name: "Microsoft Edge", meta: "browser", icon: "edge.png" },
+        { name: "MarkEdit", meta: "Markdown", icon: "markedit.png" },
+        { name: "Maccy", meta: "clipboard", icon: "maccy.png" }
       ]
     }
   ]
