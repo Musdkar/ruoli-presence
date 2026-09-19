@@ -7,6 +7,7 @@ import {posts} from "./content/posts";
 import {getDisplayPresence} from "./presence";
 import {fetchLanyardPresence,readCachedPresence,sanitizePresence,writeCachedPresence} from "./lanyard-cache";
 import {normalizeApps,normalizeHealth,normalizeKeyboard,resolveMusic} from "./normalize";
+import {useLang,setLang,getLang,LANGS,useT,LangContext,LANG_CHOSEN_KEY} from "./i18n";
 import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
@@ -170,6 +171,12 @@ function ThemeToggle(){
   return <button type="button" className="theme-toggle" onClick={cycle} title={`Theme: ${stored} — switch to ${next}`} aria-label={`Theme: ${stored}. Switch to ${next}`}><span className="theme-toggle-icon" aria-hidden="true">{themeIcon(stored)}</span><span className="theme-toggle-label">{stored}</span></button>;
 }
 
+function LangToggle(){
+  const lang=useLang();
+  const next=lang==="en"?"zh":"en";
+  return <button type="button" className="theme-toggle lang-toggle" onClick={()=>setLang(next)} aria-label="Language"><span className="theme-toggle-icon" aria-hidden="true">译</span><span className="theme-toggle-label">{lang==="zh"?"中文":"EN"}</span></button>;
+}
+
 function useResolvedTheme(){
   const read=()=>document.documentElement.classList.contains("light")?"light":"dark";
   const[resolved,setResolved]=useState(read);
@@ -183,6 +190,7 @@ function useResolvedTheme(){
   return resolved;
 }
 function MapCard({active}){
+  const T=useT();
   const ref=useRef(null);
   const resolvedTheme=useResolvedTheme();
   const mapRef=useRef(null);
@@ -263,7 +271,7 @@ function MapCard({active}){
     return()=>cancelAnimationFrame(frame);
   },[active]);
 
-  return <article className="card map-card" aria-busy={shouldLoad&&!ready&&!failed}><div ref={ref} className={`map-canvas${ready?" is-ready":""}`}/><div className="map-shade"/><h2>{config.city}</h2><div className="map-avatar"><img src={config.mapAvatar} alt="Map avatar" width="66" height="66" loading="lazy" decoding="async"/></div>{shouldLoad&&!ready&&<span className="map-loading" role="status">{failed?"Map unavailable":"Loading map…"}</span>}<div className="map-pill">◎ {config.city}, {config.region}</div></article>;
+  return <article className="card map-card" aria-busy={shouldLoad&&!ready&&!failed}><div ref={ref} className={`map-canvas${ready?" is-ready":""}`}/><div className="map-shade"/><h2>{config.city}</h2><div className="map-avatar"><img src={config.mapAvatar} alt={T.mapAvatarAlt} width="66" height="66" loading="lazy" decoding="async"/></div>{shouldLoad&&!ready&&<span className="map-loading" role="status">{failed?T.mapUnavailable:T.mapLoading}</span>}<div className="map-pill">◎ {config.city}, {config.region}</div></article>;
 }
 const WEATHER_CACHE_KEY="ruoli:weather:v1";
 const WEATHER_CACHE_MAX_AGE=30*60*1000;
@@ -275,10 +283,11 @@ function readWeatherCache(){
   }catch{return null}
 }
 function WeatherCard(){
+  const T=useT();
   const[weather,setWeather]=useState(readWeatherCache);
   useEffect(()=>{
     const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),3000);
+    const timeout=setTimeout(()=>controller.abort(),8000);
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${config.weatherLat}&longitude=${config.weatherLng}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=${encodeURIComponent(config.timezone)}`,{signal:controller.signal})
       .then((r)=>{if(!r.ok)throw new Error("weather "+r.status);return r.json()})
       .then((data)=>{
@@ -294,8 +303,7 @@ function WeatherCard(){
       controller.abort();
     };
   },[]);
-  const names={0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",51:"Drizzle",61:"Rain",63:"Rain",65:"Heavy rain",80:"Showers",95:"Thunderstorm"};
-  return <article className="card weather-card"><CardHead title="Weather · Wuhan"/><div className="weather-main"><div><strong>{weather&&weather.temperature_2m!=null?Math.round(weather.temperature_2m)+"°":"--°"}</strong><span>{weather?(names[weather.weather_code]||"Current weather"):weather===false?"unavailable":"loading…"}</span></div>{weather&&<small>feels {Math.round(weather.apparent_temperature)}°<br/>wind {Math.round(weather.wind_speed_10m)} km/h</small>}</div></article>;
+  return <article className="card weather-card"><CardHead title={T.weather+" · Wuhan"}/><div className="weather-main"><div><strong>{weather&&weather.temperature_2m!=null?Math.round(weather.temperature_2m)+"°":"--°"}</strong><span>{weather?(T.weatherCodes[weather.weather_code]||T.currentWeather):weather===false?T.unavailable:T.loading}</span></div>{weather&&<small>{T.feels} {Math.round(weather.apparent_temperature)}°<br/>{T.wind} {Math.round(weather.wind_speed_10m)} km/h</small>}</div></article>;
 }
 function formatUsageMinutes(minutes){
   const seconds=Math.max(0,Math.round(Number(minutes||0)*60));
@@ -309,25 +317,29 @@ function formatUsageMinutes(minutes){
 }
 
 function SoftwareCard({apps}){
-  if(!apps?.length)return <article className="card apps-card"><CardHead title="Software / today" meta="foreground"/><Empty label="Software aggregate not linked" detail="Run bridge/whatpulse_presence.py to publish today’s foreground application time."/></article>;
+  const T=useT();
+  if(!apps?.length)return <article className="card apps-card"><CardHead title={T.softwareToday} meta={T.foreground}/><Empty label={T.softwareNotLinked} detail={T.softwareNotLinkedDetail}/></article>;
   const top=apps.slice(0,8);
   const max=Math.max(1,...top.map(app=>app.minutes));
-  return <article className="card apps-card"><CardHead title="Software / today" meta="foreground"/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
+  return <article className="card apps-card"><CardHead title={T.softwareToday} meta={T.foreground}/><div className="software-usage-list">{top.map((app,index)=><div className="software-usage-row" key={app.name}><div className="software-usage-name"><span>{String(index+1).padStart(2,"0")}</span><strong title={app.name}>{app.name}</strong></div><div className="software-usage-track" aria-hidden="true"><i style={{width:`${Math.max(4,app.minutes/max*100)}%`}}/></div><time>{formatUsageMinutes(app.minutes)}</time></div>)}</div></article>;
 }
 
 function KeyboardCard({keyboard,layout,title,note,device}){
+  const T=useT();
   if(!keyboard){
-    return <article className={"card keyboard-card keyboard-card--"+(device||"mac")}><CardHead title={title||"Keyboard / today"}/><Empty label="Keyboard aggregate not linked" detail={note||"Publish a privacy-filtered keyboard aggregate for this device; no live keystrokes or key order leave the computer."}/></article>;
+    return <article className={"card keyboard-card keyboard-card--"+(device||"mac")}><CardHead title={title||"Keyboard / today"}/><Empty label={T.keyboardNotLinked} detail={note||T.keyboardNotLinkedDetail}/></article>;
   }
-  return <article className={"card keyboard-card keyboard-card--"+(device||"mac")}><CardHead title={title||"Keyboard / today"} meta={keyboard.total.toLocaleString()+" keys"}/><div className="keyboard-heatmap" style={{"--kb-rows":layout.length}} aria-label={(title||"Keyboard")+" heatmap for "+keyboard.date}>{layout.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const level=keyboard.heat[item.key]||0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{'--key-u':item.u||1,'--heat':level/15}} title={item.label||"space"}><span>{item.label}</span></div>})}</div>)}</div></article>;
+  return <article className={"card keyboard-card keyboard-card--"+(device||"mac")}><CardHead title={title||"Keyboard / today"} meta={keyboard.total.toLocaleString()+" "+T.keys}/><div className="keyboard-heatmap" style={{"--kb-rows":layout.length}} aria-label={(title||"Keyboard")+" heatmap for "+keyboard.date}>{layout.map((row,rowIndex)=><div className="keyboard-row" key={rowIndex}>{row.map((item,index)=>{const level=keyboard.heat[item.key]||0;return <div className="keyboard-key" key={rowIndex+"-"+index} style={{'--key-u':item.u||1,'--heat':level/15}} title={item.label||T.space}><span>{item.label}</span></div>})}</div>)}</div></article>;
 }
 
 function HomePhotoCard(){
+  const T=useT();
   const photo=config.photos[0];
-  return <article className="card photos-card"><CardHead title="Photo" meta="latest frame"/>{photo?<div className="photo-album"><img className="photo-backdrop" src={photo.src} alt="" aria-hidden="true"/><img className="photo-preview" src={photo.src} alt={photo.alt} width={photo.width} height={photo.height} decoding="async"/></div>:<Empty label="No photos yet"/>}<Link className="photo-open" to="/photo">open archive ↗</Link></article>;
+  return <article className="card photos-card"><CardHead title={T.photo2} meta={T.latestFrame}/>{photo?<div className="photo-album"><img className="photo-backdrop" src={photo.src} alt="" aria-hidden="true"/><img className="photo-preview" src={photo.src} alt={photo.alt} width={photo.width} height={photo.height} decoding="async"/></div>:<Empty label={T.noPhotos}/>}<Link className="photo-open" to="/photo">{T.openArchive} ↗</Link></article>;
 }
 
 function FitnessCard({health}){
+  const T=useT();
   const steps=Math.max(0,Number(health?.steps||0));
   const goal=Math.max(1,Number(config.fitness?.stepGoal||8000));
   const progress=Math.min(1,steps/goal);
@@ -335,33 +347,38 @@ function FitnessCard({health}){
   const circumference=2*Math.PI*radius;
   const offset=circumference*(1-progress);
   const synced=health!=null;
-  return <article className="card fitness-card"><CardHead title="Fitness" meta={synced?"steps · today":"not synced"}/><div className={`fitness-content${synced?"":" is-empty"}`}><div className="fitness-ring-wrap" role="img" aria-label={`${steps.toLocaleString()} of ${goal.toLocaleString()} steps`}><svg className="fitness-ring" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="fitness-progress-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="var(--violet)"/><stop offset="100%" stopColor="var(--mint)"/></linearGradient></defs><circle className="fitness-ring-track" cx="60" cy="60" r={radius}/><circle className="fitness-ring-progress" cx="60" cy="60" r={radius} strokeDasharray={circumference} strokeDashoffset={offset} style={{opacity:progress>0?1:0}}/></svg></div><div className="fitness-steps"><span className="fitness-footsteps" aria-hidden="true"><i/><i/><b/><b/></span><strong>{synced?steps.toLocaleString():"--"}</strong></div></div></article>;
+  return <article className="card fitness-card"><CardHead title={T.fitness} meta={synced?T.stepsToday:T.notSynced}/><div className={`fitness-content${synced?"":" is-empty"}`}><div className="fitness-ring-wrap" role="img" aria-label={`${steps.toLocaleString()} of ${goal.toLocaleString()} steps`}><svg className="fitness-ring" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="fitness-progress-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="var(--violet)"/><stop offset="100%" stopColor="var(--mint)"/></linearGradient></defs><circle className="fitness-ring-track" cx="60" cy="60" r={radius}/><circle className="fitness-ring-progress" cx="60" cy="60" r={radius} strokeDasharray={circumference} strokeDashoffset={offset} style={{opacity:progress>0?1:0}}/></svg></div><div className="fitness-steps"><span className="fitness-footsteps" aria-hidden="true"><i/><i/><b/><b/></span><strong>{synced?steps.toLocaleString():"--"}</strong></div></div></article>;
 }
 
-function DevicesCard(){return <article className="card devices-card"><CardHead title="Devices" meta="daily / play"/><div className="device-columns"><DeviceGroup title="daily" items={[["MacBook Pro · M1 Pro","macOS"],["iPhone 16 Pro Max","mobile"],["AirPods Pro 3","audio"]]}/><DeviceGroup title="play" items={[["Quest 3","VR"],["Gaming Laptop","7945HX · RTX 5070 Ti"],["Desktop PC","5800X · RX 6900 XT"],["Xiaomi Pad 7S Pro","tablet"]]}/></div></article>}
+function DevicesCard(){
+  const T=useT();return <article className="card devices-card"><CardHead title={T.devices} meta={T.daily+" / "+T.play}/><div className="device-columns"><DeviceGroup title={T.daily} items={[["MacBook Pro · M1 Pro","macOS"],["iPhone 16 Pro Max","mobile"],["AirPods Pro 3","audio"]]}/><DeviceGroup title={T.play} items={[["Quest 3","VR"],["Gaming Laptop","7945HX · RTX 5070 Ti"],["Desktop PC","5800X · RX 6900 XT"],["Xiaomi Pad 7S Pro","tablet"]]}/></div></article>}
 function DeviceGroup({title,items}){return <div><h4>{title}</h4>{items.map(([n,m])=><div className="device" key={n}><b>{n}</b><span>{m}</span></div>)}</div>}
 
-function StatusCard({displayPresence}){const{status,label}=displayPresence;return <article className="card status-card"><CardHead title="Status"/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong></div></article>}
+function StatusCard({displayPresence}){
+  const T=useT();const{status,label}=displayPresence;return <article className="card status-card"><CardHead title={T.status}/><div className="status-main"><span className={`status-dot ${status}`}/><strong>{label}</strong></div></article>}
 function MusicCard({music}){
-  const stateLabels={playing:"Now playing",paused:"Paused",last_played:"Last played"};
+  const T=useT();
+  const stateLabels={playing:T.nowPlaying,paused:T.paused,last_played:T.lastPlayed};
   const serviceLabels={netease:"NetEase Music",apple_music:"Apple Music",spotify:"Spotify"};
   const serviceLabel=music&&music.service?serviceLabels[music.service]||null:null;
   const coverUrl=music?.artwork?.url||null;
   const[failedCover,setFailedCover]=useState(null);
-  if(!music||music.state==="never")return <article className="card music-card"><CardHead title="Music Status" meta={serviceLabel}/><Empty label="Music not linked yet" detail="Waiting for the first local sync"/></article>;
+  if(!music||music.state==="never")return <article className="card music-card"><CardHead title={T.musicStatus} meta={serviceLabel}/><Empty label={T.musicNever} detail={T.musicNeverDetail}/></article>;
   const showCover=coverUrl&&failedCover!==coverUrl;
-  return <article className="card music-card"><CardHead title="Music Status" meta={serviceLabel}/><div className={`music-body music-${music.state}`}><div className="music-state">{stateLabels[music.state]||"Music"}</div><div className="music-cover-frame">{showCover?<img className="music-cover" src={coverUrl} alt={music.track.title+" cover"} loading="lazy" decoding="async" onError={()=>setFailedCover(coverUrl)}/>:<div className="music-cover music-cover-empty">&#9834;</div>}</div><div className="music-track"><strong>{music.track.title}</strong><span>{music.track.artist}</span></div></div></article>;
+  return <article className="card music-card"><CardHead title={T.musicStatus} meta={serviceLabel}/><div className={`music-body music-${music.state}`}><div className="music-state">{stateLabels[music.state]||T.music}</div><div className="music-cover-frame">{showCover?<img className="music-cover" src={coverUrl} alt={music.track.title+" cover"} loading="lazy" decoding="async" onError={()=>setFailedCover(coverUrl)}/>:<div className="music-cover music-cover-empty">&#9834;</div>}</div><div className="music-track"><strong>{music.track.title}</strong><span>{music.track.artist}</span></div></div></article>;
 }
 function VrcStatus({presence}){const vrc=presence?.activities?.find(a=>/vrchat/i.test(a.name||'')||/vrchat/i.test(a.details||''));return vrc?<div className="vrc-line">VRChat · {vrc.details||vrc.state||"active"}</div>:null}
 
 function Sidebar({presence,displayPresence}){
+  const T=useT();
   const[now,setNow]=useState(new Date());
   useEffect(()=>{const t=setInterval(()=>setNow(new Date()),30000);return()=>clearInterval(t)},[]);
   const local=useMemo(()=>new Intl.DateTimeFormat('en-GB',{timeZone:config.timezone,hour:'2-digit',minute:'2-digit',hour12:false}).format(now),[now]);
-  return <aside><div className="sidebar"><div className="sidebar-top"><div className="kicker">About me</div><span className="sidebar-motto">mostly<br/><i>online.</i></span></div><div className="identity"><img className="avatar" src={config.avatar} alt="avatar" width="78" height="78" fetchPriority="high" decoding="async"/><div><h1>{config.name}<br/><i>{config.nameJa}</i></h1><p>{config.greeting} I&apos;m {config.name}. {config.about}</p></div></div><div className="rule"/><div className="fun-facts"><div className="fun-facts-title">Fun facts</div><ul>{config.funFacts.map(fact=><li key={fact}>{fact}</li>)}</ul></div><dl><div><dt>local time</dt><dd>{local}</dd></div><div><dt>presence</dt><dd className={`sidebar-presence ${displayPresence.status}`}>● {displayPresence.label}</dd></div></dl><VrcStatus presence={presence}/><div className="social-block"><div className="social-title">Connect</div><div className="socials">{config.socialLinks.map(link=>link.href?<a key={link.label} href={link.href} target="_blank" rel="noreferrer" title={link.name}>{link.label}</a>:<span key={link.label} className="disabled" title={`${link.name} not linked`}>{link.label}</span>)}</div></div><div className="sidebar-note"><b>One identity, four views.</b><br/>Home is the live surface; Blog, Photo and Uses reuse the same fixed identity rail.</div></div></aside>;
+  return <aside><div className="sidebar"><div className="sidebar-top"><div className="kicker">{T.aboutMe}</div><span className="sidebar-motto">mostly<br/><i>online.</i></span></div><div className="identity"><img className="avatar" src={config.avatar} alt="avatar" width="78" height="78" fetchPriority="high" decoding="async"/><div><h1>{config.name}<br/><i>{config.nameJa}</i></h1><p>{config.greeting} I&apos;m {config.name}. {config.about}</p></div></div><div className="rule"/><div className="fun-facts"><div className="fun-facts-title">{T.funFacts}</div><ul>{T.funFactsItems.map(fact=><li key={fact}>{fact}</li>)}</ul></div><dl><div><dt>{T.localTime}</dt><dd>{local}</dd></div><div><dt>{T.presence}</dt><dd className={`sidebar-presence ${displayPresence.status}`}>● {displayPresence.label}</dd></div></dl><VrcStatus presence={presence}/><div className="social-block"><div className="social-title">{T.connect}</div><div className="socials">{config.socialLinks.map(link=>link.href?<a key={link.label} href={link.href} target="_blank" rel="noreferrer" title={link.name}>{link.label}</a>:<span key={link.label} className="disabled" title={link.name+" "+T.notLinked}>{link.label}</span>)}</div></div></div></aside>;
 }
 
 function Layout({presence}){
+  const T=useT();
   const{pathname}=useLocation();
   const isHome=pathname==="/";
   const[hasVisitedHome,setHasVisitedHome]=useState(isHome);
@@ -369,7 +386,7 @@ function Layout({presence}){
   useEffect(()=>{if(isHome)setHasVisitedHome(true)},[isHome]);
   useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer)},[]);
   const displayPresence=getDisplayPresence(presence,now);
-  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/","HOME"],["/blog","BLOG"],["/photo","PHOTO"],["/uses","USES"]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><ThemeToggle/><div className="edition">digital presence<br/>2026 edition</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome} now={now}/>}<Outlet/></section></main></>;
+  return <><header><Link className="brand" to="/">RUOLI<b>.</b></Link><nav>{[["/",T.home],["/blog",T.blog],["/photo",T.photo],["/uses",T.uses]].map(([to,label])=><NavLink key={to} to={to} end={to==="/"} className={({isActive})=>isActive?"active":""}>{label}</NavLink>)}</nav><div className="header-actions"><ThemeToggle/><LangToggle/></div><div className="edition">{T.edition}<br/>{T.editionSub}</div></header><main><Sidebar presence={presence} displayPresence={displayPresence}/><section className="content">{(isHome||hasVisitedHome)&&<Home presence={presence} displayPresence={displayPresence} active={isHome} now={now}/>}<Outlet/></section></main></>;
 }
 
 function Home({presence,displayPresence,active,now}){
@@ -385,19 +402,22 @@ function Home({presence,displayPresence,active,now}){
 }
 
 function PhotoPage(){
-  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">PHOTO / ARCHIVE</span><h2>Places, moments,<br/>and fragments.</h2></div><p>A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.</p></div><div className="page-rule"/><div className="photo-wall"><React.Suspense fallback={<div className="archive-note">Loading archive…</div>}><LazyMasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></React.Suspense></div>{config.photos.length===1&&<div className="archive-note">One image in the archive for now. Add more files later and the layout will rebalance automatically.</div>}</div>;
+  const T=useT();
+  return <div className="view page-view photo-page"><div className="page-mast"><div><span className="eyebrow">{T.photo} / ARCHIVE</span><h2>{T.homePageTitle1}<br/>{T.homePageTitle2}</h2></div><p>{T.photoIntro}</p></div><div className="page-rule"/><div className="photo-wall"><React.Suspense fallback={<div className="archive-note">{T.loadingArchive}</div>}><LazyMasonryPhotoAlbum photos={config.photos} columns={width=>width<700?1:width<1200?2:3} spacing={10}/></React.Suspense></div>{config.photos.length===1&&<div className="archive-note">{T.archiveNote}</div>}</div>;
 }
 
 const publishedPosts=posts.filter(post=>post.published!==false);
 function BlogPage(){
-  return <div className="view page-view blog-page"><div className="page-mast"><div><span className="eyebrow">BLOG / NOTES</span><h2>Things worth<br/>writing down.</h2></div><p>Longer notes on software, security, VR, experiments and whatever is occupying my attention.</p></div><div className="page-rule"/>{publishedPosts.length?<div className="post-list">{publishedPosts.map((post,index)=><Link className="post-row" to={`/blog/${post.slug}`} key={post.slug}><span className="post-index">{String(index+1).padStart(2,"0")}</span><div><h3>{post.title}</h3><p>{post.summary}</p><div className="post-tags">{post.tags.map(tag=><span key={tag}>{tag}</span>)}</div></div><time>{post.date}</time></Link>)}</div>:<div className="blog-empty"><span>ISSUE 00</span><h3>No published posts yet.</h3><p>The blog structure is live and Markdown-ready. Drafts stay invisible until they are marked published.</p></div>}</div>;
+  const T=useT();
+  return <div className="view page-view blog-page"><div className="page-mast"><div><span className="eyebrow">{T.blogEyebrow}</span><h2>{T.blogTitle1}<br/>{T.blogTitle2}</h2></div><p>{T.blogIntro}</p></div><div className="page-rule"/>{publishedPosts.length?<div className="post-list">{publishedPosts.map((post,index)=><Link className="post-row" to={`/blog/${post.slug}`} key={post.slug}><span className="post-index">{String(index+1).padStart(2,"0")}</span><div><h3>{post.title}</h3><p>{post.summary}</p><div className="post-tags">{post.tags.map(tag=><span key={tag}>{tag}</span>)}</div></div><time>{post.date}</time></Link>)}</div>:<div className="blog-empty"><span>ISSUE 00</span><h3>{T.noPosts}</h3><p>{T.noPostsDetail}</p></div>}</div>;
 }
 
 function BlogPost(){
+  const T=useT();
   const{slug}=useParams();
   const post=posts.find(item=>item.slug===slug&&item.published!==false);
   if(!post)return <div className="view page-view"><div className="blog-empty"><span>404</span><h3>Post not found.</h3><Link to="/blog">← back to blog</Link></div></div>;
-  return <article className="view article-view"><Link className="back-link" to="/blog">← BLOG</Link><header className="article-head"><time>{post.date}</time><h2>{post.title}</h2><p>{post.summary}</p></header><div className="article-body"><React.Suspense fallback={<p>Loading article…</p>}><LazyMarkdown>{post.body}</LazyMarkdown></React.Suspense></div></article>;
+  return <article className="view article-view"><Link className="back-link" to="/blog">← {T.blog}</Link><header className="article-head"><time>{post.date}</time><h2>{post.title}</h2><p>{post.summary}</p></header><div className="article-body"><React.Suspense fallback={<p>{T.loadingArticle}</p>}><LazyMarkdown>{post.body}</LazyMarkdown></React.Suspense></div></article>;
 }
 
 function BrandMark({item}){
@@ -406,12 +426,33 @@ function BrandMark({item}){
 }
 
 function UsesPage(){
-  return <div className="view page-view uses-page"><div className="page-mast"><div><span className="eyebrow">USES / SOFTWARE</span><h2>The tools behind<br/>my screen time.</h2></div><p>A personal software shelf, not a recommendation list. The live “today” percentages stay on Home; this page is the slower, more permanent inventory.</p></div><div className="page-rule"/><div className="uses-grid">{config.software.map(group=><section className="uses-group" key={group.group}><div className="uses-group-head"><h3>{group.group}</h3><span>{group.note}</span></div><div className="software-list">{group.items.map(item=><div className="software-item" key={item.name}><div className="software-icon"><BrandMark item={item}/>{item.icon&&<span className="brand-fallback">{item.monogram||item.name.slice(0,2).toUpperCase()}</span>}</div><div><b>{item.name}</b><span>{item.meta}</span></div></div>)}</div></section>)}</div><div className="uses-foot"><span>Hardware stays on Home for now.</span><span>Software icons · self-hosted</span></div></div>;
+  const T=useT();
+  return <div className="view page-view uses-page"><div className="page-mast"><div><span className="eyebrow">{T.usesEyebrow}</span><h2>{T.usesTitle1}<br/>{T.usesTitle2}</h2></div><p>{T.usesIntro}</p></div><div className="page-rule"/><div className="uses-grid">{config.software.map(group=><section className="uses-group" key={group.group}><div className="uses-group-head"><h3>{T.groups[group.group]||group.group}</h3><span>{T.groupNotes[group.note]||group.note}</span></div><div className="software-list">{group.items.map(item=><div className="software-item" key={item.name}><div className="software-icon"><BrandMark item={item}/>{item.icon&&<span className="brand-fallback">{item.monogram||item.name.slice(0,2).toUpperCase()}</span>}</div><div><b>{item.name}</b><span>{item.meta}</span></div></div>)}</div></section>)}</div><div className="uses-foot"><span>{T.usesFoot1}</span><span>{T.usesFoot2}</span></div></div>;
 }
 
 function SiteRouter({presence}){
   return <BrowserRouter><Routes><Route element={<Layout presence={presence}/>}><Route index element={null}/><Route path="photo" element={<PhotoPage/>}/><Route path="photos" element={<Navigate to="/photo" replace/>}/><Route path="blog" element={<BlogPage/>}/><Route path="blog/:slug" element={<BlogPost/>}/><Route path="uses" element={<UsesPage/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Route></Routes></BrowserRouter>;
 }
 function LanyardApp(){const presence=useFastLanyard(config.discordId);return <SiteRouter presence={presence}/>}
-function App(){return config.discordId?<LanyardApp/>:<SiteRouter presence={null}/>}
+function LangPicker({onChoose}){
+  const T=useT();
+  return <div className="lang-picker" role="dialog" aria-modal="true" aria-label={T.langPickerTitle}>
+    <div className="lang-picker-card">
+      <h2>{T.langPickerTitle}</h2>
+      <p>{T.langPickerBody}</p>
+      <div className="lang-picker-actions">
+        <button type="button" onClick={()=>onChoose("en")}>English</button>
+        <button type="button" onClick={()=>onChoose("zh")}>中文</button>
+      </div>
+    </div>
+  </div>;
+}
+
+function App(){
+  const lang=useLang();
+  const[asking,setAsking]=useState(()=>{try{return localStorage.getItem(LANG_CHOSEN_KEY)!=="1"}catch(e){return true}});
+  const choose=(l)=>{setLang(l);setAsking(false);try{localStorage.setItem(LANG_CHOSEN_KEY,"1")}catch(e){}};
+  const content=config.discordId?<LanyardApp/>:<SiteRouter presence={null}/>;
+  return <LangContext.Provider value={lang}>{asking&&<LangPicker onChoose={choose}/>}{content}</LangContext.Provider>;
+}
 createRoot(document.getElementById("root")).render(<React.StrictMode><App/></React.StrictMode>);

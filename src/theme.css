@@ -168,6 +168,7 @@ html.light .uses-foot { color: #8a8d95; }
    Theme toggle button (in the header)
    ========================================================================== */
 header { grid-template-columns: minmax(300px, 24vw) 1fr auto auto; column-gap: 14px; }
+.header-actions { display: flex; align-items: center; gap: 8px; justify-self: end; }
 
 .theme-toggle {
   justify-self: end;
@@ -198,7 +199,7 @@ header { grid-template-columns: minmax(300px, 24vw) 1fr auto auto; column-gap: 1
 
 @media (max-width: 900px) {
   header { grid-template-columns: 1fr auto; }
-  .theme-toggle { grid-column: 2; grid-row: 1; }
+  .header-actions { grid-column: 2; grid-row: 1; }
 }
 
 @media (max-width: 620px) {
@@ -387,3 +388,59 @@ html.light .software-usage-name > span { color: #aaa79f; }
 html.light .software-usage-name strong { color: #4b4e55; }
 html.light .software-usage-track { background: #e6e4dd; }
 html.light .software-usage-row time { color: #767981; }
+
+/* ==========================================================================
+   Language picker (first visit) + toggle button
+   ========================================================================== */
+.lang-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 9, 12, .72);
+  backdrop-filter: blur(6px);
+}
+.lang-picker-card {
+  width: min(92vw, 380px);
+  padding: 28px 26px 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .45);
+  text-align: center;
+}
+.lang-picker-card h2 {
+  font: 600 26px/1.1 Georgia, "Times New Roman", serif;
+  margin: 0 0 8px;
+  letter-spacing: -.03em;
+  color: var(--text);
+}
+.lang-picker-card p {
+  margin: 0 0 20px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.lang-picker-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.lang-picker-actions button {
+  padding: 12px 10px;
+  border: 1px solid var(--chip-line, var(--line));
+  border-radius: 12px;
+  background: var(--chip-bg, var(--panel2));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.lang-picker-actions button:hover {
+  border-color: var(--violet);
+  background: var(--chip-bg-hover, var(--panel2));
+  transform: translateY(-1px);
+}
