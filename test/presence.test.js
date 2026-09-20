@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getDisplayPresence } from "../src/presence.js";
+import { getDisplayPresence } from "../src/lib/presence.js";
 
 const NOW = Date.parse("2026-09-20T10:00:00+08:00");
 const iso = (msAgo) => new Date(NOW - msAgo).toISOString();

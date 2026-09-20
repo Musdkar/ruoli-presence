@@ -9,7 +9,7 @@ import {
   normalizeSpotify,
   resolveMusic,
   MUSIC_LIVE_MAX_AGE,
-} from "../src/normalize.js";
+} from "../src/lib/normalize.js";
 
 describe("safeJSON", () => {
   it("returns fallback for null/empty", () => {
@@ -233,7 +233,7 @@ describe("resolveMusic precedence", () => {
   });
 });
 
-import { mergeAppUsage } from "../src/normalize.js";
+import { mergeAppUsage } from "../src/lib/normalize.js";
 
 describe("mergeAppUsage", () => {
   it("sums minutes per app name and sorts desc", () => {

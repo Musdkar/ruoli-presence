@@ -3,7 +3,7 @@ import {
   sanitizePresence,
   readCachedPresence,
   writeCachedPresence,
-} from "../src/lanyard-cache.js";
+} from "../src/lib/lanyard-cache.js";
 
 // Minimal localStorage stub for the node test environment.
 class MemStore {
