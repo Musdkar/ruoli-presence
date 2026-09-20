@@ -11,7 +11,7 @@ export const config = {
     "19 years old",
     "MBTI: INTJ-A",
     "amateur VRChat dancer, mostly chatting on desktop",
-    "learning Japanese"
+    "learning Japanese",
   ],
   city: "Wuhan",
   region: "Hubei",
@@ -28,7 +28,7 @@ export const config = {
     { label: "GH", name: "GitHub", href: "https://github.com/Musdkar" },
     { label: "VR", name: "VRChat", href: import.meta.env.VITE_VRCHAT_URL || "" },
     { label: "DC", name: "Discord", href: import.meta.env.VITE_DISCORD_URL || "" },
-    { label: "@", name: "Contact", href: import.meta.env.VITE_CONTACT_URL || "" }
+    { label: "@", name: "Contact", href: import.meta.env.VITE_CONTACT_URL || "" },
   ],
   photos: [
     {
@@ -36,8 +36,8 @@ export const config = {
       width: 1600,
       height: 900,
       alt: "VRChat screenshot",
-      title: "VRChat · 2026"
-    }
+      title: "VRChat · 2026",
+    },
   ],
   software: [
     {
@@ -47,16 +47,16 @@ export const config = {
         { name: "VS Code", meta: "editor", icon: "vscode.png" },
         { name: "PyCharm", meta: "Python IDE", icon: "pycharm.png" },
         { name: "Ghostty", meta: "terminal", icon: "ghostty.png" },
-        { name: "Git", meta: "version control", icon: "git.png" }
-      ]
+        { name: "Git", meta: "version control", icon: "git.png" },
+      ],
     },
     {
       group: "AI",
       note: "thinking + coding",
       items: [
         { name: "ChatGPT", meta: "research + work", icon: "chatgpt.png" },
-        { name: "Claude Code", meta: "coding", icon: "claude.png" }
-      ]
+        { name: "Claude Code", meta: "coding", icon: "claude.png" },
+      ],
     },
     {
       group: "VR",
@@ -64,8 +64,8 @@ export const config = {
       items: [
         { name: "VRChat", meta: "social VR", icon: "vrchat.png" },
         { name: "VRCX", meta: "VRChat companion", icon: "vrcx.png" },
-        { name: "Virtual Desktop", meta: "Quest streaming", icon: "virtualdesktop.png" }
-      ]
+        { name: "Virtual Desktop", meta: "Quest streaming", icon: "virtualdesktop.png" },
+      ],
     },
     {
       group: "Daily",
@@ -75,8 +75,8 @@ export const config = {
         { name: "Notion", meta: "workspace", icon: "notion.png" },
         { name: "Microsoft Edge", meta: "browser", icon: "edge.png" },
         { name: "MarkEdit", meta: "Markdown", icon: "markedit.png" },
-        { name: "Maccy", meta: "clipboard", icon: "maccy.png" }
-      ]
-    }
-  ]
+        { name: "Maccy", meta: "clipboard", icon: "maccy.png" },
+      ],
+    },
+  ],
 };

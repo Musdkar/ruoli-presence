@@ -3,7 +3,8 @@ export const posts = [
     slug: "building-a-digital-presence",
     title: "Building a digital presence",
     date: "2026-09-16",
-    summary: "Notes on making a personal homepage feel alive without rebuilding every collector, API and renderer from scratch.",
+    summary:
+      "Notes on making a personal homepage feel alive without rebuilding every collector, API and renderer from scratch.",
     tags: ["web", "presence", "design"],
     published: false,
     body: `# Building a digital presence
@@ -21,6 +22,6 @@ The interesting part is not rebuilding those collectors. It is deciding what des
 - Blog — longer notes
 - Uses — the software I actually use
 
-This post is a draft and is intentionally not published yet.`
-  }
+This post is a draft and is intentionally not published yet.`,
+  },
 ];

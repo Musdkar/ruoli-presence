@@ -18,9 +18,7 @@ function buildGuard() {
     async closeBundle() {
       if (outDir === "") return;
       const keepFile = (rel) =>
-        ALLOWED_PREFIXES.some((p) =>
-          p.endsWith(sep) ? rel.startsWith(p) : rel === p
-        );
+        ALLOWED_PREFIXES.some((p) => (p.endsWith(sep) ? rel.startsWith(p) : rel === p));
       const walk = async (dir, rel = "") => {
         let entries;
         try {

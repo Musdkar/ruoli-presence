@@ -52,7 +52,10 @@ async function readNowPlaying() {
   return {
     title,
     artist: typeof artist === "string" && artist.trim() !== "" ? artist : "Unknown artist",
-    album: typeof raw["kMRMediaRemoteNowPlayingInfoAlbum"] === "string" ? raw["kMRMediaRemoteNowPlayingInfoAlbum"] : null,
+    album:
+      typeof raw["kMRMediaRemoteNowPlayingInfoAlbum"] === "string"
+        ? raw["kMRMediaRemoteNowPlayingInfoAlbum"]
+        : null,
     service,
     state: rate > 0 ? "playing" : "paused",
     artwork: raw["kMRMediaRemoteNowPlayingInfoArtworkData"] || null,
@@ -136,7 +139,15 @@ async function publishSnapshot(snapshot, force = false) {
   if (ok) {
     lastPublishedKey = key;
     lastPublishedAt = now;
-    console.log(new Date(now).toISOString(), snapshot.service, snapshot.state, "-", snapshot.title, "/", snapshot.artist);
+    console.log(
+      new Date(now).toISOString(),
+      snapshot.service,
+      snapshot.state,
+      "-",
+      snapshot.title,
+      "/",
+      snapshot.artist
+    );
   }
   return ok;
 }
@@ -171,7 +182,11 @@ if (API_URL === "" || TOKEN === "") {
   console.error("Set MUSIC_API_URL and INGEST_TOKEN before running.");
   process.exit(1);
 }
-if (Number.isFinite(INTERVAL) === false || Number.isFinite(HEARTBEAT) === false || Number.isFinite(MISS_LIMIT) === false) {
+if (
+  Number.isFinite(INTERVAL) === false ||
+  Number.isFinite(HEARTBEAT) === false ||
+  Number.isFinite(MISS_LIMIT) === false
+) {
   console.error("NP_INTERVAL_MS, NP_HEARTBEAT_MS and NP_MISS_LIMIT must be numbers.");
   process.exit(1);
 }

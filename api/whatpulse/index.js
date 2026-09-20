@@ -15,7 +15,8 @@ const MAX_MINUTES = 1440;
 const MAX_KEYS = 100;
 const MAX_TOTAL_KEYS = 10000000;
 const MAX_LEVEL = 15;
-const KEY_RE = /^(?:[A-Z0-9]|SPACE|TAB|BACKSPACE|RETURN|SHIFT|COMMAND|CONTROL|OPTION|CAPS|ESC|LEFT|RIGHT|UP|DOWN|[-=\[\]\\;'\x60,.\/])$/;
+const KEY_RE =
+  /^(?:[A-Z0-9]|SPACE|TAB|BACKSPACE|RETURN|SHIFT|COMMAND|CONTROL|OPTION|CAPS|ESC|LEFT|RIGHT|UP|DOWN|[-=\[\]\\;'\x60,.\/])$/;
 
 // Device slots keep each machine's keyboard/software data separate; nothing is
 // merged across devices. Only a short, safe slug is accepted as a slot.
@@ -38,7 +39,12 @@ function safeEqual(a, b) {
 }
 
 function number(value, max) {
-  const n = typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN;
+  const n =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim() !== ""
+        ? Number(value)
+        : NaN;
   return Number.isFinite(n) && n >= 0 && n <= max ? n : null;
 }
 
@@ -67,7 +73,14 @@ function normalizeKeyboard(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const day = date(value.date);
   const total = number(value.total, MAX_TOTAL_KEYS);
-  if (!day || total == null || !value.heat || typeof value.heat !== "object" || Array.isArray(value.heat)) return null;
+  if (
+    !day ||
+    total == null ||
+    !value.heat ||
+    typeof value.heat !== "object" ||
+    Array.isArray(value.heat)
+  )
+    return null;
 
   const heat = {};
   for (const [rawKey, rawLevel] of Object.entries(value.heat).slice(0, MAX_KEYS)) {

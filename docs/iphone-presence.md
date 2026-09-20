@@ -4,11 +4,11 @@
 
 ## 状态含义
 
-| iPhone 当前专注模式 | 上传值 | 网站显示 |
-| --- | --- | --- |
-| 睡眠 | `sleeping` | sleeping |
-| 勿扰模式 | `dnd` | do not disturb |
-| 其余模式或未开启专注 | `online` | online |
+| iPhone 当前专注模式  | 上传值     | 网站显示       |
+| -------------------- | ---------- | -------------- |
+| 睡眠                 | `sleeping` | sleeping       |
+| 勿扰模式             | `dnd`      | do not disturb |
+| 其余模式或未开启专注 | `online`   | online         |
 
 `online` 表示你的可用状态偏好，不代表手机已解锁或正在使用；`sleeping` 表示睡眠专注已开启，不是 Apple Health 的实际入睡检测。
 
@@ -33,7 +33,7 @@ iPhone 快捷指令 → Lanyard 的 `phone_presence` KV → 现有 WebSocket →
 3. 用“文本”操作组成下面的 JSON，将两个占位部分插入为前两步的变量：
 
    ```json
-   {"status":"状态变量","updatedAt":"ISO时间变量"}
+   { "status": "状态变量", "updatedAt": "ISO时间变量" }
    ```
 
 4. 添加“获取 URL 内容”：
@@ -45,7 +45,7 @@ iPhone 快捷指令 → Lanyard 的 `phone_presence` KV → 现有 WebSocket →
    实际请求体应类似下面这样：外层 JSON 对象只有一个键，其值是 JSON **字符串**，而不是第二层对象。
 
    ```json
-   {"phone_presence":"{\"status\":\"sleeping\",\"updatedAt\":\"2026-09-16T20:00:00+08:00\"}"}
+   { "phone_presence": "{\"status\":\"sleeping\",\"updatedAt\":\"2026-09-16T20:00:00+08:00\"}" }
    ```
 
 5. 先手动运行一次。接口返回成功后，在网站上确认状态和左栏同步变化。网络失败时不能假定网站已经更新；重新运行即可。
