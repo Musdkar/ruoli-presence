@@ -211,3 +211,21 @@ export const resolveMusic = (localValue, spotifyValue, now = Date.now()) => {
   if (resolvedLocal) return resolvedLocal;
   return neverMusic();
 };
+
+// Merge per-device software usage lists into one row per app name (sum of
+// minutes), sorted descending. Device lists come from separate KV entries and
+// must be de-duplicated by name, not concatenated.
+export const mergeAppUsage = (...lists) => {
+  const byName = new Map();
+  for (const list of lists) {
+    for (const app of list || []) {
+      if (app == null || typeof app.name !== "string") continue;
+      const cur = byName.get(app.name) || 0;
+      byName.set(app.name, cur + (Number(app.minutes) || 0));
+    }
+  }
+  return Array.from(byName, (entry) => ({
+    name: entry[0],
+    minutes: Math.round(entry[1] * 10) / 10,
+  })).sort((a, b) => b.minutes - a.minutes);
+};

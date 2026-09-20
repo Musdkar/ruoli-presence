@@ -988,19 +988,10 @@ function Layout({ presence }) {
 function Home({ presence, displayPresence, active, now }) {
   const kv = presence && presence.kv ? presence.kv : {};
   // Software usage combines every device so the list can show more rows.
-  const apps = (function () {
-    const byName = new Map();
-    for (const a of normalizeApps(kv.apps_today_mac || kv.apps_today).concat(
-      normalizeApps(kv.apps_today_win)
-    )) {
-      const cur = byName.get(a.name) || 0;
-      byName.set(a.name, cur + a.minutes);
-    }
-    return Array.from(byName, (entry) => ({
-      name: entry[0],
-      minutes: Math.round(entry[1] * 10) / 10,
-    })).sort((a, b) => b.minutes - a.minutes);
-  })();
+  const apps = mergeAppUsage(
+    normalizeApps(kv.apps_today_mac || kv.apps_today),
+    normalizeApps(kv.apps_today_win)
+  );
   const health = normalizeHealth(kv.health_today);
   // Keyboards are per device and never merged.
   const keyboardMac = normalizeKeyboard(

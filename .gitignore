@@ -6,8 +6,9 @@ dist/
 .vercel/
 .sites-runtime/
 
-# Local XSS/security test scaffolding (not for publication)
-test/
+# Local XSS/security test scaffolding (not for publication). Unit tests in test/ are tracked.
+test/__mock_ws.js
+test/vite.config.test.mjs
 
 # Local music bridge binary (arm64 macOS build; build from source, see bridge/README.md)
 bridge/nowplaying/
