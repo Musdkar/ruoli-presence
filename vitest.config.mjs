@@ -1,0 +1,9 @@
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    include: ["test/**/*.test.{js,mjs}"],
+    environment: "node",
+    globals: false,
+  },
+});
