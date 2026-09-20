@@ -1,4 +1,4 @@
-name: Performance budget
+name: Quality gate
 
 on:
   push:
@@ -10,9 +10,9 @@ on:
       - main
 
 jobs:
-  budget:
+  quality:
     runs-on: ubuntu-latest
-    name: Build + bundle budget
+    name: Lint + test + build
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,5 +20,9 @@ jobs:
           node-version: "20"
           cache: npm
       - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm run test
       - name: Build and enforce bundle budget
         run: npm run build

@@ -21,7 +21,13 @@ import {
   sanitizePresence,
   writeCachedPresence,
 } from "./lanyard-cache";
-import { normalizeApps, normalizeHealth, normalizeKeyboard, resolveMusic } from "./normalize";
+import {
+  normalizeApps,
+  normalizeHealth,
+  normalizeKeyboard,
+  resolveMusic,
+  mergeAppUsage,
+} from "./normalize";
 import { useLang, setLang, getLang, LANGS, useT, LangContext, LANG_CHOSEN_KEY } from "./i18n";
 import "./styles.css";
 import "./hotfix.css";
