@@ -71,47 +71,78 @@ main.jsx 458 -> 13 行。目标结构：
 - 7) normalizeApps 加 app 名长度 cap（120）
 - 9) 删除 normalize.js 里过时的 chart.js 注释
 
-## 3. 进行中（Phase F - CSS 清理，未提交）
+## 3. 已完成阶段（续）
 
-工作区改动：index.html、src/main.jsx、src/styles.css，已 git rm src/hotfix.css。
+### Phase F - CSS 清理（commit 9446f85）
+- 删除 src/hotfix.css：其规则只是在抵消更早的 view-in 动画，动画源头已移除
+- 移动端 content-visibility 规则并入 styles.css
+- visited-Home 的 [hidden] 行为显式保留
+- tweaks.css 改由 JS entry 引入，所有 CSS 共用单一 cascade 来源
 
-已完成（未提交）：
-- hotfix.css 的净效果并入 styles.css：移除已被禁用的 view-in 动画；[hidden] 规则去掉了
-  important 覆盖简化为 display:none；mobile content-visibility 并入
-- tweaks.css 从 index.html 的 link 改为 main.jsx 里 import（统一 cascade 来源）
-
-未完成：
-- styles.css 里还有一句引用 hotfix.css 的注释需改写
-- 尚未做视觉回归（dark/light x 多 viewport）与提交
-
-## 4. 待办
-
-### Phase G - Accessibility
-- 语言弹窗 focus 管理（打开聚焦首项、Tab 不逸出、可选 Escape）
-- 语言切换同步 document.documentElement.lang = zh ? zh-CN : en
-- 社交链接加 aria-label（现只有 title）
-- 头像 alt 语义（旁有姓名时可空 alt）
-- 键盘 heatmap 容器 role=img
+### Phase G - i18n 重构 + Accessibility（commit d4b05c2）
+i18n：
+- 用单一 LangProvider（context 携带 { lang, setLang }）替换
+  模块级 current/subscribers/Proxy 三套并存的状态机制
+- useLang / useT / useSetLang 全部读同一 context；保留英文 fallback
+- 同步 <html lang>（en / zh-CN）
+- 新增 i18n 单测（key parity + fallback）
+a11y：
+- LangPicker：打开聚焦首项 + Tab 限制在 dialog 内
+- 社交链接 aria-label（原仅 title）；装饰 glyph aria-hidden
+- 头像 decorative alt=""（旁边 h1 已有姓名）
+- 键盘 heatmap role="img"
 - 统一的 prefers-reduced-motion 策略
+清理：
+- DevicesCard 改用已存在的 data/devices.js（原为组件内重复硬编码）
+- 删除未使用的 themeIcon 与 unused catch bindings
 
-### Phase H - SEO 基础
-- index.html：description / canonical / OG / Twitter card
-- per-route document.title（首页 /blog /photo /uses /blog/:slug）
-- robots.txt / sitemap.xml —— 注意同步更新 buildGuard 白名单，否则 build 时被删
-- 16) 用真实 NotFoundPage 取代通配路由的 Navigate 回首页
+### Phase H - SEO 基础 + 质量门禁（commit 5f67762）
+- index.html：静态 description / canonical / Open Graph / Twitter card
+- lib/seo.js：纯函数 metadataFor() + applyMetadata()；Layout 按路由应用
+  title / description / canonical / og:url
+- public/robots.txt、public/sitemap.xml（并已加入 buildGuard 白名单）
+- build-artifacts allowlist 扩展 + 测试
+- 通配路由改为真正的 NotFoundPage（不再静默 redirect 回首页）
+- README 修正漂移（自托管图标而非 Simple Icons CDN、去掉 `\n` 字面量），
+  新增 Development 与源码结构章节
+- PERF.md 刷新实测数字并说明完整 CI gate
+- CI 增加 format:check
 
-### Phase I - Blog prerender（预计 defer）
+### Phase I - Blog prerender：评估后 defer
+在当前 Vite + BrowserRouter + 纯客户端渲染下实现 prerender 需要 SSR 化的
+渲染树（10+ 模块直接使用 window/document/localStorage）、独立构建步骤、
+hydration 以及路由 guard，属于架构级改动，不满足任务书"低复杂度"条件。
 
 ## 5. 当前质量/性能
 
 | 项 | 现状 |
 |---|---|
-| test | 74 passed / 5 files |
-| lint | 0 error / 7 warning |
+| test | 98 passed / 8 files |
+| lint | 0 error / 0 warning |
+| format:check | clean |
 | build | 通过，within budget |
-| initial JS gzip | 75.5 kB（baseline 72.0，+4.9%，预算内）|
-| initial CSS gzip | 7.6 kB（baseline 7.7）|
-| MapLibre | 仍 lazy（277 kB）|
+| initial JS gzip | 73.3 kB（baseline 72.0，+1.8%，预算 120）|
+| initial CSS gzip | 7.6 kB（baseline 7.7，预算 15）|
+| MapLibre | 仍 lazy（277.0 kB gzip，不在首屏）|
+| photo-album / markdown | 仍 lazy（34.3 / 11.5 kB）|
+
+## 5.1 安全审计（第 21 节）
+
+api/ 与 bridge/ 审计通过：
+- 所有 ingest endpoint 均 POST-only、常量时间 token 比较、token 为空时 fail-closed
+- JSON shape 校验、数量级边界（apps<=8、keys<=100、heat<=15 等）
+- 无 window title / URL / 键序 / 精确每键计数离开本机
+- bridge 以 SQLite mode=ro + PRAGMA query_only 只读打开
+- dist 中无 LANYARD_API_KEY / INGEST_TOKEN / 服务器变量；前端仅用 VITE_*
+- .env.example 严格区分公开 VITE_* 与 server secrets
+
+## 5.2 依赖审计（第 22 节，仅报告）
+
+npm audit：7 项（2 critical / 1 high / 4 moderate）。
+- maplibre-gl critical（DOM.sanitize XSS），影响 <=6.4.0，暂无修复；
+  本项目地图 interactive:false、无 marker/popup/用户 HTML，攻击面不可达 -> deferred
+- vite / vitest / esbuild 均在 dev 依赖链 -> dev-only
+- 未执行 audit fix --force；依赖现代化留作独立任务
 
 ## 6. 与任务书的差异（按第 0 节记录）
 
@@ -120,23 +151,29 @@ main.jsx 458 -> 13 行。目标结构：
 3. weather timeout：PERF.md 记录 3s、代码 8s，属实；因 open-meteo 实测约 6s，保留 8s 并更新 PERF.md
 4. .gitignore 的 test/ 与新增单测冲突，已拆分
 
-## 7. 已知风险
+## 7. 已知风险 / deferred
 
-- Phase F 的 CSS 合并未做视觉回归：view-in 被移除（原已被禁用，理论无变化），仍需 dark/light x viewport 复核
-- Phase H 的 robots/sitemap 必须同步改 buildGuard 白名单
-- 依赖漏洞未处理（第 22 节）：esbuild(moderate)、vite(high,dev-only)、maplibre-gl(critical XSS sanitizer)；记 deferred
-- 全程未 push、未合并 main；备份 tag 仍在
+- Blog HTTP 层 soft-404：不存在或草稿的 /blog/:slug 在 Vercel 仍返回 index.html
+  （HTTP 200），仅 UI 层显示 not-found。要彻底解决需 prerender -> deferred
+- 客户端 metadata != 真正 SSR/SSG：社交爬虫不执行 JS，仍只看静态 index.html
+- maplibre-gl critical advisory（<=6.4.0，暂无修复）-> deferred，攻击面不可达
+- vite/vitest/esbuild 漏洞均在 dev 依赖链
+- 依赖大版本升级（React 18、Vite 5、React Router 7）留作独立任务
+- 全程未 push、未合并 main
 
-## 8. 恢复工作第一步
+## 8. 验证方式
 
-    cd ~/project/ruoli-presence
-    git checkout refactor/maintainability
-    git status        # 确认 Phase F 未提交改动
-    npm run check
-    # 继续：改 styles.css 注释 -> 视觉回归 -> commit Phase F -> Phase G -> Phase H
+    npm run check        # lint + test + build（含 bundle 预算）
+    npm run format:check
+
+运行时行为已用 headless Chrome 逐路由核对（Home / blog / blog/:slug / photo /
+uses / 未知路由）的 document.title、canonical 与渲染内容。
 
 ## 9. commit 一览（本分支相对 origin/main）
 
+    5f67762 feat(seo+quality): per-route metadata, robots/sitemap, real 404, format gate
+    d4b05c2 refactor(i18n+a11y): single LangProvider, focus-safe picker, a11y fixes
+    9446f85 refactor(css): fold hotfix layer into the canonical stylesheet
     1bc4587 fix: sanitize live presence, portable build guard, weather hardening
     93dc2a7 refactor: decompose main.jsx into app/pages/components/hooks/data/lib
     76e9774 refactor: extract theme/lanyard hooks, toggles and BrandMark
