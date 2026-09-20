@@ -1,7 +1,7 @@
 const PHONE_STATUS_LABELS = {
-  online: "online",
-  dnd: "do not disturb",
-  sleeping: "sleeping",
+  online: "Online",
+  dnd: "Focus",
+  sleeping: "Sleep",
 };
 const MAX_AGE = 36 * 60 * 60 * 1000;
 
