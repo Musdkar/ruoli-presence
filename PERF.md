@@ -44,7 +44,10 @@ Hard budgets:
 - Initial JS: **120 kB gzip**
 - Initial CSS: **15 kB gzip**
 
-The CI workflow also runs the same build on PRs and `main`. Lazy chunks are reported separately so large on-demand dependencies stay visible without being counted as first-load regressions.
+The CI workflow (`.github/workflows/quality.yml`) runs the full gate on PRs and `main`:
+`npm ci` → `npm run lint` → `npm run test` → `npm run build` (which includes the bundle
+budget). Lazy chunks are reported separately so large on-demand dependencies stay visible
+without being counted as first-load regressions.
 
 ## Map architecture (MapLibre restored, lazily)
 
@@ -75,7 +78,7 @@ Removed in this change:
 - `public/assets/wuhan-map-dark.webp`, `public/assets/wuhan-map-light.webp`
 - `scripts/generate-map-assets.sh`
 - `.github/workflows/generate-map-assets.yml`
-- the `.map-static` CSS block in `src/hotfix.css`
+- the `.map-static` CSS block (it lived in the now-deleted `src/hotfix.css`)
 
 ### Map avatar
 
@@ -86,12 +89,22 @@ resolution (800x600) as a high-quality WebP, which is still ~15x smaller than th
 
 ### Verified result
 
+Measured after the maintainability refactor (Phases B–H), `npm run build`:
+
 | Asset | Value |
 |---|---:|
-| Initial JS gzip | **68.4 kB** (budget 120 kB) |
-| Initial CSS gzip | **7.4 kB** (budget 15 kB) |
-| MapLibre chunk (on-demand only) | 283.6 kB gzip |
+| Initial JS gzip | **73.3 kB** (budget 120 kB) |
+| Initial CSS gzip | **7.6 kB** (budget 15 kB) |
+| MapLibre chunk (on-demand only) | 277.0 kB gzip |
+| react-photo-album chunk (on-demand) | 34.3 kB gzip |
+| react-markdown chunk (on-demand) | 11.5 kB gzip |
 | maplibre-gl in initial bundle | none |
+| react-photo-album in initial bundle | none |
+| react-markdown in initial bundle | none |
+
+The maintainability refactor kept the initial budget essentially flat (+4.9 kB JS vs the
+original 68.4 kB post-optimization figure), well inside both the hard budget and the
+"no more than ~10% growth" goal for the refactor.
 
 ## Dependency cleanup
 

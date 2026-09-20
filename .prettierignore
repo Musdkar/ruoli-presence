@@ -6,5 +6,5 @@ bridge/nowplaying
 src/styles.css
 src/theme.css
 src/tweaks.css
-src/hotfix.css
 PERF.md
+docs/refactor-progress.md

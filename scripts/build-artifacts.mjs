@@ -5,7 +5,21 @@
 // Windows. Windows would otherwise produce backslash-joined paths that never
 // match the forward-slash prefixes below.
 
-export const ALLOWED_PREFIXES = ["index.html", "assets/", "staticwebapp.config.json"];
+export const ALLOWED_PREFIXES = [
+  "index.html",
+  "assets/",
+  "staticwebapp.config.json",
+  "robots.txt",
+  "sitemap.xml",
+];
+
+// Files copied verbatim from publicDir that the SPA is allowed to publish.
+export const ALLOWED_ROOT_FILES = [
+  "index.html",
+  "staticwebapp.config.json",
+  "robots.txt",
+  "sitemap.xml",
+];
 
 // Convert a platform path fragment to a POSIX-style relative path.
 export function normalizeBuildPath(value) {

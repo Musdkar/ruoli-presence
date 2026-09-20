@@ -13,15 +13,20 @@ describe("normalizeBuildPath", () => {
 });
 
 describe("isAllowedBuildArtifact", () => {
-  it("allows index.html, assets/* and staticwebapp.config.json", () => {
+  it("allows index.html, assets/*, the config and the SEO root files", () => {
     expect(isAllowedBuildArtifact("index.html")).toBe(true);
     expect(isAllowedBuildArtifact("assets/index-abc.js")).toBe(true);
     expect(isAllowedBuildArtifact("staticwebapp.config.json")).toBe(true);
+    expect(isAllowedBuildArtifact("robots.txt")).toBe(true);
+    expect(isAllowedBuildArtifact("sitemap.xml")).toBe(true);
   });
   it("rejects unexpected files and keeps index.html exact", () => {
-    expect(isAllowedBuildArtifact("robots.txt")).toBe(false);
+    expect(isAllowedBuildArtifact("robots.txt.bak")).toBe(false);
     expect(isAllowedBuildArtifact("index.html.bak")).toBe(false);
     expect(isAllowedBuildArtifact("foo/bar.js")).toBe(false);
+  });
+  it("does not treat robots.txt as a directory prefix", () => {
+    expect(isAllowedBuildArtifact("robots.txt/evil.js")).toBe(false);
   });
   it("works for windows-style input", () => {
     expect(isAllowedBuildArtifact("assets\\software-icons\\vscode.png")).toBe(true);
