@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ruoli.presence/sitemap.xml
+Sitemap: https://kalieri.com/sitemap.xml

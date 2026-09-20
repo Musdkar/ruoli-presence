@@ -61,6 +61,55 @@ describe("sanitizePresence — kv whitelist", () => {
   });
 });
 
+describe("sanitizePresence — kv value size boundary", () => {
+  it("keeps a normal-sized string KV value", () => {
+    const value = JSON.stringify({ apps: [{ name: "VS Code", minutes: 12 }] });
+    const out = sanitizePresence({ kv: { apps_today: value } });
+    expect(out.kv.apps_today).toBe(value);
+  });
+
+  it("keeps a normal-sized object KV value", () => {
+    const out = sanitizePresence({ kv: { health_today: { steps: 5000, heartRate: 62 } } });
+    expect(out.kv.health_today).toEqual({ steps: 5000, heartRate: 62 });
+  });
+
+  it("drops an oversized string KV value", () => {
+    const huge = "x".repeat(64 * 1024);
+    const out = sanitizePresence({ kv: { apps_today: huge, music_now: "{}" } });
+    expect(Object.keys(out.kv)).toEqual(["music_now"]);
+  });
+
+  it("drops an oversized object KV value", () => {
+    const huge = { blob: "x".repeat(64 * 1024) };
+    const out = sanitizePresence({ kv: { apps_today: huge, music_now: "{}" } });
+    expect(Object.keys(out.kv)).toEqual(["music_now"]);
+  });
+
+  it("keeps a music_now payload at the realistic ingest ceiling", () => {
+    // The music API caps artwork at ~26k chars; that must survive sanitization.
+    const cover = "data:image/jpeg;base64," + "A".repeat(26000);
+    const value = JSON.stringify({ v: 1, state: "playing", cover });
+    expect(value.length).toBeLessThan(32768);
+    const out = sanitizePresence({ kv: { music_now: value } });
+    expect(out.kv.music_now).toBe(value);
+  });
+
+  it("drops a circular object instead of throwing", () => {
+    const circular = {};
+    circular.self = circular;
+    expect(() => sanitizePresence({ kv: { apps_today: circular } })).not.toThrow();
+    const out = sanitizePresence({ kv: { apps_today: circular, apps_today_win: "{}" } });
+    expect(Object.keys(out.kv)).toEqual(["apps_today_win"]);
+  });
+
+  it("does not let an oversized value inflate the cached write", () => {
+    writeCachedPresence("u1", { kv: { apps_today: "x".repeat(64 * 1024), music_now: "{}" } });
+    const raw = localStorage.getItem("ruoli:lanyard:1:u1");
+    expect(raw.length).toBeLessThan(4096);
+    expect(Object.keys(readCachedPresence("u1").kv)).toEqual(["music_now"]);
+  });
+});
+
 describe("cache read/write roundtrip", () => {
   it("writes then reads sanitized presence", () => {
     writeCachedPresence("u1", { discord_status: "online", kv: { apps_today: "{}", bad: "x" } });

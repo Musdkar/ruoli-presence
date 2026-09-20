@@ -1,10 +1,24 @@
 import { describe, it, expect } from "vitest";
-import { metadataFor, SITE_URL } from "../src/lib/seo.js";
+import { metadataFor, SITE_URL, OG_IMAGE_URL } from "../src/lib/seo.js";
 
 const POSTS = [
   { slug: "published-post", title: "A published post", summary: "Summary here.", published: true },
   { slug: "draft-post", title: "A draft post", summary: "Hidden.", published: false },
 ];
+
+describe("SITE_URL", () => {
+  it("is the real production origin", () => {
+    expect(SITE_URL).toBe("https://kalieri.com");
+  });
+
+  it("has no trailing slash so canonical joins stay clean", () => {
+    expect(SITE_URL.endsWith("/")).toBe(false);
+  });
+
+  it("points og:image at an absolute production URL", () => {
+    expect(OG_IMAGE_URL).toBe("https://kalieri.com/assets/avatar.webp");
+  });
+});
 
 describe("metadataFor — routes", () => {
   it("home", () => {
@@ -54,8 +68,19 @@ describe("metadataFor — routes", () => {
   });
 });
 
-describe("SITE_URL", () => {
-  it("has no trailing slash so canonical joins stay clean", () => {
-    expect(SITE_URL.endsWith("/")).toBe(false);
+describe("metadataFor — noindex on not-found views", () => {
+  it("marks an unknown route noindex", () => {
+    expect(metadataFor("/totally-unknown").noindex).toBe(true);
+  });
+
+  it("marks a missing or draft post noindex", () => {
+    expect(metadataFor("/blog/nope", { posts: POSTS }).noindex).toBe(true);
+    expect(metadataFor("/blog/draft-post", { posts: POSTS }).noindex).toBe(true);
+  });
+
+  it("does NOT mark real pages noindex", () => {
+    for (const p of ["/", "/blog", "/photo", "/uses", "/blog/published-post"]) {
+      expect(metadataFor(p, { posts: POSTS }).noindex, p).toBeFalsy();
+    }
   });
 });

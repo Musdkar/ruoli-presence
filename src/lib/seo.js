@@ -5,7 +5,8 @@
 // JS. It is NOT a substitute for server-side rendering or static generation, and
 // social scrapers (which do not run JS) still see the static index.html tags.
 
-export const SITE_URL = "https://ruoli.presence";
+export const SITE_URL = "https://kalieri.com";
+export const OG_IMAGE_URL = SITE_URL + "/assets/avatar.webp";
 export const SITE_NAME = "ruoli";
 export const DEFAULT_DESCRIPTION =
   "The live presence of Kalieri — a personal homepage for status, weather, music, photos, notes and the software behind them.";
@@ -35,7 +36,12 @@ export function metadataFor(pathname, { posts = [] } = {}) {
         path: "/blog/" + post.slug,
       };
     }
-    return { title: "Post not found — ruoli", description: DEFAULT_DESCRIPTION, path: "/blog" };
+    return {
+      title: "Post not found — ruoli",
+      description: DEFAULT_DESCRIPTION,
+      path: "/blog",
+      noindex: true,
+    };
   }
   if (path === "/photo" || path === "/photos") {
     return { title: "ruoli — photo", description: "A visual archive of moments.", path: "/photo" };
@@ -47,7 +53,12 @@ export function metadataFor(pathname, { posts = [] } = {}) {
       path: "/uses",
     };
   }
-  return { title: "Not found — ruoli", description: DEFAULT_DESCRIPTION, path: "/" };
+  return {
+    title: "Not found — ruoli",
+    description: DEFAULT_DESCRIPTION,
+    path: "/",
+    noindex: true,
+  };
 }
 
 // Apply resolved metadata to the live document. Kept separate from the pure
@@ -78,9 +89,13 @@ export function applyMetadata(meta, doc = document) {
     });
 
   metaTag("description").setAttribute("content", meta.description);
+  // Not-found views must not be indexed; normal pages explicitly restore
+  // index,follow so navigating away from a 404 does not leave a stale noindex.
+  metaTag("robots").setAttribute("content", meta.noindex ? "noindex,follow" : "index,follow");
   ogTag("og:title").setAttribute("content", meta.title);
   ogTag("og:description").setAttribute("content", meta.description);
   ogTag("og:url").setAttribute("content", SITE_URL + meta.path);
+  ogTag("og:image").setAttribute("content", OG_IMAGE_URL);
 
   const canonical = ensure('link[rel="canonical"]', () => {
     const el = doc.createElement("link");

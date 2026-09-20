@@ -16,6 +16,30 @@ const isAllowedKvKey = (key) => KV_KEYS.includes(key) || KV_KEY_RE.test(key);
 
 const cacheKey = (userId) => `ruoli:lanyard:${CACHE_VERSION}:${userId}`;
 
+// Per-value ceiling for whitelisted KV entries. The largest legitimate payload is
+// music_now, whose artwork the ingest API already caps at ~26k chars; 32768 gives
+// headroom while keeping an abnormal payload from producing a huge localStorage
+// write, a giant DOM string or undue memory use.
+const KV_VALUE_MAX_CHARS = 32768;
+
+// A whitelisted KV value must be a string, or an object that serializes to JSON,
+// within the size ceiling. Oversized or unserializable values are dropped.
+function boundedKvValue(item) {
+  if (typeof item === "string") {
+    return item.length <= KV_VALUE_MAX_CHARS ? item : null;
+  }
+  if (item && typeof item === "object") {
+    let serialized;
+    try {
+      serialized = JSON.stringify(item);
+    } catch {
+      return null;
+    }
+    return serialized !== undefined && serialized.length <= KV_VALUE_MAX_CHARS ? item : null;
+  }
+  return null;
+}
+
 function cleanText(value, max = 300) {
   return typeof value === "string" ? value.slice(0, max) : null;
 }
@@ -26,8 +50,8 @@ export function sanitizePresence(value) {
   if (value.kv && typeof value.kv === "object" && !Array.isArray(value.kv)) {
     for (const key of Object.keys(value.kv)) {
       if (isAllowedKvKey(key) === false) continue;
-      const item = value.kv[key];
-      if (typeof item === "string" || (item && typeof item === "object")) kv[key] = item;
+      const item = boundedKvValue(value.kv[key]);
+      if (item !== null) kv[key] = item;
     }
   }
 

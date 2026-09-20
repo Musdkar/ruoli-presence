@@ -117,14 +117,24 @@ hydration 以及路由 guard，属于架构级改动，不满足任务书"低复
 
 | 项 | 现状 |
 |---|---|
-| test | 98 passed / 8 files |
-| lint | 0 error / 0 warning |
+| unit test | 110 passed / 8 files |
+| dist test | 8 passed / 1 file（`npm run test:dist`，build 之后运行）|
+| lint | 0 error / 0 warning（`--max-warnings=0`）|
 | format:check | clean |
 | build | 通过，within budget |
-| initial JS gzip | 73.3 kB（baseline 72.0，+1.8%，预算 120）|
+| initial JS gzip | 73.4 kB（baseline 72.0，+1.9%，预算 120）|
 | initial CSS gzip | 7.6 kB（baseline 7.7，预算 15）|
 | MapLibre | 仍 lazy（277.0 kB gzip，不在首屏）|
 | photo-album / markdown | 仍 lazy（34.3 / 11.5 kB）|
+
+### 验证状态（重要：区分本地与 CI）
+
+- **本地验证**：以上数字全部本地跑通（`npm ci → lint → format:check → test →
+  build → test:dist`）。运行时路由行为用 headless Chrome 逐路由核对。
+- **GitHub CI 验证**：截至本文件更新时 **尚未运行**。分支
+  `refactor/maintainability` 已存在于远端，但还没有正式 PR，因此 GitHub
+  Actions 尚未对该分支执行。CI workflow 已配置为 lint → format:check → test →
+  build → test:dist；需在 PR 创建并 Actions green 后才可声明“CI 通过”。
 
 ## 5.1 安全审计（第 21 节）
 
@@ -159,17 +169,41 @@ npm audit：7 项（2 critical / 1 high / 4 moderate）。
 - maplibre-gl critical advisory（<=6.4.0，暂无修复）-> deferred，攻击面不可达
 - vite/vitest/esbuild 漏洞均在 dev 依赖链
 - 依赖大版本升级（React 18、Vite 5、React Router 7）留作独立任务
-- 全程未 push、未合并 main
+- 未合并 main（分支已推送到 origin/refactor/maintainability，等待 PR 与 review）
 
 ## 8. 验证方式
 
-    npm run check        # lint + test + build（含 bundle 预算）
+    npm ci
+    npm run lint         # src api scripts test bridge/*.mjs + --max-warnings=0
     npm run format:check
+    npm run test         # 110 unit tests
+    npm run build        # 含 bundle 预算
+    npm run test:dist    # 8 个 dist 断言，dist 不存在时 fail 而非 skip
+
+或一次跑完：`npm run check`。
 
 运行时行为已用 headless Chrome 逐路由核对（Home / blog / blog/:slug / photo /
 uses / 未知路由）的 document.title、canonical 与渲染内容。
 
-## 9. commit 一览（本分支相对 origin/main）
+### 第二轮 pre-merge correction pass（P0/P1/P2）
+
+- P0-1 生产域名：`ruoli.presence` -> `kalieri.com`，覆盖 seo.js / index.html /
+  robots.txt / sitemap.xml 及相关测试；`SITE_URL === "https://kalieri.com"` 有断言
+- P0-2 dist gate：`test:dist` 独立执行，dist 缺失时 **fail**（不再 skip）；
+  CI 在 build 之后运行 `npm run test:dist`
+- P1-1 lint 范围扩展到 api/test/bridge/*.mjs，并加 `--max-warnings=0`；
+  删除 `api/whatpulse` 中未使用的 `MAX_DEVICES`，修正 KEY_RE 多余转义
+- P1-2 KV 值大小边界：单个白名单 KV 值 > 32768 字符丢弃；字符串/对象统一处理，
+  JSON 序列化失败（含循环引用）丢弃；正常 phone/apps/keyboard/music payload 不受影响
+- P1-3 404 metadata：not-found 视图输出 `noindex,follow`，正常页面恢复
+  `index,follow`；文档明确「客户端 noindex != 真正 HTTP 404 / SSR」
+- P2-1 普通 404 文案改为 notFoundTitle/notFoundBody/backHome（en/zh）
+- P2-2 `useT()` 已移除 Proxy，改为普通合并对象（实现与文档一致）
+- P2-3 本文件状态更新为真实情况，并区分本地验证与 GitHub CI 验证
+
+## 9. commit 一览（本分支相对 origin/main，第二轮修正提交在最上方）
+
+    <pending> fix(pre-merge): kalieri.com domain, real dist gate, wider lint, KV size cap
 
     5f67762 feat(seo+quality): per-route metadata, robots/sitemap, real 404, format gate
     d4b05c2 refactor(i18n+a11y): single LangProvider, focus-safe picker, a11y fixes

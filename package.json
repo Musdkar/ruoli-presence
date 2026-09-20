@@ -5,15 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "lint": "eslint src scripts vite.config.mjs eslint.config.js",
-    "lint:fix": "eslint src scripts vite.config.mjs eslint.config.js --fix",
+    "lint": "eslint src api scripts test bridge/*.mjs vite.config.mjs vitest.config.mjs eslint.config.js --max-warnings=0",
+    "lint:fix": "eslint src api scripts test bridge/*.mjs vite.config.mjs vitest.config.mjs eslint.config.js --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:dist": "vitest run --config vitest.dist.config.mjs",
     "build": "vite build && node scripts/check-bundle-budget.mjs",
     "preview": "vite preview",
-    "check": "npm run lint && npm run test && npm run build"
+    "check": "npm run lint && npm run test && npm run build && npm run test:dist"
   },
   "dependencies": {
     "maplibre-gl": "^5.6.1",

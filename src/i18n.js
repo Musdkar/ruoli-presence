@@ -124,6 +124,9 @@ export const translations = {
     langPickerBody: "You can switch anytime from the top-right.",
     langEn: "English",
     langZh: "Chinese",
+    notFoundTitle: "Page not found.",
+    notFoundBody: "That URL does not match anything on this site.",
+    backHome: "Back to Home",
   },
   zh: {
     home: "HOME",
@@ -237,6 +240,9 @@ export const translations = {
     langPickerBody: "你随时可以在右上角切换。",
     langEn: "English",
     langZh: "中文",
+    notFoundTitle: "找不到页面。",
+    notFoundBody: "这个网址在本站并没有对应的内容。",
+    backHome: "返回首页",
   },
 };
 export function detectInitialLang() {
@@ -285,17 +291,15 @@ export function useSetLang() {
 
 // Returns the translation table for the current language, layered over English
 // so any missing key falls back to English instead of rendering undefined.
+// A plain merged object is enough here — no Proxy — and it is built once per
+// language change rather than on every render.
 export function useT() {
   const ctx = useContext(LangContext);
   const lang = ctx ? ctx.lang : "en";
-  return useMemo(() => {
-    const table = translations[lang] || translations.en;
-    return new Proxy(table, {
-      get(target, key) {
-        return key in target ? target[key] : translations.en[key];
-      },
-    });
-  }, [lang]);
+  return useMemo(
+    () => (lang === "en" ? translations.en : { ...translations.en, ...translations[lang] }),
+    [lang]
+  );
 }
 
 // Non-React lookup for code paths that are not components (kept for parity with

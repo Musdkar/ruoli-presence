@@ -5,7 +5,17 @@ import reactHooks from "eslint-plugin-react-hooks";
 import prettier from "eslint-config-prettier";
 
 export default [
-  { ignores: ["dist/**", "node_modules/**", "public/assets/**", "bridge/nowplaying/**"] },
+  {
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "public/assets/**",
+      "bridge/nowplaying/**",
+      // Local-only security scaffolding (gitignored, not published).
+      "test/__mock_ws.js",
+      "test/vite.config.test.mjs",
+    ],
+  },
   js.configs.recommended,
   {
     files: ["**/*.{js,jsx,mjs}"],

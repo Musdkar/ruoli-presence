@@ -28,3 +28,5 @@ jobs:
         run: npm run test
       - name: Build and enforce bundle budget
         run: npm run build
+      - name: Dist artifact checks (robots/sitemap/index)
+        run: npm run test:dist

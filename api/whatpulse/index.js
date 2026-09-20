@@ -16,12 +16,11 @@ const MAX_KEYS = 100;
 const MAX_TOTAL_KEYS = 10000000;
 const MAX_LEVEL = 15;
 const KEY_RE =
-  /^(?:[A-Z0-9]|SPACE|TAB|BACKSPACE|RETURN|SHIFT|COMMAND|CONTROL|OPTION|CAPS|ESC|LEFT|RIGHT|UP|DOWN|[-=\[\]\\;'\x60,.\/])$/;
+  /^(?:[A-Z0-9]|SPACE|TAB|BACKSPACE|RETURN|SHIFT|COMMAND|CONTROL|OPTION|CAPS|ESC|LEFT|RIGHT|UP|DOWN|[-=[\]\\;'\x60,./])$/;
 
 // Device slots keep each machine's keyboard/software data separate; nothing is
 // merged across devices. Only a short, safe slug is accepted as a slot.
 const DEVICE_RE = /^[a-z0-9_-]{1,16}$/;
-const MAX_DEVICES = 8;
 const LEGACY_DEVICE = "mac";
 
 function deviceSlot(value) {
