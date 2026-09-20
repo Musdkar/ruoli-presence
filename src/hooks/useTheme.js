@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 const THEME_KEY = "theme";
 const THEME_MODES = ["dark", "light", "system"];
-const themeIcon = (mode) => (mode === "light" ? "☀" : mode === "dark" ? "☾" : "◐");
 function applyThemeMode(mode) {
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const resolved = mode === "system" ? (prefersDark ? "dark" : "light") : mode;

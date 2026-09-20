@@ -319,8 +319,18 @@
   font-size: 10px;
   z-index: 2;
 }
+/* Decorative motion is switched off when the visitor asks for reduced motion.
+   Colour/layout transitions are left intact; only movement and fades are cut. */
 @media (prefers-reduced-motion: reduce) {
   .map-canvas { transition: none; }
+  .fitness-ring-progress { transition: none; }
+  .keyboard-key,
+  .socials a,
+  .post-row,
+  a,
+  button { transition-duration: .01ms; }
+  .socials a:hover { transform: none; }
+  .post-row:hover { padding-left: 4px; }
 }
 
 @media (max-width: 900px){.card{content-visibility:auto;contain-intrinsic-size:190px}}

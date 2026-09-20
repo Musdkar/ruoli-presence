@@ -15,7 +15,12 @@ export function useWeather() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), WEATHER_REQUEST_TIMEOUT_MS);
     const url =
-      "https://api.open-meteo.com/v1/forecast?latitude=" + config.weatherLat + "&longitude=" + config.weatherLng + "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=" + encodeURIComponent(config.timezone);
+      "https://api.open-meteo.com/v1/forecast?latitude=" +
+      config.weatherLat +
+      "&longitude=" +
+      config.weatherLng +
+      "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=" +
+      encodeURIComponent(config.timezone);
     fetch(url, { signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw new Error("weather " + r.status);

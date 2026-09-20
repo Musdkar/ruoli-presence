@@ -32,10 +32,12 @@ export default function Sidebar({ presence, displayPresence }) {
           </span>
         </div>
         <div className="identity">
+          {/* The visible <h1> right next to it already names the owner, so the
+              avatar is decorative and gets an empty alt. */}
           <img
             className="avatar"
             src={config.avatar}
-            alt="avatar"
+            alt=""
             width="78"
             height="78"
             fetchPriority="high"
@@ -85,12 +87,17 @@ export default function Sidebar({ presence, displayPresence }) {
                   target="_blank"
                   rel="noreferrer"
                   title={link.name}
+                  aria-label={link.name}
                 >
-                  {link.label}
+                  <span aria-hidden="true">{link.label}</span>
                 </a>
               ) : (
-                <span key={link.label} className="disabled" title={link.name + " " + T.notLinked}>
-                  {link.label}
+                <span
+                  key={link.label}
+                  className="disabled"
+                  aria-label={link.name + " " + T.notLinked}
+                >
+                  <span aria-hidden="true">{link.label}</span>
                 </span>
               )
             )}

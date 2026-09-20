@@ -1,6 +1,6 @@
 // Minimal UI localization. Only framework copy is translated; brand names,
 // software names, stylized strings and article content stay as authored.
-import { useEffect, useState } from "react";
+import { createContext, createElement, useCallback, useContext, useMemo, useState } from "react";
 
 export const LANGS = ["en", "zh"];
 export const LANG_KEY = "lang";
@@ -239,66 +239,69 @@ export const translations = {
     langZh: "中文",
   },
 };
-
 export function detectInitialLang() {
   try {
-    var stored = localStorage.getItem(LANG_KEY);
-    if (LANGS.indexOf(stored) >= 0) return stored;
-  } catch (e) {}
+    const stored = localStorage.getItem(LANG_KEY);
+    if (LANGS.includes(stored)) return stored;
+  } catch {
+    /* localStorage can be unavailable (private mode); fall through to English. */
+  }
   return "en";
 }
 
-var current = detectInitialLang();
-var subs = new Set();
+// The active language, its setter and the resolved translation table travel
+// together through one React context. There is intentionally no module-level
+// mutable state or subscriber registry: a single provider owns the value.
+export const LangContext = createContext(null);
 
-export function setLang(lang) {
-  if (LANGS.indexOf(lang) < 0) return;
-  current = lang;
-  try {
-    localStorage.setItem(LANG_KEY, lang);
-  } catch (e) {}
-  subs.forEach(function (fn) {
-    fn(lang);
-  });
-}
+export function LangProvider({ children }) {
+  const [lang, setLangState] = useState(detectInitialLang);
 
-export function getLang() {
-  return current;
+  const setLang = useCallback((next) => {
+    if (!LANGS.includes(next)) return;
+    setLangState(next);
+    try {
+      localStorage.setItem(LANG_KEY, next);
+    } catch {
+      /* Persisting the choice is best-effort. */
+    }
+  }, []);
+
+  const value = useMemo(() => ({ lang, setLang }), [lang, setLang]);
+
+  // createElement keeps this a plain .js module (no JSX extension needed).
+  return createElement(LangContext.Provider, { value }, children);
 }
 
 export function useLang() {
-  var pair = useState(current),
-    lang = pair[0],
-    setLocal = pair[1];
-  useEffect(function () {
-    var fn = function (l) {
-      setLocal(l);
-    };
-    subs.add(fn);
-    return function () {
-      subs.delete(fn);
-    };
-  }, []);
-  return lang;
+  const ctx = useContext(LangContext);
+  return ctx ? ctx.lang : "en";
 }
 
-export function t(key, lang) {
-  var table = translations[lang || current] || translations.en;
-  var value = table[key];
-  return value === undefined ? translations.en[key] : value;
+export function useSetLang() {
+  const ctx = useContext(LangContext);
+  return ctx ? ctx.setLang : () => {};
 }
 
-import { createContext, useContext } from "react";
-export const LangContext = createContext("en");
-
-// Returns the translation table for the current language, merged over English so
-// any missing key falls back to English instead of rendering undefined.
+// Returns the translation table for the current language, layered over English
+// so any missing key falls back to English instead of rendering undefined.
 export function useT() {
-  var lang = useContext(LangContext);
-  var table = translations[lang] || translations.en;
-  return new Proxy(table, {
-    get: function (target, key) {
-      return key in target ? target[key] : translations.en[key];
-    },
-  });
+  const ctx = useContext(LangContext);
+  const lang = ctx ? ctx.lang : "en";
+  return useMemo(() => {
+    const table = translations[lang] || translations.en;
+    return new Proxy(table, {
+      get(target, key) {
+        return key in target ? target[key] : translations.en[key];
+      },
+    });
+  }, [lang]);
+}
+
+// Non-React lookup for code paths that are not components (kept for parity with
+// the old API); components should prefer useT().
+export function t(key, lang) {
+  const table = translations[lang] || translations.en;
+  const value = table[key];
+  return value === undefined ? translations.en[key] : value;
 }

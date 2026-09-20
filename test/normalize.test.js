@@ -186,7 +186,12 @@ describe("normalizeSpotify", () => {
     expect(normalizeSpotify({ song: "s" })).toBeNull();
   });
   it("adapts to canonical shape", () => {
-    const out = normalizeSpotify({ song: "s", artist: "a", album: "al", album_art_url: "https://c/x" });
+    const out = normalizeSpotify({
+      song: "s",
+      artist: "a",
+      album: "al",
+      album_art_url: "https://c/x",
+    });
     expect(out.service).toBe("spotify");
     expect(out.state).toBe("playing");
     expect(out.artwork.kind).toBe("https");
@@ -238,8 +243,14 @@ import { mergeAppUsage } from "../src/lib/normalize.js";
 describe("mergeAppUsage", () => {
   it("sums minutes per app name and sorts desc", () => {
     const out = mergeAppUsage(
-      [{ name: "Edge", minutes: 40 }, { name: "QQ", minutes: 10 }],
-      [{ name: "Edge", minutes: 20 }, { name: "ChatGPT", minutes: 5 }]
+      [
+        { name: "Edge", minutes: 40 },
+        { name: "QQ", minutes: 10 },
+      ],
+      [
+        { name: "Edge", minutes: 20 },
+        { name: "ChatGPT", minutes: 5 },
+      ]
     );
     expect(out).toEqual([
       { name: "Edge", minutes: 60 },
@@ -252,7 +263,10 @@ describe("mergeAppUsage", () => {
     expect(mergeAppUsage([{ name: "A", minutes: 1 }])).toEqual([{ name: "A", minutes: 1 }]);
   });
   it("rounds to one decimal", () => {
-    const out = mergeAppUsage([{ name: "A", minutes: 1.04 }, { name: "A", minutes: 1.04 }]);
+    const out = mergeAppUsage([
+      { name: "A", minutes: 1.04 },
+      { name: "A", minutes: 1.04 },
+    ]);
     expect(out).toEqual([{ name: "A", minutes: 2.1 }]);
   });
   it("ignores malformed entries", () => {
@@ -260,11 +274,15 @@ describe("mergeAppUsage", () => {
   });
 });
 
-
 describe("normalizeApps name cap", () => {
   it("caps long app names and drops empty names", () => {
     const long = "x".repeat(300);
-    const out = normalizeApps({ apps: [{ name: long, minutes: 1 }, { name: "   ", minutes: 2 }] });
+    const out = normalizeApps({
+      apps: [
+        { name: long, minutes: 1 },
+        { name: "   ", minutes: 2 },
+      ],
+    });
     expect(out).toHaveLength(1);
     expect(out[0].name.length).toBe(120);
   });

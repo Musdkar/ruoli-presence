@@ -25,6 +25,9 @@ export function isAllowedBuildArtifact(relPath) {
 export function isAllowedBuildDirectory(relPath) {
   const rel = normalizeBuildPath(relPath).replace(/\/$/, "");
   return ALLOWED_PREFIXES.some(
-    (prefix) => prefix.endsWith("/") && (prefix.slice(0, -1) === rel || rel.startsWith(prefix)) && rel.length > 0
+    (prefix) =>
+      prefix.endsWith("/") &&
+      (prefix.slice(0, -1) === rel || rel.startsWith(prefix)) &&
+      rel.length > 0
   );
 }

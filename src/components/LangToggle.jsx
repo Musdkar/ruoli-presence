@@ -1,7 +1,8 @@
-import { useLang, setLang } from "../i18n";
+import { useLang, useSetLang } from "../i18n";
 
 export default function LangToggle() {
   const lang = useLang();
+  const setLang = useSetLang();
   const next = lang === "en" ? "zh" : "en";
   return (
     <button

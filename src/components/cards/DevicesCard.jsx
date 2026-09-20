@@ -22,23 +22,8 @@ export default function DevicesCard() {
     <article className="card devices-card">
       <CardHead title={T.devices} meta={T.daily + " / " + T.play} />
       <div className="device-columns">
-        <DeviceGroup
-          title={T.daily}
-          items={[
-            ["MacBook Pro · M1 Pro", "macOS"],
-            ["iPhone 16 Pro Max", "mobile"],
-            ["AirPods Pro 3", "audio"],
-          ]}
-        />
-        <DeviceGroup
-          title={T.play}
-          items={[
-            ["Quest 3", "VR"],
-            ["Gaming Laptop", "7945HX · RTX 5070 Ti"],
-            ["Desktop PC", "5800X · RX 6900 XT"],
-            ["Xiaomi Pad 7S Pro", "tablet"],
-          ]}
-        />
+        <DeviceGroup title={T.daily} items={DEVICES.daily} />
+        <DeviceGroup title={T.play} items={DEVICES.play} />
       </div>
     </article>
   );

@@ -8,7 +8,13 @@ import DevicesCard from "../components/cards/DevicesCard.jsx";
 import SoftwareCard from "../components/cards/SoftwareCard.jsx";
 import KeyboardCard from "../components/cards/KeyboardCard.jsx";
 import { KEYBOARD_MAC, KEYBOARD_WIN_87 } from "../data/keyboardLayouts";
-import { normalizeApps, normalizeHealth, normalizeKeyboard, resolveMusic, mergeAppUsage } from "../lib/normalize";
+import {
+  normalizeApps,
+  normalizeHealth,
+  normalizeKeyboard,
+  resolveMusic,
+  mergeAppUsage,
+} from "../lib/normalize";
 
 export default function Home({ presence, displayPresence, active, now }) {
   const kv = presence && presence.kv ? presence.kv : {};

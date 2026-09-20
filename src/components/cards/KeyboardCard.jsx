@@ -20,6 +20,7 @@ export default function KeyboardCard({ keyboard, layout, title, note, device }) 
       />
       <div
         className="keyboard-heatmap"
+        role="img"
         style={{ "--kb-rows": layout.length }}
         aria-label={(title || "Keyboard") + " heatmap for " + keyboard.date}
       >
