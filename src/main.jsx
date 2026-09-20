@@ -11,16 +11,9 @@ import {
   useLocation,
   useParams,
 } from "react-router-dom";
-import { useLanyard } from "use-lanyard";
 import { config } from "./config";
 import { posts } from "./content/posts";
 import { getDisplayPresence } from "./lib/presence";
-import {
-  fetchLanyardPresence,
-  readCachedPresence,
-  sanitizePresence,
-  writeCachedPresence,
-} from "./lib/lanyard-cache";
 import {
   normalizeApps,
   normalizeHealth,
@@ -43,6 +36,11 @@ import SoftwareCard from "./components/cards/SoftwareCard.jsx";
 import KeyboardCard from "./components/cards/KeyboardCard.jsx";
 import VrcStatus from "./components/VrcStatus.jsx";
 import { useResolvedTheme } from "./hooks/useResolvedTheme";
+import { useFastLanyard } from "./hooks/useFastLanyard";
+import ThemeToggle from "./components/ThemeToggle.jsx";
+import LangToggle from "./components/LangToggle.jsx";
+import LangPicker from "./components/LangPicker.jsx";
+import BrandMark from "./components/BrandMark.jsx";
 import "./styles.css";
 import "./hotfix.css";
 import "./theme.css";
@@ -63,112 +61,6 @@ const LazyMarkdown = React.lazy(async () => {
     },
   };
 });
-
-const THEME_KEY = "theme";
-const THEME_MODES = ["dark", "light", "system"];
-const themeIcon = (mode) => (mode === "light" ? "☀" : mode === "dark" ? "☾" : "◐");
-function applyThemeMode(mode) {
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const resolved = mode === "system" ? (prefersDark ? "dark" : "light") : mode;
-  const el = document.documentElement;
-  el.classList.remove("light", "dark");
-  el.classList.add(resolved);
-  el.style.colorScheme = resolved;
-}
-function useTheme() {
-  const [stored, setStored] = useState(() => {
-    try {
-      return localStorage.getItem(THEME_KEY) || "system";
-    } catch {
-      return "system";
-    }
-  });
-  useEffect(() => {
-    applyThemeMode(stored);
-    try {
-      localStorage.setItem(THEME_KEY, stored);
-    } catch {}
-    if (stored !== "system") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyThemeMode("system");
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [stored]);
-  const cycle = () =>
-    setStored((cur) => THEME_MODES[(THEME_MODES.indexOf(cur) + 1) % THEME_MODES.length]);
-  return { stored, cycle };
-}
-
-function useFastLanyard(userId) {
-  const live = useLanyard(userId);
-  const liveRef = useRef(live);
-  liveRef.current = live;
-  const [cached, setCached] = useState(() => readCachedPresence(userId));
-
-  useEffect(() => {
-    if (!userId) return;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2500);
-    fetchLanyardPresence(userId, { signal: controller.signal })
-      .then((next) => {
-        if (!next || liveRef.current) return;
-        setCached(next);
-        writeCachedPresence(userId, next);
-      })
-      .catch(() => {})
-      .finally(() => clearTimeout(timeout));
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [userId]);
-
-  useEffect(() => {
-    const next = sanitizePresence(live);
-    if (!next) return;
-    setCached(next);
-    writeCachedPresence(userId, next);
-  }, [live, userId]);
-
-  return live || cached;
-}
-
-function ThemeToggle() {
-  const { stored, cycle } = useTheme();
-  const next = THEME_MODES[(THEME_MODES.indexOf(stored) + 1) % THEME_MODES.length];
-  return (
-    <button
-      type="button"
-      className="theme-toggle"
-      onClick={cycle}
-      title={`Theme: ${stored} — switch to ${next}`}
-      aria-label={`Theme: ${stored}. Switch to ${next}`}
-    >
-      <span className="theme-toggle-icon" aria-hidden="true">
-        {themeIcon(stored)}
-      </span>
-      <span className="theme-toggle-label">{stored}</span>
-    </button>
-  );
-}
-
-function LangToggle() {
-  const lang = useLang();
-  const next = lang === "en" ? "zh" : "en";
-  return (
-    <button
-      type="button"
-      className="theme-toggle lang-toggle"
-      onClick={() => setLang(next)}
-      aria-label="Language"
-    >
-      <span className="theme-toggle-icon" aria-hidden="true">
-        译
-      </span>
-      <span className="theme-toggle-label">{lang === "zh" ? "中文" : "EN"}</span>
-    </button>
-  );
-}
 
 function Sidebar({ presence, displayPresence }) {
   const T = useT();
@@ -481,29 +373,6 @@ function BlogPost() {
   );
 }
 
-function BrandMark({ item }) {
-  if (item.icon)
-    return (
-      <img
-        src={`/assets/software-icons/${item.icon}`}
-        alt=""
-        width="18"
-        height="18"
-        loading="lazy"
-        decoding="async"
-        onError={(e) => {
-          e.currentTarget.style.display = "none";
-          e.currentTarget.nextElementSibling?.classList.add("show");
-        }}
-      />
-    );
-  return (
-    <span className="brand-fallback show">
-      {item.monogram || item.name.slice(0, 2).toUpperCase()}
-    </span>
-  );
-}
-
 function UsesPage() {
   const T = useT();
   return (
@@ -577,26 +446,6 @@ function LanyardApp() {
   const presence = useFastLanyard(config.discordId);
   return <SiteRouter presence={presence} />;
 }
-function LangPicker({ onChoose }) {
-  const T = useT();
-  return (
-    <div className="lang-picker" role="dialog" aria-modal="true" aria-label={T.langPickerTitle}>
-      <div className="lang-picker-card">
-        <h2>{T.langPickerTitle}</h2>
-        <p>{T.langPickerBody}</p>
-        <div className="lang-picker-actions">
-          <button type="button" onClick={() => onChoose("en")}>
-            English
-          </button>
-          <button type="button" onClick={() => onChoose("zh")}>
-            中文
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   const lang = useLang();
   const [asking, setAsking] = useState(() => {
