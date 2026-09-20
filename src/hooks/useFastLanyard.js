@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanyard } from "use-lanyard";
 import {
   fetchLanyardPresence,
@@ -12,6 +12,7 @@ export function useFastLanyard(userId) {
   const liveRef = useRef(live);
   liveRef.current = live;
   const [cached, setCached] = useState(() => readCachedPresence(userId));
+  const sanitizedLive = useMemo(() => sanitizePresence(live), [live]);
 
   useEffect(() => {
     if (!userId) return;
@@ -32,11 +33,11 @@ export function useFastLanyard(userId) {
   }, [userId]);
 
   useEffect(() => {
-    const next = sanitizePresence(live);
+    const next = sanitizedLive;
     if (!next) return;
     setCached(next);
     writeCachedPresence(userId, next);
-  }, [live, userId]);
+  }, [sanitizedLive, userId]);
 
-  return live || cached;
+  return sanitizedLive || cached;
 }

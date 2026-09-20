@@ -1,11 +1,11 @@
-import { resolve, join, sep } from "node:path";
+import { resolve, join } from "node:path";
 import { readdir, rm } from "node:fs/promises";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { isAllowedBuildArtifact, isAllowedBuildDirectory } from "./scripts/build-artifacts.mjs";
 
 // Artifact families this SPA ships. Anything else a misconfigured publicDir
 // or an added copy step drops into the output is removed after the build.
-const ALLOWED_PREFIXES = ["index.html", "assets/", "staticwebapp.config.json"];
 
 function buildGuard() {
   let outDir = "";
@@ -17,8 +17,7 @@ function buildGuard() {
     },
     async closeBundle() {
       if (outDir === "") return;
-      const keepFile = (rel) =>
-        ALLOWED_PREFIXES.some((p) => (p.endsWith(sep) ? rel.startsWith(p) : rel === p));
+      const keepFile = (rel) => isAllowedBuildArtifact(rel);
       const walk = async (dir, rel = "") => {
         let entries;
         try {
@@ -29,10 +28,7 @@ function buildGuard() {
         for (const entry of entries) {
           const nextRel = rel ? join(rel, entry.name) : entry.name;
           if (entry.isDirectory()) {
-            const keepDir = ALLOWED_PREFIXES.some(
-              (p) => p.endsWith(sep) && nextRel.startsWith(p.slice(0, -1))
-            );
-            if (keepDir === false) {
+            if (!isAllowedBuildDirectory(nextRel)) {
               await rm(join(dir, entry.name), { recursive: true, force: true });
               continue;
             }

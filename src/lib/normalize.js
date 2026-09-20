@@ -1,7 +1,7 @@
 // Shape validation for published KV payloads. Anything that does not match
-// the documented shape is treated as "not linked" rather than as data.
-// A plausibility cap also keeps hostile numbers out of chart.js, which can
-// freeze the tab on values around 2e307.
+// the documented shape is treated as "not linked" rather than as data. A
+// plausibility cap also keeps hostile numbers out of the range charts and
+// the DOM, since values around 2e307 can freeze rendering.
 
 export const safeJSON = (value, fallback = null) => {
   if (value == null || value === "") return fallback;
@@ -35,7 +35,9 @@ export const normalizeApps = (value) => {
     if (typeof item.name !== "string") continue;
     const m = toFiniteNumber(item.minutes, 1440);
     if (m == null) continue;
-    out.push({ name: item.name, minutes: m });
+    const name = item.name.trim().slice(0, 120);
+    if (name === "") continue;
+    out.push({ name, minutes: m });
     if (out.length >= 8) break;
   }
   return out;

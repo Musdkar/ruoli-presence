@@ -259,3 +259,13 @@ describe("mergeAppUsage", () => {
     expect(mergeAppUsage([null, { minutes: 5 }, { name: 3 }])).toEqual([]);
   });
 });
+
+
+describe("normalizeApps name cap", () => {
+  it("caps long app names and drops empty names", () => {
+    const long = "x".repeat(300);
+    const out = normalizeApps({ apps: [{ name: long, minutes: 1 }, { name: "   ", minutes: 2 }] });
+    expect(out).toHaveLength(1);
+    expect(out[0].name.length).toBe(120);
+  });
+});

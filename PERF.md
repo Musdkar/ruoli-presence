@@ -24,7 +24,7 @@ The first pass keeps behavior intact while removing route-only and map-only code
 3. Load `react-markdown` + `remark-gfm` only when a blog post renders.
 4. Stop prioritizing the large map-avatar image.
 5. Read a sanitized last-good Lanyard snapshot from local storage, while REST and WebSocket refresh in parallel.
-6. Cache the last-good weather response and put a 3 second ceiling on the refresh request.
+6. Cache the last-good weather response and put an 8 second ceiling on the refresh request (open-meteo can take ~6s on some networks, so 3s aborted valid responses).
 
 Measured in Azure Preview after the runtime changes:
 

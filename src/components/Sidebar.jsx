@@ -48,7 +48,7 @@ export default function Sidebar({ presence, displayPresence }) {
               <i>{config.nameJa}</i>
             </h1>
             <p>
-              {config.greeting} I&apos;m {config.name}. {config.about}
+              {config.greeting} I&apos;m {config.name}. {T.about}
             </p>
           </div>
         </div>
