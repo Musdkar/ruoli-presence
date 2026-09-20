@@ -3,8 +3,8 @@ import { createRoot } from "react-dom/client";
 import App from "./app/App.jsx";
 
 import "./styles.css";
-import "./hotfix.css";
 import "./theme.css";
+import "./tweaks.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
