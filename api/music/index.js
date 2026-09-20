@@ -67,8 +67,16 @@ module.exports = async function (context, req) {
   }
 
   const payload = req.body || {};
-  const rawTrack = payload.track && typeof payload.track === "object" && Array.isArray(payload.track) === false ? payload.track : payload;
-  const rawArtwork = payload.artwork && typeof payload.artwork === "object" && Array.isArray(payload.artwork) === false ? payload.artwork.url : payload.cover;
+  const rawTrack =
+    payload.track && typeof payload.track === "object" && Array.isArray(payload.track) === false
+      ? payload.track
+      : payload;
+  const rawArtwork =
+    payload.artwork &&
+    typeof payload.artwork === "object" &&
+    Array.isArray(payload.artwork) === false
+      ? payload.artwork.url
+      : payload.cover;
   const title = textField(rawTrack.title, MAX_TEXT);
   const artist = textField(rawTrack.artist, MAX_TEXT);
   const musicService = service(payload.service || payload.source);
