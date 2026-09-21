@@ -43,6 +43,19 @@ function buildGuard() {
   };
 }
 
+// In production the Azure Functions runtime serves /api/*. The Vite dev server
+// does not run Functions, so a presence read would 404 locally; proxy it to the
+// deployed site instead so the full read path can be exercised in development.
+// Override with RUOLI_DEV_API_ORIGIN, or set it to "" to disable the proxy.
+const DEV_API_ORIGIN = process.env.RUOLI_DEV_API_ORIGIN ?? "https://kalieri.com";
+
 export default defineConfig({
   plugins: [react(), buildGuard()],
+  server: DEV_API_ORIGIN
+    ? {
+        proxy: {
+          "/api": { target: DEV_API_ORIGIN, changeOrigin: true, secure: true },
+        },
+      }
+    : undefined,
 });
