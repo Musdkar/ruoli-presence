@@ -12,3 +12,6 @@ test/vite.config.test.mjs
 
 # Local music bridge binary (arm64 macOS build; build from source, see bridge/README.md)
 bridge/nowplaying/
+
+# macOS
+.DS_Store
