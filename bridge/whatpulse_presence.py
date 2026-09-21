@@ -28,6 +28,9 @@ from urllib import request as urlrequest
 API_URL = os.environ.get("WHATPULSE_API_URL", "").strip()
 DEVICE = os.environ.get("DEVICE", "mac").strip().lower() or "mac"
 TOKEN = os.environ.get("INGEST_TOKEN", "").strip()
+# Cloudflare fronts the ingest API and rejects requests that carry urllib's
+# default "Python-urllib/x.y" User-Agent (Error 1010). Send an explicit UA.
+USER_AGENT = os.environ.get("INGEST_USER_AGENT", "ruoli-whatpulse-bridge/1.0").strip()
 ACTIVITYWATCH_API_URL = os.environ.get(
     "ACTIVITYWATCH_API_URL", "http://127.0.0.1:5600/api/0"
 ).strip().rstrip("/")
@@ -340,6 +343,7 @@ def main() -> None:
         headers={
             "X-Ingest-Token": TOKEN,
             "Content-Type": "application/json",
+            "User-Agent": USER_AGENT,
         },
     )
     try:

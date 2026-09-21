@@ -8,6 +8,7 @@
 //   NP_INTERVAL_MS       poll interval (default 8000)
 //   NP_HEARTBEAT_MS      live-state refresh interval (default 30000)
 //   NP_MISS_LIMIT        misses before playing/paused becomes last_played (default 3)
+//   INGEST_USER_AGENT    User-Agent for the ingest POST (default: ruoli-music-bridge/1.0)
 //
 // Run: node bridge/music_presence.mjs
 
@@ -26,6 +27,9 @@ const INTERVAL = Math.max(2000, Number(process.env.NP_INTERVAL_MS || 8000));
 const HEARTBEAT = Math.max(INTERVAL, Number(process.env.NP_HEARTBEAT_MS || 30000));
 const MISS_LIMIT = Math.max(1, Number(process.env.NP_MISS_LIMIT || 3));
 const MAX_COVER_CHARS = 26000;
+// Cloudflare fronts the ingest API and rejects the default undici "node" UA
+// (Error 1010). Send an explicit, identifiable User-Agent.
+const USER_AGENT = process.env.INGEST_USER_AGENT || "ruoli-music-bridge/1.0";
 
 const SERVICE_BY_BUNDLE = {
   "com.netease.163music": "netease",
@@ -102,7 +106,11 @@ async function publish(payload) {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-Ingest-Token": TOKEN },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Ingest-Token": TOKEN,
+        "User-Agent": USER_AGENT,
+      },
       body: JSON.stringify(payload),
     });
     if (res.ok === false) {
