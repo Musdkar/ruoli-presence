@@ -2,7 +2,11 @@ import { Link } from "react-router-dom";
 import { posts } from "../content/posts";
 import { useT } from "../i18n";
 
-const publishedPosts = posts.filter((post) => post.published !== false);
+// Newest first. Sorting here (rather than relying on the order entries happen
+// to sit in posts.js) means a new post only has to be appended to the file.
+const publishedPosts = posts
+  .filter((post) => post.published !== false)
+  .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
 export default function BlogPage() {
   const T = useT();

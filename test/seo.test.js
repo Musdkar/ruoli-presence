@@ -39,6 +39,11 @@ describe("metadataFor — routes", () => {
     expect(metadataFor("/uses").title).toBe("ruoli — uses");
   });
 
+  it("email contact page", () => {
+    expect(metadataFor("/email").title).toBe("ruoli — contact");
+    expect(metadataFor("/email").path).toBe("/email");
+  });
+
   it("published blog post uses the post title and summary", () => {
     const meta = metadataFor("/blog/published-post", { posts: POSTS });
     expect(meta.title).toBe("A published post — ruoli");
@@ -76,6 +81,10 @@ describe("metadataFor — noindex on not-found views", () => {
   it("marks a missing or draft post noindex", () => {
     expect(metadataFor("/blog/nope", { posts: POSTS }).noindex).toBe(true);
     expect(metadataFor("/blog/draft-post", { posts: POSTS }).noindex).toBe(true);
+  });
+
+  it("marks /email noindex (the address is only obfuscated, not private)", () => {
+    expect(metadataFor("/email").noindex).toBe(true);
   });
 
   it("does NOT mark real pages noindex", () => {

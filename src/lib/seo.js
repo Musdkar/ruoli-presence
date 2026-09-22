@@ -53,6 +53,16 @@ export function metadataFor(pathname, { posts = [] } = {}) {
       path: "/uses",
     };
   }
+  if (path === "/email") {
+    // The page exists only to hold an obfuscated address, so it is deliberately
+    // kept out of search results (and out of sitemap.xml).
+    return {
+      title: "ruoli — contact",
+      description: "How to reach me.",
+      path: "/email",
+      noindex: true,
+    };
+  }
   return {
     title: "Not found — ruoli",
     description: DEFAULT_DESCRIPTION,

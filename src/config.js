@@ -29,7 +29,8 @@ export const config = {
     { label: "GH", name: "GitHub", href: "https://github.com/Musdkar" },
     { label: "VR", name: "VRChat", href: import.meta.env.VITE_VRCHAT_URL || "" },
     { label: "DC", name: "Discord", href: import.meta.env.VITE_DISCORD_URL || "" },
-    { label: "@", name: "Contact", href: import.meta.env.VITE_CONTACT_URL || "" },
+    // In-app contact page; the address lives there Base64-encoded.
+    { label: "@", name: "Contact", href: "/email" },
   ],
   photos: [
     {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { config } from "../config";
 import { useT } from "../i18n";
 import VrcStatus from "./VrcStatus.jsx";
@@ -81,16 +82,25 @@ export default function Sidebar({ presence, displayPresence }) {
           <div className="socials">
             {config.socialLinks.map((link) =>
               link.href ? (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={link.name}
-                  aria-label={link.name}
-                >
-                  <span aria-hidden="true">{link.label}</span>
-                </a>
+                // A path that starts with "/" is an in-app route: navigate with
+                // <Link> so it stays a client-side transition and does not open
+                // a new tab. Anything else is an external link.
+                link.href.startsWith("/") ? (
+                  <Link key={link.label} to={link.href} title={link.name} aria-label={link.name}>
+                    <span aria-hidden="true">{link.label}</span>
+                  </Link>
+                ) : (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={link.name}
+                    aria-label={link.name}
+                  >
+                    <span aria-hidden="true">{link.label}</span>
+                  </a>
+                )
               ) : (
                 <span
                   key={link.label}
