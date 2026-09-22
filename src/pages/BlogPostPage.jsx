@@ -37,7 +37,6 @@ export default function BlogPost() {
       <header className="article-head">
         <time>{post.date}</time>
         <h2>{post.title}</h2>
-        <p>{post.summary}</p>
       </header>
       <div className="article-body">
         <React.Suspense fallback={<p>{T.loadingArticle}</p>}>
