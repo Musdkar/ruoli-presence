@@ -137,9 +137,8 @@ html.light .empty span { color: #7c7f88; }
 
 html.light .page-mast p { color: #55585f; }
 html.light .archive-note { border-color: var(--chip-line); color: #7c7f88; }
-html.light .post-index { color: #a0a2a9; }
+html.light .post-date { color: #a0a2a9; }
 html.light .post-row p { color: #55585f; }
-html.light .post-row time { color: #8a8d95; }
 html.light .post-tags span { border-color: var(--chip-line); color: #7c7f88; }
 html.light .blog-empty { border-color: var(--chip-line); }
 html.light .blog-empty > span { color: #8a8d95; }

@@ -26,9 +26,11 @@ export default function BlogPage() {
       <div className="page-rule" />
       {publishedPosts.length ? (
         <div className="post-list">
-          {publishedPosts.map((post, index) => (
+          {publishedPosts.map((post) => (
             <Link className="post-row" to={`/blog/${post.slug}`} key={post.slug}>
-              <span className="post-index">{String(index + 1).padStart(2, "0")}</span>
+              <time className="post-date" dateTime={post.date}>
+                {post.date.slice(5)}
+              </time>
               <div>
                 <h3>{post.title}</h3>
                 <p>{post.summary}</p>
@@ -38,7 +40,6 @@ export default function BlogPage() {
                   ))}
                 </div>
               </div>
-              <time>{post.date}</time>
             </Link>
           ))}
         </div>
