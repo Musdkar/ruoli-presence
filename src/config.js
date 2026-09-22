@@ -1,5 +1,6 @@
 export const config = {
-  discordId: import.meta.env.VITE_DISCORD_ID || "",
+  // No Discord id here: presence is proxied by /api/presence using the
+  // server-side LANYARD_USER_ID, so nothing about it belongs in the bundle.
   whatPulseHeatmapUrl: import.meta.env.VITE_WHATPULSE_HEATMAP_URL || "",
   whatPulseProfileUrl: import.meta.env.VITE_WHATPULSE_PROFILE_URL || "",
   name: "Kalieri",

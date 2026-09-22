@@ -1,18 +1,18 @@
 // Browser-side presence cache. Sanitization itself lives in the shared module
 // under api/ so the server function and the browser sanitize identically.
-import { sanitizePresence } from "../../api/lib/presence-sanitize.cjs";
+import { sanitizePresence } from "../../api/lib/presence-sanitize.mjs";
 
 export { sanitizePresence };
 
-const CACHE_VERSION = 1;
+// The presence owner is fixed server-side now, so the cache is a single slot
+// rather than one per user id. Version stays so an old layout is discarded.
+const CACHE_VERSION = 2;
 const CACHE_MAX_AGE = 30 * 60 * 1000;
+const CACHE_KEY = `ruoli:presence:${CACHE_VERSION}`;
 
-const cacheKey = (userId) => `ruoli:lanyard:${CACHE_VERSION}:${userId}`;
-
-export function readCachedPresence(userId, now = Date.now()) {
-  if (!userId) return null;
+export function readCachedPresence(now = Date.now()) {
   try {
-    const raw = localStorage.getItem(cacheKey(userId));
+    const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (
@@ -27,25 +27,22 @@ export function readCachedPresence(userId, now = Date.now()) {
   }
 }
 
-export function writeCachedPresence(userId, value) {
-  if (!userId) return;
+export function writeCachedPresence(value) {
   const presence = sanitizePresence(value);
   if (!presence) return;
   try {
     localStorage.setItem(
-      cacheKey(userId),
-      JSON.stringify({
-        v: CACHE_VERSION,
-        savedAt: Date.now(),
-        presence,
-      })
+      CACHE_KEY,
+      JSON.stringify({ v: CACHE_VERSION, savedAt: Date.now(), presence })
     );
-  } catch {}
+  } catch {
+    /* storage can be unavailable; the in-memory value still renders */
+  }
 }
 
-// Read presence through our own origin. The function proxies Lanyard with the
-// server-side user id, so the browser never talks to api.lanyard.rest directly
-// and no id has to be embedded in the bundle.
+// Read presence through our own origin. The function proxies the upstream with
+// the server-side user id, so the browser only ever talks to /api/presence and
+// no id is embedded in the bundle.
 export async function fetchPresence({ signal } = {}) {
   const response = await fetch("/api/presence", {
     signal,

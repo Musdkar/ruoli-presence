@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { config } from "../config";
 import { LangProvider, useLang, useSetLang, LANG_CHOSEN_KEY } from "../i18n";
-import { SiteRouter, LanyardApp } from "./Router.jsx";
+import AppRouter from "./Router.jsx";
 import LangPicker from "../components/LangPicker.jsx";
 
 // Keep <html lang> in sync with the chosen UI language: assistive tech and
@@ -32,11 +31,10 @@ function AppShell() {
       /* best-effort persistence */
     }
   };
-  const content = config.discordId ? <LanyardApp /> : <SiteRouter presence={null} />;
   return (
     <>
       {asking && <LangPicker onChoose={choose} />}
-      {content}
+      <AppRouter />
     </>
   );
 }

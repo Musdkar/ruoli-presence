@@ -103,37 +103,37 @@ describe("sanitizePresence — kv value size boundary", () => {
   });
 
   it("does not let an oversized value inflate the cached write", () => {
-    writeCachedPresence("u1", { kv: { apps_today: "x".repeat(64 * 1024), music_now: "{}" } });
-    const raw = localStorage.getItem("ruoli:lanyard:1:u1");
+    writeCachedPresence({ kv: { apps_today: "x".repeat(64 * 1024), music_now: "{}" } });
+    const raw = localStorage.getItem("ruoli:presence:2");
     expect(raw.length).toBeLessThan(4096);
-    expect(Object.keys(readCachedPresence("u1").kv)).toEqual(["music_now"]);
+    expect(Object.keys(readCachedPresence().kv)).toEqual(["music_now"]);
   });
 });
 
 describe("cache read/write roundtrip", () => {
+  it("returns null when nothing is cached", () => {
+    expect(readCachedPresence()).toBeNull();
+  });
   it("writes then reads sanitized presence", () => {
-    writeCachedPresence("u1", { discord_status: "online", kv: { apps_today: "{}", bad: "x" } });
-    const out = readCachedPresence("u1");
+    writeCachedPresence({ discord_status: "online", kv: { apps_today: "{}", bad: "x" } });
+    const out = readCachedPresence();
     expect(out.discord_status).toBe("online");
     expect(Object.keys(out.kv)).toEqual(["apps_today"]);
   });
-  it("returns null without userId", () => {
-    expect(readCachedPresence("")).toBeNull();
-  });
   it("expires after 30 minutes", () => {
-    writeCachedPresence("u1", { discord_status: "online" });
-    expect(readCachedPresence("u1", Date.now())).not.toBeNull();
-    expect(readCachedPresence("u1", Date.now() + 31 * 60 * 1000)).toBeNull();
+    writeCachedPresence({ discord_status: "online" });
+    expect(readCachedPresence(Date.now())).not.toBeNull();
+    expect(readCachedPresence(Date.now() + 31 * 60 * 1000)).toBeNull();
   });
   it("returns null for invalid cache JSON", () => {
-    localStorage.setItem("ruoli:lanyard:1:u1", "{bad");
-    expect(readCachedPresence("u1")).toBeNull();
+    localStorage.setItem("ruoli:presence:2", "{bad");
+    expect(readCachedPresence()).toBeNull();
   });
   it("ignores version mismatch", () => {
     localStorage.setItem(
-      "ruoli:lanyard:1:u1",
+      "ruoli:presence:2",
       JSON.stringify({ v: 999, savedAt: Date.now(), presence: {} })
     );
-    expect(readCachedPresence("u1")).toBeNull();
+    expect(readCachedPresence()).toBeNull();
   });
 });

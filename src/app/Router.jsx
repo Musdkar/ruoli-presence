@@ -1,6 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { config } from "../config";
-import { useFastLanyard } from "../hooks/useFastLanyard";
+import { usePresence } from "../hooks/usePresence";
 import Layout from "./Layout.jsx";
 import PhotoPage from "../pages/PhotoPage.jsx";
 import BlogPage from "../pages/BlogPage.jsx";
@@ -8,12 +7,10 @@ import BlogPostPage from "../pages/BlogPostPage.jsx";
 import UsesPage from "../pages/UsesPage.jsx";
 import NotFoundPage from "../pages/NotFoundPage.jsx";
 
-export function LanyardApp() {
-  const presence = useFastLanyard(config.discordId);
-  return <SiteRouter presence={presence} />;
-}
-
-export function SiteRouter({ presence }) {
+// Presence is read once at the top of the tree and passed down, so every card
+// renders from the same snapshot.
+export default function AppRouter() {
+  const presence = usePresence();
   return (
     <BrowserRouter>
       <Routes>

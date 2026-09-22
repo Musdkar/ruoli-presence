@@ -1,10 +1,11 @@
 "use strict";
 
 // Read-only presence proxy. The browser asks our own origin for presence; this
-// function is the only thing that talks to api.lanyard.rest, using the
-// server-side user id and API key. That keeps the upstream host off the
-// visitor's critical path (it is not always reachable from every network) and
-// keeps the Discord id and key out of the client bundle.
+// function performs the upstream read with the server-side user id and API key.
+// That keeps the upstream host off the visitor's critical path (it is not
+// reachable from every network) and keeps the id and key out of the client
+// bundle. The ingest functions (whatpulse/music/health) write to the same
+// upstream from the server side; this is the only browser-facing read path.
 //
 // Design constraints (deliberate):
 //   - GET only, anonymous, no client token. The data is already public.
@@ -12,7 +13,13 @@
 //     user id, a URL or any other mutable target, so this is not an open proxy.
 //   - The response is sanitized with the same module the browser uses.
 
-const { sanitizePresence } = require("../lib/presence-sanitize.cjs");
+// The shared sanitizer is ESM (the frontend imports the same file). A CommonJS
+// function loads it with a cached dynamic import() inside the handler.
+let sanitizerPromise = null;
+function loadSanitizer() {
+  if (!sanitizerPromise) sanitizerPromise = import("../lib/presence-sanitize.mjs");
+  return sanitizerPromise;
+}
 
 const LANYARD_API = "https://api.lanyard.rest/v1/users";
 
@@ -99,6 +106,7 @@ module.exports = async function (context, req) {
     return;
   }
 
+  const { sanitizePresence } = await loadSanitizer();
   const data = sanitizePresence(payload && payload.data);
   if (!data) {
     jsonResponse(context, 502, { success: false, error: "upstream_invalid" }, noStoreHeaders());

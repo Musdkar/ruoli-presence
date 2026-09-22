@@ -1,13 +1,12 @@
-"use strict";
-
 // Shared presence sanitization — the single source of truth for what leaves the
 // server and what the browser is allowed to keep. It lives under api/ because
 // the Azure Static Web Apps deployment uploads that folder as its own unit, so
-// the function can require it reliably; the Vite frontend imports this same
-// file (Vite handles CommonJS interop), so there is no second copy to drift.
+// the function always ships with it; the Vite frontend imports the same file,
+// so there is no second copy to drift.
 //
-// Plain CommonJS with no dependencies on purpose: it must load both in the
-// Node function runtime and in the browser bundle.
+// Written as ESM (a single module for both runtimes). The frontend imports it
+// directly; the CommonJS Azure Function loads it with a cached dynamic import()
+// inside the handler. No dependencies, so it loads in either environment.
 
 // Exact keys plus per-device slots like apps_today_mac / keyboard_today_win.
 // Device suffixes stay separate; nothing is merged across machines.
@@ -53,7 +52,7 @@ function cleanText(value, max = 300) {
 
 // Reduce an arbitrary upstream presence payload to exactly the fields the UI
 // consumes. Returns null for anything that is not a plain object.
-function sanitizePresence(value) {
+export function sanitizePresence(value) {
   if (value == null || typeof value !== "object" || Array.isArray(value)) return null;
   const kv = {};
   if (value.kv && typeof value.kv === "object" && !Array.isArray(value.kv)) {
@@ -93,4 +92,4 @@ function sanitizePresence(value) {
   };
 }
 
-module.exports = { sanitizePresence, isAllowedKvKey, KV_VALUE_MAX_CHARS };
+export { isAllowedKvKey, KV_VALUE_MAX_CHARS };
