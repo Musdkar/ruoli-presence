@@ -25,7 +25,7 @@ The interesting part is not rebuilding those collectors. It is deciding what des
 This post is a draft and is intentionally not published yet.`,
   },
   {
-    slug: "7",
+    slug: "1",
     title: "对抗无聊",
     date: "2026-01-29",
     summary:
@@ -42,7 +42,7 @@ This post is a draft and is intentionally not published yet.`,
 - 学习另外的一门外语或者从[IMDB TOP 250](http://www.imdb.com/chart/top)开始看电影`,
   },
   {
-    slug: "8",
+    slug: "2",
     title: "1",
     date: "2026-02-02",
     summary:
