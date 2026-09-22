@@ -15,6 +15,9 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Outside Layout on purpose: /email is its own surface with no header,
+            nav or sidebar, so it reads as a separate page. */}
+        <Route path="email" element={<EmailPage />} />
         <Route element={<Layout presence={presence} />}>
           <Route index element={null} />
           <Route path="photo" element={<PhotoPage />} />
@@ -22,7 +25,6 @@ export default function AppRouter() {
           <Route path="blog" element={<BlogPage />} />
           <Route path="blog/:slug" element={<BlogPostPage />} />
           <Route path="uses" element={<UsesPage />} />
-          <Route path="email" element={<EmailPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
