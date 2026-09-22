@@ -1,3 +1,19 @@
+import { photos, photoSrc } from "./data/photos";
+
+// The archive is stored newest-last in src/data/photos.js; the album and the
+// Home card both read it newest-first, and `config.photos[0]` is the latest
+// frame. Sorting a copy keeps the authored file order intact.
+const archivePhotos = photos
+  .map((photo) => ({
+    src: photoSrc(photo),
+    fileName: photo.file + ".webp",
+    width: photo.width,
+    height: photo.height,
+    alt: photo.alt,
+    taken: photo.taken,
+  }))
+  .sort((a, b) => (a.taken < b.taken ? 1 : a.taken > b.taken ? -1 : 0));
+
 export const config = {
   // No Discord id here: presence is proxied by /api/presence using the
   // server-side LANYARD_USER_ID, so nothing about it belongs in the bundle.
@@ -32,15 +48,8 @@ export const config = {
     // In-app contact page; the address lives there Base64-encoded.
     { label: "@", name: "Contact", href: "/email" },
   ],
-  photos: [
-    {
-      src: "/assets/vrchat.webp",
-      width: 1600,
-      height: 900,
-      alt: "VRChat screenshot",
-      title: "VRChat · 2026",
-    },
-  ],
+  // Newest first. Home shows photos[0]; Photo renders the whole list.
+  photos: archivePhotos,
   software: [
     {
       group: "Development",

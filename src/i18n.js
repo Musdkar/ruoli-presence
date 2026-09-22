@@ -57,8 +57,7 @@ export const translations = {
     photoIntro:
       "A visual archive. Mixed portrait and landscape images are laid out by React Photo Album rather than forced into one crop ratio.",
     loadingArchive: "Loading archive...",
-    archiveNote:
-      "One image in the archive for now. Add more files later and the layout will rebalance automatically.",
+    photoCount: "frames",
     blogEyebrow: "BLOG / NOTES",
     blogTitle1: "Things worth",
     blogTitle2: "writing down.",
@@ -177,7 +176,7 @@ export const translations = {
     photoIntro:
       "一个视觉档案。竖屏与横屏图片由 React Photo Album 自适应排版，而非强行统一裁切比例。",
     loadingArchive: "正在加载相册...",
-    archiveNote: "目前档案里只有一张图。以后添加更多文件，排版会自动重新平衡。",
+    photoCount: "张",
     blogEyebrow: "BLOG / NOTES",
     blogTitle1: "值得记下",
     blogTitle2: "的东西。",

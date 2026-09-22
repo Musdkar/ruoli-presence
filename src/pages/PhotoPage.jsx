@@ -1,5 +1,6 @@
 import React from "react";
 import { config } from "../config";
+import { formatPhotoTaken } from "../lib/format";
 import { useT } from "../i18n";
 
 const LazyMasonryPhotoAlbum = React.lazy(async () => {
@@ -8,8 +9,29 @@ const LazyMasonryPhotoAlbum = React.lazy(async () => {
   return { default: mod.MasonryPhotoAlbum };
 });
 
+// Each tile gets its capture date appended under the image.
+//
+// `render.extras` is the hook for extra markup inside a tile, and it receives
+// the photo context (`{ photo, index, width, height }`). Deliberately NO
+// `render.photo` override: that hook is handed only `{ onClick }`, so spreading
+// its props onto an <img> would render an image with no src/alt. Letting the
+// album render its own <img> from the photo object keeps src, alt and the
+// reserved width/height intact, and `extras` then hangs the caption beside it.
+function renderExtras(_props, { photo }) {
+  const taken = formatPhotoTaken(photo.taken);
+  if (!taken) return null;
+  return (
+    <figcaption className="photo-caption">
+      <time dateTime={photo.taken}>{taken}</time>
+    </figcaption>
+  );
+}
+
+const RENDER = { extras: renderExtras };
+
 export default function PhotoPage() {
   const T = useT();
+  const photos = config.photos;
   return (
     <div className="view page-view photo-page">
       <div className="page-mast">
@@ -21,19 +43,30 @@ export default function PhotoPage() {
             {T.homePageTitle2}
           </h2>
         </div>
-        <p>{T.photoIntro}</p>
+        <p>
+          {T.photoIntro}
+          {photos.length > 0 && (
+            <span className="photo-count">
+              {photos.length} {T.photoCount}
+            </span>
+          )}
+        </p>
       </div>
       <div className="page-rule" />
-      <div className="photo-wall">
-        <React.Suspense fallback={<div className="archive-note">{T.loadingArchive}</div>}>
-          <LazyMasonryPhotoAlbum
-            photos={config.photos}
-            columns={(width) => (width < 700 ? 1 : width < 1200 ? 2 : 3)}
-            spacing={10}
-          />
-        </React.Suspense>
-      </div>
-      {config.photos.length === 1 && <div className="archive-note">{T.archiveNote}</div>}
+      {photos.length ? (
+        <div className="photo-wall">
+          <React.Suspense fallback={<div className="archive-note">{T.loadingArchive}</div>}>
+            <LazyMasonryPhotoAlbum
+              photos={photos}
+              columns={(width) => (width < 700 ? 1 : width < 1200 ? 2 : 3)}
+              spacing={10}
+              render={RENDER}
+            />
+          </React.Suspense>
+        </div>
+      ) : (
+        <div className="archive-note">{T.noPhotos}</div>
+      )}
     </div>
   );
 }
