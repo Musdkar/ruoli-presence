@@ -94,18 +94,17 @@ html.light .identity p { color: #4c4f57; }
 html.light dt { color: #777a83; }
 html.light .vrc-line { border-color: var(--chip-line); color: #4c4f57; }
 html.light .social-title { color: #7c7f88; }
-html.light .social-ring {
+html.light .socials a,
+html.light .socials span {
   border-color: var(--chip-line);
   color: #4c4f57;
   background: var(--chip-bg);
 }
-html.light .social-name { color: #7c7f88; }
-html.light .socials > a:hover .social-ring {
+html.light .socials a:hover {
   border-color: #b9b2e0;
   color: #16171b;
   background: var(--chip-bg-hover);
 }
-html.light .socials > a:hover .social-name { color: #3a3c43; }
 html.light .sidebar-note { color: #74777f; }
 html.light .sidebar-note b { color: #3a3c43; }
 

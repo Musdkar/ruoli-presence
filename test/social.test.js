@@ -18,7 +18,9 @@ describe("connect rail — icons", () => {
     }
   });
 
-  it("keeps the label as a stable React key and accessible fallback", () => {
+  it("keeps the label as a stable React key", () => {
+    // The tiles are icon-only; the label survives as the React key and the
+    // fallback text, so it still has to be present and unique.
     const labels = config.socialLinks.map((l) => l.label);
     expect(new Set(labels).size).toBe(labels.length);
     for (const label of labels) expect(label).toBeTruthy();

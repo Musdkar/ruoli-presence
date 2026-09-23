@@ -24,26 +24,24 @@
   color: #747985;
 }
 
-/* Connect rail: a 3-column grid of circular outline buttons, each with the
-   service name underneath. The tile itself is no longer the bordered box (the
-   ring is), so the old width/height/border-radius on the link is gone.
-   Selectors are child-scoped: `.socials span` would also match the ring and
-   the name, which is what broke the ring's sizing before. */
 .socials {
-  gap: 14px 8px;
+  gap: 10px;
 }
 
-.socials > a,
-.socials > span {
+.socials a,
+.socials span {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
   font-size: 10px;
   letter-spacing: .035em;
 }
 
-.social-name {
-  font-size: 10px;
-}
-
 @media (min-width: 1101px) and (max-height: 760px) {
   .social-block { margin-top: 16px; }
-  .social-ring { width: 40px; height: 40px; }
+  .socials a,
+  .socials span {
+    width: 40px;
+    height: 40px;
+  }
 }
