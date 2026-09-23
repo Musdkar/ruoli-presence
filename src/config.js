@@ -1,8 +1,8 @@
 import { photos, photoSrc } from "./data/photos";
 
-// The archive is stored newest-last in src/data/photos.js; the album and the
-// Home card both read it newest-first, and `config.photos[0]` is the latest
-// frame. Sorting a copy keeps the authored file order intact.
+// The archive is stored newest-last in src/data/photos.js; the album reads it
+// newest-first, and `homePhoto` is the cover the Home card shows. Sorting a
+// copy keeps the authored file order intact.
 const archivePhotos = photos
   .map((photo) => ({
     src: photoSrc(photo),
@@ -11,8 +11,14 @@ const archivePhotos = photos
     height: photo.height,
     alt: photo.alt,
     taken: photo.taken,
+    featured: Boolean(photo.featured),
   }))
   .sort((a, b) => (a.taken < b.taken ? 1 : a.taken > b.taken ? -1 : 0));
+
+// Cover for the Home card: the entry flagged `featured`, falling back to the
+// newest frame if nothing is flagged. Pinning it this way means adding a later
+// photo does not silently change the Home page.
+const homePhoto = archivePhotos.find((photo) => photo.featured) || archivePhotos[0] || null;
 
 export const config = {
   // No Discord id here: presence is proxied by /api/presence using the
@@ -55,8 +61,9 @@ export const config = {
     // In-app contact page; the address lives there Base64-encoded.
     { label: "@", icon: "mail", name: "Contact", href: "/email" },
   ],
-  // Newest first. Home shows photos[0]; Photo renders the whole list.
+  // Newest first. Home shows the featured frame; Photo renders the whole list.
   photos: archivePhotos,
+  homePhoto,
   software: [
     {
       group: "Development",

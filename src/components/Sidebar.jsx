@@ -81,14 +81,28 @@ export default function Sidebar({ presence, displayPresence }) {
         <div className="social-block">
           <div className="social-title">{T.connect}</div>
           <div className="socials">
-            {config.socialLinks.map((link) =>
-              link.href ? (
+            {config.socialLinks.map((link) => {
+              // Icon in a circle, service name underneath. The whole thing is
+              // one hit target, so the label is inside the link rather than a
+              // separate row.
+              const inner = (
+                <>
+                  {/* A div, not a span: the legacy `.socials span` rules in
+                      styles.css/tweaks.css target the old text chips and would
+                      strip this element's border and size. */}
+                  <div className="social-ring">
+                    <SocialIcon icon={link.icon} />
+                  </div>
+                  <span className="social-name">{link.name}</span>
+                </>
+              );
+              return link.href ? (
                 // A path that starts with "/" is an in-app route: navigate with
                 // <Link> so it stays a client-side transition and does not open
                 // a new tab. Anything else is an external link.
                 link.href.startsWith("/") ? (
-                  <Link key={link.label} to={link.href} title={link.name} aria-label={link.name}>
-                    <SocialIcon icon={link.icon} />
+                  <Link key={link.label} to={link.href} aria-label={link.name}>
+                    {inner}
                   </Link>
                 ) : (
                   <a
@@ -96,10 +110,9 @@ export default function Sidebar({ presence, displayPresence }) {
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    title={link.name}
                     aria-label={link.name}
                   >
-                    <SocialIcon icon={link.icon} />
+                    {inner}
                   </a>
                 )
               ) : (
@@ -108,10 +121,10 @@ export default function Sidebar({ presence, displayPresence }) {
                   className="disabled"
                   aria-label={link.name + " " + T.notLinked}
                 >
-                  <SocialIcon icon={link.icon} />
+                  {inner}
                 </span>
-              )
-            )}
+              );
+            })}
           </div>
         </div>
       </div>

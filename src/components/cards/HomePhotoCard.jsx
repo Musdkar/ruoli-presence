@@ -6,7 +6,7 @@ import Empty from "./EmptyState.jsx";
 
 export default function HomePhotoCard() {
   const T = useT();
-  const photo = config.photos[0];
+  const photo = config.homePhoto;
   return (
     <article className="card photos-card">
       <CardHead title={T.photo2} meta={T.latestFrame} />

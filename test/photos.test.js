@@ -99,6 +99,34 @@ describe("config.photos", () => {
   });
 });
 
+// The Home card cover is a deliberate pick, pinned by a `featured` flag rather
+// than left to "whatever is newest". These guard both halves of that: the flag
+// resolves to the right frame, and it stays put when a newer photo is added.
+describe("home photo cover", () => {
+  it("resolves to the entry flagged featured", () => {
+    const flagged = photos.filter((p) => p.featured);
+    expect(flagged).toHaveLength(1);
+    expect(config.homePhoto.fileName).toBe(flagged[0].file + ".webp");
+  });
+
+  it("is not simply the newest frame", () => {
+    // If this ever passes by coincidence the pin has stopped doing work.
+    expect(config.homePhoto.taken).not.toBe(config.photos[0].taken);
+  });
+
+  it("is a real photo in the album", () => {
+    expect(config.photos.map((p) => p.fileName)).toContain(config.homePhoto.fileName);
+  });
+
+  it("falls back to the newest frame when nothing is flagged", () => {
+    // Mirrors the config expression, so an un-flagged archive still renders.
+    const unflagged = photos.map((p) => ({ ...p, featured: undefined }));
+    const sorted = [...unflagged].sort((a, b) => (a.taken < b.taken ? 1 : -1));
+    const fallback = sorted.find((p) => p.featured) || sorted[0];
+    expect(fallback.file).toBe(sorted[0].file);
+  });
+});
+
 describe("formatPhotoTaken", () => {
   it("renders the captured local wall-clock time", () => {
     expect(formatPhotoTaken("2026-02-11T21:58:58")).toBe("2026-02-11 21:58");

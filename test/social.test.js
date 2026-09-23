@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { siGithub, siVrchat, siTelegram } from "simple-icons";
 import { config } from "../src/config.js";
-import { hasSocialIcon, socialIconPath } from "../src/components/SocialIcon.jsx";
+import { hasSocialIcon, socialIconPath, socialIconPaths } from "../src/components/SocialIcon.jsx";
 
 // Every entry in the Connect rail renders an <svg> looked up by `icon`. A typo
 // or a missing key would silently render an empty tile rather than fail the
@@ -40,6 +40,10 @@ describe("connect rail — icons", () => {
 // copies can drift when the dependency is bumped. Pin them to the package: if
 // an upstream mark changes, this fails and the literals get refreshed instead
 // of the site quietly serving a stale logo.
+//
+// The rail draws outline marks, which are not byte-identical to the filled
+// package artwork, so this compares the filled copies. Those are the ones tied
+// to the package; the outlines are derived from them.
 describe("connect rail — brand paths match simple-icons", () => {
   it.each([
     ["github", siGithub],
@@ -52,8 +56,20 @@ describe("connect rail — brand paths match simple-icons", () => {
   it("never substitutes a brand mark for the in-app contact tile", () => {
     // The @ tile opens /email, not a mail provider, so it must not wear a
     // Gmail/Proton-style logo. It is the one hand-drawn glyph.
-    const mail = socialIconPath("mail");
-    const brandPaths = [siGithub.path, siVrchat.path, siTelegram.path];
-    expect(brandPaths).not.toContain(mail);
+    expect(socialIconPath("mail")).toBeUndefined();
+  });
+
+  it("draws every rail icon as an outline, not a filled brand mark", () => {
+    // The rail follows the reference design: stroke icons in a thin circle.
+    // A filled path here would render as a solid blob at 19px.
+    for (const key of ["github", "vrchat", "telegram", "mail"]) {
+      expect(Array.isArray(socialIconPaths(key)), `${key} should be stroke paths`).toBe(true);
+      for (const d of socialIconPaths(key)) {
+        expect(d.length).toBeGreaterThan(0);
+        // Filled brand marks start at the canvas origin and trace a solid
+        // shape; these all start with a move or arc command.
+        expect(d).toMatch(/^[Mm]/);
+      }
+    }
   });
 });

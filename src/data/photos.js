@@ -90,11 +90,15 @@ export const photos = [
     alt: "VRChat screenshot",
   },
   {
+    // Home card cover. Pinned by name rather than left to "the newest frame":
+    // the card is a deliberate choice, and adding a later photo should not
+    // silently swap it out.
     file: "2026-08-21-230444",
     taken: "2026-08-21T23:04:44",
     width: 1600,
     height: 900,
     alt: "VRChat screenshot",
+    featured: true,
   },
   {
     file: "2026-08-21-231339",
