@@ -89,6 +89,58 @@ export const photos = [
     height: 900,
     alt: "VRChat screenshot",
   },
+  {
+    file: "2026-08-21-230444",
+    taken: "2026-08-21T23:04:44",
+    width: 1600,
+    height: 900,
+    alt: "VRChat screenshot",
+  },
+  {
+    file: "2026-08-21-231339",
+    taken: "2026-08-21T23:13:39",
+    width: 1600,
+    height: 900,
+    alt: "VRChat screenshot",
+  },
+  {
+    file: "2026-08-22-000356",
+    taken: "2026-08-22T00:03:56",
+    width: 1600,
+    height: 900,
+    alt: "VRChat screenshot",
+  },
+  {
+    file: "2026-08-30-014213",
+    taken: "2026-08-30T01:42:13",
+    width: 1600,
+    height: 900,
+    alt: "VRChat screenshot",
+  },
+  {
+    file: "2026-09-02-203912",
+    taken: "2026-09-02T20:39:12",
+    width: 1600,
+    height: 900,
+    alt: "VRChat screenshot",
+  },
+  {
+    // Portrait capture: 2160x3840 at the source, so the resize cap lands on
+    // the height. Photo Album reads these dimensions, so they must stay
+    // portrait here or the tile is laid out with the wrong aspect ratio.
+    file: "2026-09-06-022351",
+    taken: "2026-09-06T02:23:51",
+    width: 900,
+    height: 1600,
+    alt: "VRChat screenshot",
+  },
+  {
+    file: "2026-09-14-001659",
+    taken: "2026-09-14T00:16:59",
+    width: 1600,
+    height: 900,
+    alt: "VRChat screenshot",
+  },
 ];
 
 // Shipped basename of one archive frame, e.g. "2026-02-11-215858.webp".
