@@ -3,6 +3,7 @@ import { config } from "../config";
 import { formatPhotoTaken } from "../lib/format";
 import { useT } from "../i18n";
 import PhotoLightbox from "../components/PhotoLightbox.jsx";
+import "./photo.css";
 
 const LazyMasonryPhotoAlbum = React.lazy(async () => {
   await import("react-photo-album/masonry.css");
