@@ -42,13 +42,18 @@ export const config = {
   mapAvatar: "/assets/map-avatar.webp",
   fitness: { stepGoal: 6000 },
   socialLinks: [
-    { label: "GH", name: "GitHub", href: "https://github.com/Musdkar" },
-    { label: "VR", name: "VRChat", href: import.meta.env.VITE_VRCHAT_URL || "" },
+    { label: "GH", icon: "github", name: "GitHub", href: "https://github.com/Musdkar" },
+    { label: "VR", icon: "vrchat", name: "VRChat", href: import.meta.env.VITE_VRCHAT_URL || "" },
     // Telegram. The invite URL is not configured yet, so this renders as
     // "not linked" until VITE_TELEGRAM_URL is set.
-    { label: "TG", name: "Telegram", href: import.meta.env.VITE_TELEGRAM_URL || "" },
+    {
+      label: "TG",
+      icon: "telegram",
+      name: "Telegram",
+      href: import.meta.env.VITE_TELEGRAM_URL || "",
+    },
     // In-app contact page; the address lives there Base64-encoded.
-    { label: "@", name: "Contact", href: "/email" },
+    { label: "@", icon: "mail", name: "Contact", href: "/email" },
   ],
   // Newest first. Home shows photos[0]; Photo renders the whole list.
   photos: archivePhotos,
