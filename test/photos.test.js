@@ -155,11 +155,11 @@ describe("formatPhotoTaken", () => {
 describe("photo archive — presentation contract", () => {
   const photoPage = readFileSync(
     resolve(process.cwd(), "src", "pages", "PhotoPage.jsx"),
-    "utf8"
+    "utf8",
   );
   const photoCss = readFileSync(
     resolve(process.cwd(), "src", "pages", "photo.css"),
-    "utf8"
+    "utf8",
   );
 
   it("loads the feature-scoped photo stylesheet", () => {
