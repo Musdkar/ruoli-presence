@@ -151,3 +151,25 @@ describe("formatPhotoTaken", () => {
     });
   });
 });
+
+describe("photo archive — presentation contract", () => {
+  const photoPage = readFileSync(resolve(process.cwd(), "src", "pages", "PhotoPage.jsx"), "utf8");
+  const photoCss = readFileSync(resolve(process.cwd(), "src", "pages", "photo.css"), "utf8");
+
+  it("loads the feature-scoped photo stylesheet", () => {
+    expect(photoPage).toContain('import "./photo.css";');
+  });
+
+  it("keeps the full-screen viewer positioned as an overlay", () => {
+    expect(photoCss).toContain(".photo-viewer {");
+    expect(photoCss).toContain("position: fixed;");
+    expect(photoCss).toContain(".photo-viewer-image {");
+    expect(photoCss).toContain("object-fit: contain;");
+  });
+
+  it("keeps archive captions and clickable tiles styled", () => {
+    expect(photoCss).toContain(".photo-caption {");
+    expect(photoCss).toContain(".photo-count {");
+    expect(photoCss).toContain(".photo-wall .react-photo-album--photo {");
+  });
+});
