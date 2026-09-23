@@ -153,8 +153,7 @@ describe("formatPhotoTaken", () => {
 });
 
 describe("photo archive — presentation contract", () => {
-  const photoPage = readFileSync(resolve(process.cwd(), "src", "pages", "PhotoPage.jsx"), "utf8");
-  const photoCss = readFileSync(resolve(process.cwd(), "src", "pages", "photo.css"), "utf8");
+  const photoPage = readFileSync(\n    resolve(process.cwd(), "src", "pages", "PhotoPage.jsx"),\n    "utf8"\n  );\n  const photoCss = readFileSync(\n    resolve(process.cwd(), "src", "pages", "photo.css"),\n    "utf8"\n  );
 
   it("loads the feature-scoped photo stylesheet", () => {
     expect(photoPage).toContain('import "./photo.css";');
