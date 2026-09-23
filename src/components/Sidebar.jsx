@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { config } from "../config";
 import { useT } from "../i18n";
 import VrcStatus from "./VrcStatus.jsx";
+import SocialIcon from "./SocialIcon.jsx";
 
 export default function Sidebar({ presence, displayPresence }) {
   const T = useT();
@@ -87,7 +88,7 @@ export default function Sidebar({ presence, displayPresence }) {
                 // a new tab. Anything else is an external link.
                 link.href.startsWith("/") ? (
                   <Link key={link.label} to={link.href} title={link.name} aria-label={link.name}>
-                    <span aria-hidden="true">{link.label}</span>
+                    <SocialIcon icon={link.icon} />
                   </Link>
                 ) : (
                   <a
@@ -98,7 +99,7 @@ export default function Sidebar({ presence, displayPresence }) {
                     title={link.name}
                     aria-label={link.name}
                   >
-                    <span aria-hidden="true">{link.label}</span>
+                    <SocialIcon icon={link.icon} />
                   </a>
                 )
               ) : (
@@ -107,7 +108,7 @@ export default function Sidebar({ presence, displayPresence }) {
                   className="disabled"
                   aria-label={link.name + " " + T.notLinked}
                 >
-                  <span aria-hidden="true">{link.label}</span>
+                  <SocialIcon icon={link.icon} />
                 </span>
               )
             )}
