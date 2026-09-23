@@ -25,7 +25,20 @@ jobs:
         env:
           # Vite inlines VITE_* at build time, so it must be present here,
           # not only in the Static Web App runtime settings.
-          VITE_DISCORD_ID: ${{ vars.VITE_DISCORD_ID }}
+          #
+          # These have to be listed explicitly: the build only sees the
+          # variables named in this block. A link whose variable is missing
+          # builds with an empty href and renders as the dimmed, unclickable
+          # tile rather than failing, so the omission is silent.
+          #
+          # Set the values under Settings -> Secrets and variables ->
+          # Actions -> Variables (repository variables, not secrets - these end
+          # up in the public bundle either way).
+          VITE_VRCHAT_URL: ${{ vars.VITE_VRCHAT_URL }}
+          VITE_TELEGRAM_URL: ${{ vars.VITE_TELEGRAM_URL }}
+          VITE_CONTACT_URL: ${{ vars.VITE_CONTACT_URL }}
+          VITE_WHATPULSE_HEATMAP_URL: ${{ vars.VITE_WHATPULSE_HEATMAP_URL }}
+          VITE_WHATPULSE_PROFILE_URL: ${{ vars.VITE_WHATPULSE_PROFILE_URL }}
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ZEALOUS_DESERT_04D522500 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
