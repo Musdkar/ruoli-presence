@@ -44,7 +44,9 @@ export const config = {
   socialLinks: [
     { label: "GH", name: "GitHub", href: "https://github.com/Musdkar" },
     { label: "VR", name: "VRChat", href: import.meta.env.VITE_VRCHAT_URL || "" },
-    { label: "DC", name: "Discord", href: import.meta.env.VITE_DISCORD_URL || "" },
+    // Telegram. The invite URL is not configured yet, so this renders as
+    // "not linked" until VITE_TELEGRAM_URL is set.
+    { label: "TG", name: "Telegram", href: import.meta.env.VITE_TELEGRAM_URL || "" },
     // In-app contact page; the address lives there Base64-encoded.
     { label: "@", name: "Contact", href: "/email" },
   ],
