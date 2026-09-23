@@ -1,0 +1,170 @@
+/* Photo route presentation.
+   Keep the archive/lightbox rules with the feature instead of the global
+   stylesheet so unrelated global-style reverts cannot silently remove them. */
+
+/* Date caption under each archive frame. */
+.photo-caption {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 3px 14px;
+  font: 700 9px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.06em;
+  color: #565b66;
+}
+
+.photo-count {
+  display: block;
+  margin-top: 10px;
+  font: 700 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #565b66;
+}
+
+/* The album turns tiles into buttons once onClick is set; remove native
+   button chrome while keeping a visible keyboard focus state. */
+.photo-wall .react-photo-album--photo {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: zoom-in;
+}
+
+.photo-wall .react-photo-album--photo:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+
+/* Full-screen photo viewer, opened by clicking an archive tile. */
+.photo-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: clamp(48px, 6vh, 72px) clamp(16px, 4vw, 64px);
+  background: var(--bg);
+  animation: photo-viewer-in 0.16s ease;
+}
+
+@keyframes photo-viewer-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-viewer {
+    animation: none;
+  }
+}
+
+.photo-viewer-stage {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 0;
+}
+
+.photo-viewer-image {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100dvh - clamp(150px, 20vh, 210px));
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 14px;
+  border: 1px solid #30333b;
+}
+
+.photo-viewer-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font: 700 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
+  color: var(--muted2);
+}
+
+.photo-viewer-index {
+  color: #4b505b;
+}
+
+.photo-viewer-back,
+.photo-viewer-nav {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.photo-viewer-back {
+  top: 20px;
+  left: 20px;
+  width: 38px;
+  height: 38px;
+  font-size: 15px;
+}
+
+.photo-viewer-nav {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.photo-viewer-prev {
+  left: 18px;
+}
+
+.photo-viewer-next {
+  right: 18px;
+}
+
+.photo-viewer-back:hover,
+.photo-viewer-nav:hover,
+.photo-viewer-back:focus-visible,
+.photo-viewer-nav:focus-visible {
+  color: var(--text);
+  border-color: var(--muted2);
+}
+
+.photo-viewer-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .photo-viewer-nav {
+    width: 36px;
+    height: 36px;
+    font-size: 19px;
+  }
+
+  .photo-viewer-image {
+    max-height: calc(100dvh - 170px);
+  }
+}
