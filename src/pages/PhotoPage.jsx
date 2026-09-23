@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { config } from "../config";
 import { formatPhotoTaken } from "../lib/format";
 import { useT } from "../i18n";
+import PhotoLightbox from "../components/PhotoLightbox.jsx";
 
 const LazyMasonryPhotoAlbum = React.lazy(async () => {
   await import("react-photo-album/masonry.css");
@@ -32,6 +33,9 @@ const RENDER = { extras: renderExtras };
 export default function PhotoPage() {
   const T = useT();
   const photos = config.photos;
+  // Index of the frame open in the full-screen viewer, or null when closed.
+  const [openIndex, setOpenIndex] = useState(null);
+  const close = useCallback(() => setOpenIndex(null), []);
   return (
     <div className="view page-view photo-page">
       <div className="page-mast">
@@ -61,11 +65,22 @@ export default function PhotoPage() {
               columns={(width) => (width < 700 ? 1 : width < 1200 ? 2 : 3)}
               spacing={10}
               render={RENDER}
+              // The album turns each tile into a <button> when onClick is set,
+              // which also makes the frames keyboard reachable.
+              onClick={({ index }) => setOpenIndex(index)}
             />
           </React.Suspense>
         </div>
       ) : (
         <div className="archive-note">{T.noPhotos}</div>
+      )}
+      {openIndex !== null && (
+        <PhotoLightbox
+          photos={photos}
+          index={openIndex}
+          onClose={close}
+          onNavigate={setOpenIndex}
+        />
       )}
     </div>
   );
