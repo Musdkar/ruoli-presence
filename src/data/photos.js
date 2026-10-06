@@ -145,6 +145,13 @@ export const photos = [
     height: 900,
     alt: "VRChat screenshot",
   },
+  {
+    file: "2026-10-05-155539",
+    taken: "2026-10-05T15:55:39",
+    width: 1600,
+    height: 1200,
+    alt: "Library in blue and gold sunlight with RIOOVO souvenirs and a blue, white and pink ribbon",
+  },
 ];
 
 // Shipped basename of one archive frame, e.g. "2026-02-11-215858.webp".
