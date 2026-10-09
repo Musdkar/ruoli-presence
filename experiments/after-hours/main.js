@@ -1,0 +1,317 @@
+/* KALIERI — AFTER HOURS
+   A dependency-free interactive editorial prototype.
+   Live information is read from the original public /api/presence endpoint.
+   Never invent or persist private telemetry. */
+
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const safeParse = (value) => { if (value && typeof value === 'object') return value; try { return JSON.parse(value); } catch { return null; } };
+const numberWithin = (value, max) => { const n = typeof value === 'string' || typeof value === 'number' ? Number(value) : NaN; return Number.isFinite(n) && n >= 0 && n <= max ? n : null; };
+const fmt = (n) => n.toLocaleString('en-US');
+const formatMinutes = (m) => m >= 60 ? `${Math.floor(m/60)}h ${Math.round(m%60)}m` : `${Math.round(m)}m`;
+const SOURCE_ASSETS = 'https://kalieri.com/assets/';
+const photoData = [
+  ['2026-10-05-155539','OCT 05, 2026','Library light / a fleeting afternoon'],
+  ['2026-09-14-001659','SEP 14, 2026','Somewhere after midnight'],
+  ['2026-09-06-022351','SEP 06, 2026','Another life, somewhere else'],
+  ['2026-09-02-203912','SEP 02, 2026','A fragment worth keeping'],
+  ['2026-08-30-014213','AUG 30, 2026','Places that only exist in memories'],
+  ['2026-08-22-000356','AUG 22, 2026','In a different world'],
+  ['2026-08-21-231339','AUG 21, 2026','Nighttime departures'],
+  ['2026-08-21-230444','AUG 21, 2026','The featured memory'],
+  ['2026-03-23-201936','MAR 23, 2026','A world worth visiting'],
+  ['2026-02-24-174210','FEB 24, 2026','Captured in passing'],
+  ['2026-02-21-091425','FEB 21, 2026','Another little somewhere'],
+  ['2026-02-20-193440','FEB 20, 2026','Keeping the moment'],
+  ['2026-02-17-092405','FEB 17, 2026','Digital postcard'],
+  ['2026-02-16-233527','FEB 16, 2026','After hours'],
+  ['2026-02-16-233419','FEB 16, 2026','The quieter corner'],
+  ['2026-02-13-110049','FEB 13, 2026','A passing glimpse'],
+  ['2026-02-13-105559','FEB 13, 2026','Somewhere between'],
+  ['2026-02-13-105542','FEB 13, 2026','Across the horizon'],
+  ['2026-02-11-215858','FEB 11, 2026','Where the archive began'],
+];
+const software = {
+  development: [['VS Code','Editor'],['PyCharm','Python IDE'],['Ghostty','Terminal'],['Git','Version control']],
+  ai: [['ChatGPT','Research & work'],['Claude Code','Building & coding']],
+  vr: [['VRChat','Social VR'],['VRCX','VRChat companion'],['Virtual Desktop','Quest streaming']],
+  daily: [['Obsidian','Knowledge & notes'],['Notion','Workspace'],['Microsoft Edge','Browser'],['MarkEdit','Markdown editor'],['Maccy','Clipboard manager']],
+};
+const blogPosts = [
+  {title:'对抗无聊', subtitle:'Against boredom', date:'JAN 29, 2026', html:`<p>一些关于保持好奇心、对抗无聊的零散笔记。</p><ul><li>多接触日光，少接触能够快速大量产生多巴胺的活动。</li><li>每天接触 10–30 分钟的日光，可以每天早起去跑步。</li><li>褪黑素的长期使用会抑制多巴胺水平。</li><li>芝麻、奶酪、牛肉、鱼肉、坚果：补充酪氨酸，帮助多巴胺生成。</li><li>中午 12 点之前可以适当地喝一些咖啡，让多巴胺回路更加敏感。</li><li>在无聊的时候做一些主观上更难受的事，从而快速恢复状态。</li><li>在重复枯燥的工作中找到新鲜感。</li><li>学习另一门外语，或者从 <a target="_blank" rel="noreferrer" style="color:var(--lime)" href="https://www.imdb.com/chart/top/">IMDb Top 250 ↗</a> 开始看电影。</li></ul>`},
+  {title:'跑步记录', subtitle:'Keeping pace', date:'FEB 02, 2026', html:`<p>随手记下的跑步里程。步伐不一定快，但在往前走。</p><ul>${[['1.30','2.74'],['1.31','2.88'],['2.01','2.92'],['2.02','2.90'],['2.03','2.85'],['2.05','3.03'],['2.07','2.67'],['2.11','2.98'],['2.15','2.17'],['2.20','2.96'],['2.24','2.82'],['3.02','2.42'],['3.05','3.59'],['3.10','3.17']].map(([d,v])=>`<li>${d} — ${v} km</li>`).join('')}</ul><p>完整笔记仍保存在 <a style="color:var(--lime)" href="https://kalieri.com/blog/2" target="_blank" rel="noreferrer">原站 ↗</a>。</p>`}
+];
+
+/* Editorial photo wall */
+let visiblePhotos = 7;
+function drawArchive(){
+  const gallery=$('#archive-grid'); gallery.replaceChildren();
+  photoData.slice(0,visiblePhotos).forEach(([id,date,caption],index)=>{
+    const button=document.createElement('button');button.type='button';button.className='archive-frame reveal visible';
+    button.setAttribute('aria-label',`View photo ${index+1}: ${caption}`);
+    const fallback=document.createElement('div');fallback.className='image-fallback';button.append(fallback);
+    const img=document.createElement('img'); img.src=`${SOURCE_ASSETS}photos/${id}.webp`;img.alt=caption;img.loading=index < 2?'eager':'lazy';img.decoding='async';
+    img.onerror=()=>{img.remove();}; button.append(img);
+    const tag=document.createElement('span');tag.className='frame-label';tag.textContent=index===0?'ON EARTH':'OTHER WORLDS';button.append(tag);
+    const meta=document.createElement('span');meta.className='frame-meta';
+    const no=document.createElement('b');no.textContent=`${String(index+1).padStart(2,'0')} / ${String(photoData.length).padStart(2,'0')}`;
+    const day=document.createElement('span');day.textContent=date;meta.append(no,day);button.append(meta);
+    button.addEventListener('click',()=>openPhoto(index));gallery.append(button);
+  });
+}
+function renderTools(key='development'){
+  const list=$('#tools-list');list.replaceChildren();
+  (software[key]||[]).forEach(([name,meta],i)=>{
+    const el=document.createElement('div');el.className='tool-item';el.style.animationDelay=`${i*45}ms`;
+    const no=document.createElement('span');no.className='tool-item-number';no.textContent=String(i+1).padStart(2,'0');
+    const title=document.createElement('strong');title.textContent=name;
+    const detail=document.createElement('span');detail.textContent=meta;
+    el.append(no,title,detail);list.append(el);
+  });
+  $$('.tool-tab').forEach(btn=>{let active=btn.dataset.tool===key;btn.classList.toggle('active',active);btn.setAttribute('aria-selected',String(active));});
+}
+$$('.tool-tab').forEach(b=>b.addEventListener('click',()=>renderTools(b.dataset.tool)));
+drawArchive();renderTools();
+const archiveViewMore=document.createElement('button');archiveViewMore.className='underline-link';archiveViewMore.style.cssText='border:0;background:none;font:10px var(--mono);cursor:pointer;';archiveViewMore.textContent='SHOW ALL 19 FRAGMENTS ↗';
+const archiveEnd=$('.archive-end');archiveEnd.insertBefore(archiveViewMore,archiveEnd.lastElementChild);
+archiveViewMore.addEventListener('click',()=>{visiblePhotos=visiblePhotos===7?photoData.length:7;drawArchive();archiveViewMore.textContent=visiblePhotos===7?'SHOW ALL 19 FRAGMENTS ↗':'SHOW LESS ↑';archiveViewMore.scrollIntoView({block:'nearest',behavior:'smooth'});});
+
+/* Modal: journal and lightbox */
+const modal=$('#modal-backdrop'); const modalContent=$('#modal-content');let restoreFocus=null;
+function showModal(content){restoreFocus=document.activeElement;modalContent.innerHTML=content;modal.hidden=false;document.body.style.overflow='hidden';$('#modal-close').focus();}
+function hideModal(){modal.hidden=true;modalContent.replaceChildren();document.body.style.overflow='';restoreFocus?.focus?.();}
+function openPhoto(index){const [id,date,caption]=photoData[index];showModal(`<p class="modal-type">MEMORY VAULT / FRAME ${String(index+1).padStart(2,'0')} — ${String(photoData.length).padStart(2,'0')}</p><h2 class="modal-title" id="modal-title">${caption}</h2><img class="modal-photo" src="${SOURCE_ASSETS}photos/${id}.webp" alt="${caption}"><div class="modal-photo-caption"><span>${date}</span><span>KALIERI / VISUAL ARCHIVE</span></div>`);}
+$$('.journal-entry').forEach(b=>b.addEventListener('click',()=>{const post=blogPosts[Number(b.dataset.post)];showModal(`<p class="modal-type">INTERNET FIELD NOTES / ${post.date}</p><h2 class="modal-title" id="modal-title">${post.title}</h2><p class="modal-sub">${post.subtitle} · ${post.date}</p><div class="modal-body">${post.html}</div>`);}));
+$('#modal-close').addEventListener('click',hideModal);modal.addEventListener('click',e=>{if(e.target===modal)hideModal();});
+
+/* Command jump */
+const command=$('#command-backdrop');let commandFocus=null;
+function openCommand(){commandFocus=document.activeElement;command.hidden=false;$('.command-options button').focus();}
+function closeCommand(){command.hidden=true;commandFocus?.focus?.();}
+$('#command-open').addEventListener('click',openCommand);$('#floating-console').addEventListener('click',openCommand);
+command.addEventListener('click',e=>{if(e.target===command)closeCommand();});
+$$('.command-options button').forEach(b=>b.addEventListener('click',()=>{const target=b.dataset.target;closeCommand();$(target)?.scrollIntoView({behavior:'smooth',block:'start'});}));
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();command.hidden?openCommand():closeCommand();}if(e.key==='Escape'){if(!modal.hidden)hideModal();if(!command.hidden)closeCommand();}});
+$('#back-top').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+/* Keyboard-shaped privacy-preserving heatmaps */
+const keyboardRows=[
+  [['ESC','ESC',1.3],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['0','0'],['-','MINUS'],['=','EQUAL']],
+  [['TAB','TAB',1.5],...'QWERTYUIOP'.split('').map(x=>[x,x]),['[','BRACKETLEFT'],[']','BRACKETRIGHT']],
+  [['CAPS','CAPSLOCK',1.8],...'ASDFGHJKL'.split('').map(x=>[x,x]),[';','SEMICOLON'],["'",'QUOTE'],['↵','ENTER',1.9]],
+  [['SHIFT','SHIFT',2],...'ZXCVBNM'.split('').map(x=>[x,x]),[',','COMMA'],['.','PERIOD'],['/','SLASH'],['SHIFT','SHIFT',2]],
+  [['CTRL','CONTROL',1.25],['⌥','ALT',1.25],['⌘','META',1.25],['','SPACE',6],['⌘','META',1.25],['←','ARROWLEFT'],['↓','ARROWDOWN'],['→','ARROWRIGHT']]
+];
+let keyboards={mac:null,win:null},activeKeyboard='mac';
+function drawKeyboard(){
+  const item=keyboards[activeKeyboard];$('#keyboard-total').textContent=item?fmt(item.total):'—';const outer=$('#keyboard-visual');outer.replaceChildren();
+  keyboardRows.forEach((row)=>{const r=document.createElement('div');r.className='kb-row';row.forEach(([label,key,size=1])=>{
+    const val=item?.heat?.[key]??item?.heat?.[label]??0;
+    const el=document.createElement('div');el.className='kb-key';el.style.setProperty('--heat',String(Math.min(1,Math.max(0,Number(val)/15||0))));el.style.setProperty('--size',size);el.textContent=label;el.title=key;r.append(el);
+  });outer.append(r);});
+}
+$$('.kb-tab').forEach(btn=>btn.addEventListener('click',()=>{activeKeyboard=btn.dataset.kb;$$('.kb-tab').forEach(b=>b.classList.toggle('active',b===btn));drawKeyboard();}));drawKeyboard();
+function normalKeyboard(value){let d=safeParse(value);if(!d||d.v!==1||!d.heat||typeof d.heat!=='object')return null;let total=numberWithin(d.total,1e7);if(total===null)return null;return {total,heat:Object.fromEntries(Object.entries(d.heat).filter(([k,v])=>typeof k==='string'&&numberWithin(v,15)!==null).slice(0,100))};}
+function normalizeApps(value){let d=safeParse(value);if(!d||!Array.isArray(d.apps))return [];return d.apps.filter(v=>v&&typeof v.name==='string'&&v.name.length<=120&&numberWithin(v.minutes,1440)!==null).slice(0,8).map(v=>({name:v.name,minutes:Number(v.minutes)}));}
+function appUsage(kv){const merged=new Map();for(const app of [...normalizeApps(kv.apps_today_mac||kv.apps_today),...normalizeApps(kv.apps_today_win)])merged.set(app.name,(merged.get(app.name)||0)+app.minutes);return [...merged].map(([name,minutes])=>({name,minutes})).sort((a,b)=>b.minutes-a.minutes).slice(0,8);}
+function drawApps(apps){const list=$('#app-list');if(!apps.length)return;list.replaceChildren();const max=Math.max(1,...apps.map(a=>a.minutes));apps.forEach((a,i)=>{
+  const row=document.createElement('div');row.className='app-row';const num=document.createElement('span');num.className='app-num';num.textContent=String(i+1).padStart(2,'0');
+  const name=document.createElement('span');name.className='app-name';name.textContent=a.name;name.title=a.name;
+  const track=document.createElement('span');track.className='app-bar';const bar=document.createElement('i');bar.style.width=`${Math.max(3,a.minutes/max*100)}%`;track.append(bar);
+  const time=document.createElement('time');time.className='app-time';time.textContent=formatMinutes(a.minutes);row.append(num,name,track,time);list.append(row);
+});}
+
+function musicRecord(v,spotify){const raw=safeParse(v);let song=null;
+  if(raw && raw.v===1 && raw.track && typeof raw.track.title==='string' && typeof raw.track.artist==='string') {
+    const goodAge=raw.observedAt && Date.now()-Date.parse(raw.observedAt)<90*1000 && Date.now()-Date.parse(raw.observedAt)>-5*60*1000;
+    song={title:raw.track.title.slice(0,150),artist:raw.track.artist.slice(0,150),artwork:raw.artwork?.url,service:raw.service,state:goodAge?raw.state:'last_played'};
+  } else if(raw && typeof raw.title==='string' && typeof raw.artist==='string') {
+    song={title:raw.title,artist:raw.artist,artwork:raw.cover,service:raw.source,state:'last_played'};
+  }
+  if(spotify?.song && spotify?.artist && song?.state!=='playing' && song?.state!=='paused')return {title:spotify.song,artist:spotify.artist,artwork:spotify.album_art_url,service:'spotify',state:'playing'};
+  return song;
+}
+function updateMusic(song){if(!song)return;
+  $('#music-title').textContent=song.title;$('#music-artist').textContent=song.artist;$('#music-service').textContent=(song.service||'music').replaceAll('_',' ').toUpperCase();
+  $('#music-state').textContent=song.state==='playing'?'♫ NOW PLAYING':song.state==='paused'?'Ⅱ PAUSED':'↺ LAST PLAYED';
+  const artwork=typeof song.artwork==='string' && (/^https:\/\//.test(song.artwork)||/^data:image\/(jpeg|png|webp);base64,[\w+/=]+$/.test(song.artwork)&&song.artwork.length<=26000) ? song.artwork:null;
+  const image=$('#album-image');if(artwork){image.src=artwork;image.hidden=false;$('#album-placeholder').hidden=true;image.onerror=()=>{image.hidden=true;$('#album-placeholder').hidden=false;};}
+  else{image.hidden=true;$('#album-placeholder').hidden=false;}
+  $('.equalizer').style.opacity=song.state==='playing'?'1':'.3';
+  $('.tile-music').classList.toggle('is-playing',song.state==='playing');
+}
+function updateStatus(presence){const kv=presence?.kv||{};let label=null,source='Discord / Lanyard',status='unknown';
+  if(kv.phone_presence!==undefined){const p=safeParse(kv.phone_presence);const ts=Date.parse(p?.updatedAt||'');
+    if(['online','dnd','sleeping'].includes(p?.status)&&Number.isFinite(ts)&&ts<=Date.now()+300000&&Date.now()-ts<=36*60*60*1000){status=p.status;label={online:'Mostly online',dnd:'In focus',sleeping:'Dreaming'}[p.status];source='iPhone / Focus';}else{label='Not synced';source='iPhone / Focus';}
+  } else if(presence) {status=presence.discord_status||'offline';label={online:'Mostly online',idle:'Away for a bit',dnd:'In focus',offline:'Off the grid'}[status]||'Off the grid';}
+  if(!label) return;$('#presence-title').innerHTML=label.replace(' ','<br>')+'<span class="accent-period">.</span>';
+  $('#presence-source').textContent=source;$('#hero-status').textContent=status==='online'?'SIGNAL ONLINE':status==='dnd'?'IN FOCUS':status==='sleeping'?'IN DREAM MODE':status==='idle'?'IDLE / AWAY':'SIGNAL '+status.toUpperCase();
+  $('#presence-dot').style.background=['online','dnd'].includes(status)?'var(--lime)':'var(--violet)';
+}
+function updateVR(presence){
+  const activities=Array.isArray(presence?.activities)?presence.activities:[];
+  const vr=activities.find(a=>a && typeof a.name==='string' && /VRChat|VRCX/i.test(a.name));
+  const tile=$('.tile-portal');tile.classList.toggle('is-live',Boolean(vr));
+  if(vr){
+    $('#vr-title').textContent='Somewhere else. ✳';
+    $('#vr-detail').textContent=String(vr.details||vr.state||vr.name).slice(0,120);
+    $('#vr-state').textContent='ACTIVITY DETECTED';
+  }else{
+    $('#vr-title').textContent='The portal is quiet.';
+    $('#vr-detail').textContent='No VRChat activity in the public signal right now.';
+    $('#vr-state').textContent='NOT DETECTED';
+  }
+}
+function updateHealth(v){const d=safeParse(v);if(!d||typeof d!=='object')return;const steps=numberWithin(d.steps,1e6);if(steps===null)return;
+  $('#steps-number').textContent=fmt(Math.round(steps));const percent=Math.min(1,steps/6000);$('#steps-progress').style.strokeDashoffset=String(647.17*(1-percent));$('#steps-percent').textContent=`${Math.round(percent*100)}% OF DAILY GOAL`;
+}
+async function fetchPresence(){const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),8000);
+  try{const response=await fetch('/api/presence',{signal:ctrl.signal,cache:'no-cache'});if(!response.ok)throw new Error(String(response.status));const j=await response.json();
+    const data=j?.data && j.success!==undefined ? j.data : j;if(!data||typeof data!=='object')return;
+    updateStatus(data);updateVR(data);const kv=data.kv||{};updateHealth(kv.health_today);drawApps(appUsage(kv));
+    keyboards={mac:normalKeyboard(kv.keyboard_today_mac||kv.keyboard_today||kv.keyboard_yesterday),win:normalKeyboard(kv.keyboard_today_win)};drawKeyboard();updateMusic(musicRecord(kv.music_now,data.spotify));
+  }catch{ /* Do not invent a status or erase last known values on failure. */ }
+  finally{clearTimeout(timeout);}
+}
+let liveTimer=null;function setPolling(){if(document.visibilityState==='visible'){if(!liveTimer){fetchPresence();liveTimer=setInterval(fetchPresence,10000);}}else if(liveTimer){clearInterval(liveTimer);liveTimer=null;}}
+document.addEventListener('visibilitychange',setPolling);setPolling();
+
+/* Wuhan live weather, directly from Open-Meteo */
+const weatherText={0:['Clear skies','☼'],1:['Mainly clear','☀'],2:['Partly cloudy','◒'],3:['Overcast','☁'],45:['Foggy','≋'],48:['Foggy','≋'],51:['Light drizzle','☂'],53:['Drizzle','☂'],55:['Heavy drizzle','☂'],61:['Light rain','☂'],63:['Rain','☂'],65:['Heavy rain','☂'],71:['Light snow','✳'],73:['Snow','✳'],75:['Heavy snow','✳'],80:['Showers','☂'],81:['Showers','☂'],82:['Heavy showers','☂'],95:['Thunderstorm','ϟ']};
+(async function fetchWeather(){try{const url='https://api.open-meteo.com/v1/forecast?latitude=30.537&longitude=114.361&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=Asia%2FShanghai';const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),7000);const response=await fetch(url,{signal:ctrl.signal});clearTimeout(timeout);if(!response.ok)throw Error();const d=(await response.json()).current;const temp=Number(d?.temperature_2m);if(!Number.isFinite(temp))throw Error();
+  $('#weather-temp').innerHTML=`${Math.round(temp)}<sup>°</sup>`;const [condition,icon]=weatherText[d.weather_code]||['Current conditions','◌'];$('#weather-desc').textContent=condition;$('#weather-icon').textContent=icon;
+  $('#weather-feels').textContent=Number.isFinite(d.apparent_temperature)?`${Math.round(d.apparent_temperature)}°`:'--°';$('#weather-wind').textContent=Number.isFinite(d.wind_speed_10m)?`${Math.round(d.wind_speed_10m)} KM/H`:'-- KM/H';
+}catch{$('#weather-desc').textContent='Atmosphere unavailable';}})();
+
+/* Local time, scroll meters, reveal choreography */
+function tick(){const fmtTime=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false});$('#nav-time').textContent=`WUHAN · ${fmtTime.format(new Date())}`;}
+tick();setInterval(tick,30000);
+const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target);}}),{threshold:.09,rootMargin:'0px 0px -35px 0px'});
+$$('.reveal').forEach(el=>observer.observe(el));
+const sectionObs=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting)return;$$('.desktop-nav a').forEach(a=>a.classList.toggle('active',a.dataset.nav===entry.target.id));});},{threshold:.2,rootMargin:'-15% 0px -50% 0px'});
+$$('#signal,#archive,#journal,#uses').forEach(e=>sectionObs.observe(e));
+let scrollScheduled=false;window.addEventListener('scroll',()=>{if(!scrollScheduled){requestAnimationFrame(()=>{$('#scroll-progress').style.width=`${100*window.scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight)}%`;scrollScheduled=false;});scrollScheduled=true;}},{passive:true});
+
+/* Scroll-directed composition: RAF-limited transforms and a scrubbed photographic interlude.
+   We animate only opacity / transforms; a single rAF reads geometry, then writes styles.
+   Reduced-motion visitors get the complete content without sticky or parallax. */
+const heroScene = $('.hero');
+const worldline = $('#worldline');
+const worldlineSticky = $('.worldline-sticky');
+const chapterRail = $('.chapter-rail');
+const storyStages = [
+  {name:'IN THE PHYSICAL', caption:'A life made of ordinary afternoons.'},
+  {name:'BETWEEN SIGNALS', caption:'Some of the best places have no address.'},
+  {name:'IN OTHER WORLDS', caption:'The worlds we visit become part of who we are.'},
+];
+const chapterEntries = [
+  {el:heroScene, name:'THE BEGINNING', index:'00'},
+  {el:$('#signal'), name:'THE SIGNAL', index:'01'},
+  {el:worldline, name:'BETWEEN WORLDS', index:'01.5'},
+  {el:$('#archive'), name:'THE ARCHIVE', index:'02'},
+  {el:$('#journal'), name:'FIELD NOTES', index:'03'},
+  {el:$('#uses'), name:'THE TOOLKIT', index:'04'},
+  {el:$('#contact'), name:'SAY HELLO', index:'05'},
+];
+const clamp01 = (x) => Math.max(0,Math.min(1,x));
+let scrollFrame=null, motionCache={chapter:-1,stage:-1};
+function renderScrollScenes(){
+  scrollFrame=null;
+  const y=window.scrollY, vh=window.innerHeight;
+  const maxScroll=Math.max(1,document.documentElement.scrollHeight-vh);
+  const progress=clamp01(y/maxScroll);
+  $('#scroll-progress').style.width=`${progress*100}%`;
+  $('#chapter-rail-progress').style.transform=`scaleY(${progress})`;
+  chapterRail.classList.toggle('is-visible',y>vh*.55 && y<maxScroll-vh*.2);
+  for(let i=chapterEntries.length-1;i>=0;i--){
+    if(y+vh*.42>=chapterEntries[i].el.getBoundingClientRect().top+y){
+      if(motionCache.chapter!==i){motionCache.chapter=i;$('#chapter-count').innerHTML=`${chapterEntries[i].index} <i>/</i> 05`;$('#chapter-name').textContent=chapterEntries[i].name;}
+      break;
+    }
+  }
+  if(reducedMotion)return;
+  for(const intro of $$('.section-intro')){
+    const r=intro.getBoundingClientRect();
+    if(r.top<vh*1.2&&r.bottom>-vh*.2){
+      const p=clamp01((vh-r.top)/(vh+r.height));
+      intro.style.setProperty('--section-shift',`${((p-.5)*40).toFixed(1)}px`);
+    }
+  }
+  if(y<vh*1.8){
+    const p=clamp01(y/Math.max(heroScene.offsetHeight,1));
+    heroScene.style.setProperty('--hero-lift',`${(-p*132).toFixed(1)}px`);
+    heroScene.style.setProperty('--hero-scale',(1+p*.24).toFixed(4));
+    heroScene.style.setProperty('--hero-tilt',`${(p*17).toFixed(2)}deg`);
+    heroScene.style.setProperty('--hero-title-lift',`${(-p*63).toFixed(1)}px`);
+    heroScene.style.setProperty('--hero-content-opacity',(1-p*.48).toFixed(3));
+    heroScene.style.setProperty('--hero-art-opacity',(1-p*.65).toFixed(3));
+  }
+  const storyTop=worldline.getBoundingClientRect().top+y;
+  const travel=Math.max(1,worldline.offsetHeight-vh);
+  if(y>=storyTop-vh && y<=storyTop+worldline.offsetHeight){
+    const p=clamp01((y-storyTop)/travel);
+    worldlineSticky.style.setProperty('--story-progress',p.toFixed(4));
+    worldlineSticky.style.setProperty('--scene-depth',`${(p*205).toFixed(1)}px`);
+    worldlineSticky.style.setProperty('--scene-depth-alt',`${(-p*220).toFixed(1)}px`);
+    worldlineSticky.style.setProperty('--scene-rise',`${(-p*115).toFixed(1)}px`);
+    worldlineSticky.style.setProperty('--scene-turn',`${(p*17).toFixed(2)}deg`);
+    worldlineSticky.style.setProperty('--scene-earth-x',`${(-p*77).toFixed(1)}px`);
+    worldlineSticky.style.setProperty('--scene-earth-y',`${(p*46).toFixed(1)}px`);
+    worldlineSticky.style.setProperty('--scene-digital-y',`${(p*80).toFixed(1)}px`);
+    worldlineSticky.style.setProperty('--story-travel',`${Math.round(p*100)}%`);
+    // Discrete copy changes only when the visual chapter changes.
+    const stage=Math.min(2,Math.floor(p*3));
+    if(stage!==motionCache.stage){
+      motionCache.stage=stage;worldlineSticky.dataset.stage=String(stage);
+      $('#worldline-stage-index').textContent=String(stage+1).padStart(2,'0');
+      $('#worldline-stage-name').textContent=storyStages[stage].name;
+      $('#worldline-caption').textContent=storyStages[stage].caption;
+    }
+  }
+}
+function scheduleScrollRender(){if(scrollFrame===null)scrollFrame=requestAnimationFrame(renderScrollScenes);}
+window.addEventListener('scroll',scheduleScrollRender,{passive:true});
+window.addEventListener('resize',scheduleScrollRender,{passive:true});
+// After page render: calculate the accurate scrub range and react to deep links.
+requestAnimationFrame(renderScrollScenes);
+
+/* The archive is a flat gallery until explored: pointer motion adds just a
+   few pixels of photographic depth, without forcing repaint of the full grid. */
+if(!reducedMotion && window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+  const grid=$('#archive-grid');
+  grid.addEventListener('pointermove',e=>{
+    const frame=e.target.closest('.archive-frame');if(!frame)return;
+    const b=frame.getBoundingClientRect();
+    const x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;
+    frame.style.setProperty('--photo-x',`${(x*-11).toFixed(1)}px`);
+    frame.style.setProperty('--photo-y',`${(y*-11).toFixed(1)}px`);
+  },{passive:true});
+  grid.addEventListener('pointerout',e=>{
+    const frame=e.target.closest('.archive-frame');
+    if(frame && !frame.contains(e.relatedTarget)){
+      frame.style.removeProperty('--photo-x');frame.style.removeProperty('--photo-y');
+    }
+  });
+}
+
+/* Canvas starfield: CSS paints the planet and its 3D rings, canvas does subtle reactive light */
+(function initSpace(){const canvas=$('#space-canvas');if(!canvas)return;const ctx=canvas.getContext('2d',{alpha:true});if(!ctx)return;
+  const rand=(i,s)=>{let x=Math.sin((i+1)*127.1+s*311.7)*43758.5453;return x-Math.floor(x);};
+  const stars=Array.from({length:125},(_,i)=>({x:rand(i,1),y:rand(i,2),r:.4+rand(i,3)*1.3,phase:rand(i,4)*6.283,parallax:rand(i,5)*.6}));let w=0,h=0,pointerX=0,pointerY=0,currentX=0,currentY=0,frame=0,active=true,spaceFrame=0;
+  function resize(){const b=canvas.getBoundingClientRect();const dpr=Math.min(devicePixelRatio||1,2);w=b.width;h=b.height;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
+  resize();window.addEventListener('resize',resize,{passive:true});
+  document.addEventListener('pointermove',e=>{pointerX=(e.clientX/innerWidth-.5)*17;pointerY=(e.clientY/innerHeight-.5)*17;},{passive:true});
+  const visibility=new IntersectionObserver(([entry])=>{active=entry.isIntersecting;if(active&&!reducedMotion&&!spaceFrame)spaceFrame=requestAnimationFrame(render);});visibility.observe(canvas);
+  function render(time){spaceFrame=0;if(!active)return;ctx.clearRect(0,0,w,h);currentX+=(pointerX-currentX)*.035;currentY+=(pointerY-currentY)*.035;
+    stars.forEach(s=>{let x=s.x*w+currentX*s.parallax,y=s.y*h+currentY*s.parallax,opacity=.25+.55*(.5+.5*Math.sin(time*.0007+s.phase));ctx.beginPath();ctx.fillStyle=`rgba(225,214,255,${opacity})`;ctx.arc(x,y,s.r,0,Math.PI*2);ctx.fill();});
+    const g=ctx.createRadialGradient(w*.52+currentX*.18,h*.5+currentY*.18,0,w*.52,h*.5,w*.49);g.addColorStop(0,'rgba(172,125,253,.068)');g.addColorStop(1,'rgba(172,125,253,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    frame++;if(!reducedMotion&&document.visibilityState==='visible'&&active)spaceFrame=requestAnimationFrame(render);
+  }
+  render(0);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&active&&!reducedMotion&&!spaceFrame)spaceFrame=requestAnimationFrame(render);});
+})();
+
+/* Touch + keyboard utility: keep focus inside active dialog. */
+document.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const active=!modal.hidden?modal:!command.hidden?command:null;if(!active)return;
+  const focusable=$$('button:not([disabled]),a[href]',active).filter(el=>el.getClientRects().length);if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+});
