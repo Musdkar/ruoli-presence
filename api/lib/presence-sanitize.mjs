@@ -60,7 +60,24 @@ export function sanitizePresence(value) {
     for (const key of Object.keys(value.kv)) {
       if (isAllowedKvKey(key) === false) continue;
       const item = boundedKvValue(value.kv[key]);
-      if (item !== null) kv[key] = item;
+      if (item === null) continue;
+      if (key === "vrchat_presence") {
+        // Allow only the owner's explicitly published status and observation time.
+        // In particular, never expose current world IDs, instance IDs, friends,
+        // authentication cookies or profile data in the anonymous public API.
+        let record = item;
+        if (typeof record === "string") {
+          try { record = JSON.parse(record); } catch { continue; }
+        }
+        if (!record || typeof record !== "object" || Array.isArray(record)) continue;
+        const status = cleanText(record.status, 16);
+        const observedAt = cleanText(record.observedAt, 48);
+        if (!["online", "join me", "active", "ask me", "busy", "offline"].includes(status?.toLowerCase()) ||
+            !observedAt || !Number.isFinite(Date.parse(observedAt))) continue;
+        kv[key] = { status: status.toLowerCase(), observedAt };
+        continue;
+      }
+      kv[key] = item;
     }
   }
 
