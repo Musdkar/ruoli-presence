@@ -144,3 +144,9 @@ The position of the site owner is contextual telemetry, not part of the site's b
 
 - 01.01 displays the actual published iPhone status as **Online**, **Do not disturb** or **Sleeping**, with the existing three lights. Expired/invalid phone data remains **Not synced**.
 - Removed **SYNC · 10 SEC**: ten seconds is the visible page's read interval, not the iPhone's publication interval. The footer now shows only the source and status dot.
+
+## Wide-screen hero refinement
+
+- The two opening labels now belong to the same title group, so their spacing no longer grows with viewport height.
+- The hero title, illustration and top/bottom annotations share a centred 1440px maximum content width. The Earth sits closer to the copy and scales within the viewport height while remaining complete.
+- Reduced the grain overlay and purple/blue haze; the dark palette, starfield, orbital movement and interactive Earth remain.
