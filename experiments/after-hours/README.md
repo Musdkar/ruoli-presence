@@ -139,3 +139,8 @@ The position of the site owner is contextual telemetry, not part of the site's b
 - Only credential-free official VRChat image/file URLs are accepted, without query strings, userinfo or fragments. Private world names and images never enter public KV. Text still renders without HTML interpretation.
 - 01.01 says **iPhone** with the original green online, red DND and purple sleeping lights. Its data and expiry remain independent of VRChat.
 - Local browser fixtures cover image switching, failed images, private/traveling/Busy states and actual 180-second expiry. These fixtures are never published; real in-game transitions remain pending.
+
+## v1.12.1: direct iPhone status
+
+- 01.01 displays the actual published iPhone status as **Online**, **Do not disturb** or **Sleeping**, with the existing three lights. Expired/invalid phone data remains **Not synced**.
+- Removed **SYNC · 10 SEC**: ten seconds is the visible page's read interval, not the iPhone's publication interval. The footer now shows only the source and status dot.

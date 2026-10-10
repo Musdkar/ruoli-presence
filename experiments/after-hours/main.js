@@ -199,9 +199,9 @@ function updateMusic(song){if(!song)return;
 }
 function updateStatus(presence){const kv=presence?.kv||{};let label=null,source='Reality status',status='unknown';
   if(kv.phone_presence!==undefined){const p=safeParse(kv.phone_presence);const ts=Date.parse(p?.updatedAt||'');
-    if(['online','dnd','sleeping'].includes(p?.status)&&Number.isFinite(ts)&&ts<=Date.now()+300000&&Date.now()-ts<=36*60*60*1000){status=p.status;label={online:'Mostly online',dnd:'In focus',sleeping:'Dreaming'}[p.status];source='iPhone';}else{label='Not synced';source='iPhone';}
-  } else if(presence) {status=presence.discord_status||'offline';label={online:'Mostly online',idle:'Away for a bit',dnd:'In focus',offline:'Off the grid'}[status]||'Off the grid';}
-  if(!label) return;$('#presence-title').innerHTML=label.replace(' ','<br>')+'<span class="accent-period">.</span>';
+    if(['online','dnd','sleeping'].includes(p?.status)&&Number.isFinite(ts)&&ts<=Date.now()+300000&&Date.now()-ts<=36*60*60*1000){status=p.status;label={online:'Online',dnd:'Do not disturb',sleeping:'Sleeping'}[p.status];source='iPhone';}else{label='Not synced';source='iPhone';}
+  } else if(presence) {status=presence.discord_status||'offline';label={online:'Online',idle:'Idle',dnd:'Do not disturb',offline:'Offline'}[status]||'Unknown';}
+  if(!label) return;$('#presence-title').innerHTML=label.replace(/ ([^ ]+)$/, '<br>$1')+'<span class="accent-period">.</span>';
   $('#presence-source').textContent=source;$('#hero-status').textContent=status==='online'?'SIGNAL ONLINE':status==='dnd'?'IN FOCUS':status==='sleeping'?'IN DREAM MODE':status==='idle'?'IDLE / AWAY':'SIGNAL '+status.toUpperCase();
   $('#presence-dot').style.background={online:'#6fcf97',dnd:'#eb5757',sleeping:'var(--violet)',idle:'#f2c94c'}[status]||'var(--dim)';
 }

@@ -1,7 +1,7 @@
 {
   "name": "kalieri-after-hours",
   "private": true,
-  "version": "1.12.0",
+  "version": "1.12.1",
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
