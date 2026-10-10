@@ -48,6 +48,8 @@ class PresencePublisher:
                 return cls(OWNER_ID, '')
             with open(path, encoding='utf-8') as handle:
                 config = json.load(handle)
+            if not isinstance(config, dict):
+                return cls(OWNER_ID, '')
             key = config.get('lanyard_api_key', '')
             if config.get('enabled') is not True or not isinstance(key, str) or not key or 'HERE' in key:
                 return cls(OWNER_ID, '')
@@ -109,7 +111,7 @@ class PresencePublisher:
                     log.warning('AFTER HOURS publication failed: HTTP %s', result.status_code)
                 return
             self.failures = 0
-            log.info('AFTER HOURS owner presence published: %s', record['status'])
+            log.info('AFTER HOURS owner presence published')
         except Exception:
             # The website hook must never stop friend collection or log secrets.
             self._backoff()

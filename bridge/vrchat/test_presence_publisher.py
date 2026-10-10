@@ -1,4 +1,4 @@
-import unittest,json
+import unittest,json,os,tempfile
 from datetime import datetime,timezone
 from presence_publisher import PresencePublisher, public_record
 OWNER='usr_owner'
@@ -43,4 +43,15 @@ class PublisherTests(unittest.TestCase):
   publisher=PresencePublisher(OWNER,'bad-test-key',writer=writer,clock=lambda:NOW,monotonic=lambda:10,jitter=lambda a,b:a)
   publisher.tick(source,OWNER);publisher.tick(source,OWNER)
   self.assertEqual(len(writer.calls),1);self.assertFalse(publisher.enabled)
+ def test_private_config_wrong_shape_is_disabled(self):
+  with tempfile.TemporaryDirectory() as folder:
+   path=os.path.join(folder,'presence-private.json')
+   with open(path,'w') as handle:json.dump([],handle)
+   os.chmod(path,0o600)
+   self.assertFalse(PresencePublisher.from_private_config('kai',path).enabled)
+ def test_normal_logs_do_not_record_game_state(self):
+  source=Session(Response(data={'id':OWNER,'state':'online'}));writer=Session(Response())
+  publisher=PresencePublisher(OWNER,'private-test-key',writer=writer,clock=lambda:NOW,monotonic=lambda:10,jitter=lambda a,b:a)
+  with self.assertLogs('after-hours-presence',level='INFO') as captured:publisher.tick(source,OWNER)
+  self.assertNotIn('online',' '.join(captured.output))
 if __name__=='__main__':unittest.main()
