@@ -1,6 +1,7 @@
+import { selectVrchatPresence } from './lib/vrchat-presence.mjs';
 /* KALIERI — AFTER HOURS
    A dependency-free interactive editorial prototype.
-   Live information is read from the original public /api/presence endpoint.
+   Live information uses the preview-only anonymous /api/presence endpoint.
    Never invent or persist private telemetry. */
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -204,35 +205,18 @@ function updateStatus(presence){const kv=presence?.kv||{};let label=null,source=
   $('#presence-source').textContent=source;$('#hero-status').textContent=status==='online'?'SIGNAL ONLINE':status==='dnd'?'IN FOCUS':status==='sleeping'?'IN DREAM MODE':status==='idle'?'IDLE / AWAY':'SIGNAL '+status.toUpperCase();
   $('#presence-dot').style.background=['online','dnd'].includes(status)?'var(--lime)':'var(--violet)';
 }
+let lastPresence = null, lastPresenceReceivedAt = NaN;
 function updateVR(presence){
-  const tile=$('.tile-portal');
-  const owner=safeParse(presence?.kv?.vrchat_presence);
-  const seen=Date.parse(owner?.observedAt||'');
-  const fresh=Number.isFinite(seen)&&seen<=Date.now()+60000&&Date.now()-seen<180000;
-  const status=typeof owner?.status==='string'?owner.status.toLowerCase():'';
-  // Owner-side publication, if configured later. Never put VRChat auth into public JS.
-  if(fresh&&['online','join me','active','ask me','busy','offline'].includes(status)){
-    const online=status!=='offline';
-    tile.classList.toggle('is-live',online);
-    $('#vr-title').textContent=online?'Beyond the screen. ✳':'Between worlds.';
-    $('#vr-detail').textContent=online?'VRChat presence shared by the owner.':'No current VRChat activity reported.';
-    $('#vr-state').textContent=status.toUpperCase();
-    $('#vr-source').textContent='OWNER SYNC';
-    return;
-  }
-  const activities=Array.isArray(presence?.activities)?presence.activities:[];
-  const vr=activities.find(a=>a&&typeof a.name==='string'&&/^VRChat$/i.test(a.name));
-  tile.classList.toggle('is-live',Boolean(vr));
-  if(vr){
-    $('#vr-title').textContent='Beyond the screen. ✳';
-    $('#vr-detail').textContent=String(vr.details||vr.state||'VRChat activity detected').slice(0,120);
-    $('#vr-state').textContent='ACTIVITY DETECTED';
-  }else{
-    $('#vr-title').textContent='The portal is quiet.';
-    $('#vr-detail').textContent='No verified VRChat activity in the public signal.';
-    $('#vr-state').textContent='NO PUBLIC SIGNAL';
-  }
-  $('#vr-source').textContent='DISCORD ACTIVITY';
+  const view = selectVrchatPresence(presence, lastPresenceReceivedAt);
+  $('.tile-portal').classList.toggle('is-live', view.live);
+  $('#vr-title').textContent = view.title;
+  $('#vr-detail').textContent = view.detail;
+  $('#vr-state').textContent = view.state;
+  $('#vr-source').textContent = view.source;
+}
+function refreshCachedPresence(){
+  updateStatus(lastPresence);
+  updateVR(lastPresence);
 }
 function updateHealth(v){const d=safeParse(v);if(!d||typeof d!=='object')return;const steps=numberWithin(d.steps,1e6);if(steps===null)return;
   $('#steps-number').textContent=fmt(Math.round(steps));const percent=Math.min(1,steps/6000);$('#steps-progress').style.strokeDashoffset=String(647.17*(1-percent));$('#steps-percent').textContent=`${Math.round(percent*100)}% OF DAILY GOAL`;
@@ -240,12 +224,12 @@ function updateHealth(v){const d=safeParse(v);if(!d||typeof d!=='object')return;
 async function fetchPresence(){const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),8000);
   try{const response=await fetch('/api/presence',{signal:ctrl.signal,cache:'no-cache'});if(!response.ok)throw new Error(String(response.status));const j=await response.json();
     const data=j?.data && j.success!==undefined ? j.data : j;if(!data||typeof data!=='object')return;
-    updateStatus(data);updateVR(data);const kv=data.kv||{};updateHealth(kv.health_today);drawApps(appUsage(kv));
+    lastPresence=data;lastPresenceReceivedAt=Date.now();refreshCachedPresence();const kv=data.kv||{};updateHealth(kv.health_today);drawApps(appUsage(kv));
     keyboards={mac:normalKeyboard(kv.keyboard_today_mac||kv.keyboard_today||kv.keyboard_yesterday),win:normalKeyboard(kv.keyboard_today_win)};drawKeyboard();updateMusic(musicRecord(kv.music_now,data.spotify));
   }catch{ /* Do not invent a status or erase last known values on failure. */ }
-  finally{clearTimeout(timeout);}
+  finally{clearTimeout(timeout);refreshCachedPresence();}
 }
-let liveTimer=null;function setPolling(){if(document.visibilityState==='visible'){if(!liveTimer){fetchPresence();liveTimer=setInterval(fetchPresence,10000);}}else if(liveTimer){clearInterval(liveTimer);liveTimer=null;}}
+let liveTimer=null;function setPolling(){if(document.visibilityState==='visible'){refreshCachedPresence();if(!liveTimer){fetchPresence();liveTimer=setInterval(()=>{refreshCachedPresence();fetchPresence();},10000);}}else if(liveTimer){clearInterval(liveTimer);liveTimer=null;}}
 document.addEventListener('visibilitychange',setPolling);setPolling();
 
 /* Owner's current location: weather from Open-Meteo */

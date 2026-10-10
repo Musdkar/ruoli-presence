@@ -1,6 +1,6 @@
 {
-  "rewrites": [
-    { "source": "/api/presence", "destination": "https://kalieri.com/api/presence" }
-  ],
-  "headers": [{"source": "/(.*)", "headers": [{"key": "X-Content-Type-Options", "value": "nosniff"}]}]
+  "functions": { "api/presence.js": { "maxDuration": 15 } },
+  "headers": [
+    { "source": "/(.*)", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }] }
+  ]
 }

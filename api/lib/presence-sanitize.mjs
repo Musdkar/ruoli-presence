@@ -72,7 +72,7 @@ export function sanitizePresence(value) {
         if (!record || typeof record !== "object" || Array.isArray(record)) continue;
         const status = cleanText(record.status, 16);
         const observedAt = cleanText(record.observedAt, 48);
-        if (!["online", "join me", "active", "ask me", "busy", "offline"].includes(status?.toLowerCase()) ||
+        if (!["online", "active", "offline"].includes(status?.toLowerCase()) ||
             !observedAt || !Number.isFinite(Date.parse(observedAt))) continue;
         kv[key] = { status: status.toLowerCase(), observedAt };
         continue;
