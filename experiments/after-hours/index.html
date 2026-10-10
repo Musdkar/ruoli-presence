@@ -64,7 +64,10 @@
   <div class="location-facts"><span id="location-coordinates">--° N / --° E</span><a id="location-map-link" href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OPEN IN MAP ↗</a></div>
  </div>
  <div class="location-map-stage">
-  <iframe id="location-map" title="Map showing the approximate current location" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <div class="location-map-viewport" role="img" aria-label="Static map of my approximate location. Use Open in Map to explore.">
+   <iframe id="location-map" title="Static location map" loading="lazy" tabindex="-1" inert aria-hidden="true" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+  <span class="location-map-caption" aria-hidden="true">A POINT IN THE WORLD / APPROXIMATE LOCATION</span>
   <span class="map-corner map-corner-tl" aria-hidden="true">+</span><span class="map-corner map-corner-br" aria-hidden="true">+</span>
   <div class="location-map-attribution">MAP DATA <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OPENSTREETMAP CONTRIBUTORS · ODbL</a></div>
  </div>

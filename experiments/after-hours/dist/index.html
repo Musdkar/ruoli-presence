@@ -218,7 +218,7 @@ body{overflow-x:clip}
 }
 .earth-planet .planet-surface{
   inset:0;
-  background:#17374e url("../assets/earth-day.jpg") 85% 50% / 205% 104% no-repeat;
+  background:#17374e url("./assets/earth-day.jpg") 85% 50% / 205% 104% no-repeat;
   filter:saturate(1.12) contrast(1.06);
 }
 .earth-planet .planet-surface:after{display:none}
@@ -290,9 +290,14 @@ body{overflow-x:clip}
 .location-heading p{font:12px/1.6 var(--mono);color:var(--dim);margin:0}
 .location-facts{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:14px;font:10px var(--mono);color:var(--muted)}
 .location-facts a{color:var(--lime);white-space:nowrap;padding:8px 11px;border:1px solid var(--line-hi);border-radius:3px}
-.location-facts a:hover{border-color:var(--lime)}
-.location-map-stage{position:relative;height:clamp(245px,27vw,355px);background:#141e27;overflow:hidden}
-.location-map-stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;filter:saturate(.65) contrast(1.06) brightness(.84)}
+.location-facts a:hover,.location-facts a:focus-visible{border-color:var(--lime);outline-offset:4px}
+.location-map-stage{position:relative;height:clamp(245px,27vw,355px);background:#151221;overflow:hidden;isolation:isolate}
+/* This embed is a visual only: inert removes keyboard controls and pointer
+   events pass through to the page. Bleed hides the unused embed controls. */
+.location-map-viewport{position:absolute;inset:0;overflow:hidden;pointer-events:none;background:#151221}
+.location-map-viewport iframe{position:absolute;inset:-64px;width:calc(100% + 128px);height:calc(100% + 128px);border:0;pointer-events:none;filter:grayscale(1) invert(1) sepia(.18) saturate(1.4) hue-rotate(155deg) brightness(.72) contrast(1.15)}
+.location-map-viewport::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(125deg,#4c2c6859,#22233b20 55%,#22505e40),radial-gradient(ellipse at center,transparent 35%,#100c2070);mix-blend-mode:screen}
+.location-map-caption{position:absolute;top:18px;right:18px;z-index:2;pointer-events:none;background:#110e1fe6;padding:8px 10px;color:#bdb0d1;font:9px var(--mono);letter-spacing:.04em}
 .map-corner{position:absolute;color:var(--lime);font:26px var(--mono);z-index:2;pointer-events:none;text-shadow:0 0 11px #12161e}
 .map-corner-tl{top:12px;left:17px}.map-corner-br{bottom:11px;right:18px}
 .location-map-attribution{position:absolute;bottom:13px;left:14px;z-index:3;background:#080a10df;color:#c4bfcc;padding:8px 10px;backdrop-filter:blur(9px);font:9px var(--mono)}
@@ -321,6 +326,54 @@ body{overflow-x:clip}
 #keyboard-visual.is-windows .kb-row{gap:3px}
 #keyboard-visual.is-windows .kb-key{height:22px;font-size:7px}
 @media(max-width:560px){#keyboard-visual.is-windows .kb-key{font-size:6px;padding:0 1px}}
+
+/* Fit the opening composition to the available viewport, including the
+   header and sonnet. Let content grow on tiny windows or enlarged text. */
+:root{--header-height:79px}
+.hero{min-height:calc(100svh - var(--header-height));padding-top:clamp(20px,3.5svh,42px);padding-bottom:18px}
+.hero-content{min-height:0}
+.hero-copy{padding:clamp(12px,1.5svh,22px) 0}
+.hero h1{font-size:clamp(76px,min(10.3vw,13svh),177px);margin-bottom:clamp(18px,2.5svh,30px)}
+.hello-badge{margin-bottom:clamp(12px,2svh,20px)}
+.hero-sonnet{margin-top:clamp(12px,2svh,22px)}
+.hero-actions{margin-top:clamp(16px,2.5svh,28px)}
+.hero-bottom{padding-top:14px;flex-shrink:0}
+.hero-art{min-height:0;height:min(56vw,72svh,695px);min-width:0;width:min(50vw,750px)}
+@media(max-width:850px){
+  :root{--header-height:72px}
+  .hero-content{align-items:center}
+  .hero-copy{padding:clamp(20px,4svh,40px) 0}
+  .hero h1{font-size:clamp(58px,min(15vw,15svh),115px)}
+  .hero-art{width:75vw;height:70svh;right:-20%;top:50%;opacity:.7}
+}
+@media(max-width:560px){
+  .hero{padding:clamp(18px,3svh,28px) 23px 16px}
+  .hero-copy{padding:clamp(16px,3svh,26px) 0}
+  .hero h1{font-size:clamp(48px,min(15.8vw,12svh),90px);margin-bottom:22px}
+  .hero-subrow p{max-width:270px}
+  .hero-art{width:440px;height:560px;right:-72%;opacity:.52}
+  .hero-actions{margin-top:20px}
+  .hero-scroll-signal{font-size:8px}
+  .location-map-caption{font-size:7px;max-width:210px}
+}
+@media(max-height:700px){
+  .hero{padding-top:16px;padding-bottom:12px}
+  .hero-copy{padding:12px 0}
+  .hero h1{font-size:clamp(44px,min(10.3vw,12svh),90px);margin-bottom:16px}
+  .hero-sonnet{margin-top:12px}
+  .hero-actions{margin-top:16px}
+  .hero-bottom{padding-top:10px}
+}
+@media(max-width:560px) and (max-height:700px){
+  .hero{padding-top:12px;padding-bottom:10px}
+  .hero-copy{padding:8px 0}
+  .hero h1{font-size:clamp(44px,min(15.8vw,9svh),64px)}
+  .hello-badge{font-size:9px;margin-bottom:12px}
+  .hero-subrow p{font-size:12px;line-height:1.55}
+  .hero-sonnet blockquote{font-size:12px}
+  .hero-sonnet figcaption{margin-top:6px;font-size:7px}
+  .circle-cta-label{height:44px}.circle-cta-icon{width:44px;height:44px}
+}
 
 </style>
 </head>
@@ -375,7 +428,10 @@ body{overflow-x:clip}
   <div class="location-facts"><span id="location-coordinates">--° N / --° E</span><a id="location-map-link" href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OPEN IN MAP ↗</a></div>
  </div>
  <div class="location-map-stage">
-  <iframe id="location-map" title="Map showing the approximate current location" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <div class="location-map-viewport" role="img" aria-label="Static map of my approximate location. Use Open in Map to explore.">
+   <iframe id="location-map" title="Static location map" loading="lazy" tabindex="-1" inert aria-hidden="true" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+  <span class="location-map-caption" aria-hidden="true">A POINT IN THE WORLD / APPROXIMATE LOCATION</span>
   <span class="map-corner map-corner-tl" aria-hidden="true">+</span><span class="map-corner map-corner-br" aria-hidden="true">+</span>
   <div class="location-map-attribution">MAP DATA <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OPENSTREETMAP CONTRIBUTORS · ODbL</a></div>
  </div>
@@ -412,14 +468,14 @@ body{overflow-x:clip}
   <button class="floating-console" id="floating-console" aria-label="Open navigation command deck"><span>✳</span><small>QUICK JUMP</small></button>
   <div class="modal-backdrop" id="modal-backdrop" hidden><div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Close">✕</button><div id="modal-content"></div></div></div>
   <div class="command-backdrop" id="command-backdrop" hidden><div class="command-panel" role="dialog" aria-modal="true" aria-label="Jump to section"><div class="command-head"><span>✳</span> WHERE TO? <span>ESC TO CLOSE</span></div><div class="command-options"><button data-target="#top"><span>00</span> THE BEGINNING <b>↗</b></button><button data-target="#signal"><span>01</span> THE SIGNAL <b>↗</b></button><button data-target="#archive"><span>02</span> THE ARCHIVE <b>↗</b></button><button data-target="#journal"><span>03</span> THE NOTES <b>↗</b></button><button data-target="#uses"><span>04</span> THE TOOLKIT <b>↗</b></button><button data-target="#contact"><span>05</span> SAY HELLO <b>↗</b></button></div></div></div>
-  <script>
+  <script type="module">
 /* KALIERI — AFTER HOURS
    A dependency-free interactive editorial prototype.
    Live information is read from the original public /api/presence endpoint.
    Never invent or persist private telemetry. */
 
 const $ = (selector, root = document) => root.querySelector(selector);
-const $ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const safeParse = (value) => { if (value && typeof value === 'object') return value; try { return JSON.parse(value); } catch { return null; } };
 const numberWithin = (value, max) => { const n = typeof value === 'string' || typeof value === 'number' ? Number(value) : NaN; return Number.isFinite(n) && n >= 0 && n <= max ? n : null; };
 const fmt = (n) => n.toLocaleString('en-US');
@@ -502,9 +558,9 @@ function renderTools(key='development'){
     const detail=document.createElement('span');detail.textContent=meta;
     el.append(no,title,detail);list.append(el);
   });
-  $('.tool-tab').forEach(btn=>{let active=btn.dataset.tool===key;btn.classList.toggle('active',active);btn.setAttribute('aria-selected',String(active));});
+  $$('.tool-tab').forEach(btn=>{let active=btn.dataset.tool===key;btn.classList.toggle('active',active);btn.setAttribute('aria-selected',String(active));});
 }
-$('.tool-tab').forEach(b=>b.addEventListener('click',()=>renderTools(b.dataset.tool)));
+$$('.tool-tab').forEach(b=>b.addEventListener('click',()=>renderTools(b.dataset.tool)));
 drawArchive();renderTools();
 const archiveViewMore=document.createElement('button');archiveViewMore.className='underline-link';archiveViewMore.style.cssText='border:0;background:none;font:10px var(--mono);cursor:pointer;';archiveViewMore.textContent='SHOW ALL 19 FRAGMENTS ↗';
 const archiveEnd=$('.archive-end');archiveEnd.insertBefore(archiveViewMore,archiveEnd.lastElementChild);
@@ -544,7 +600,7 @@ function openPhoto(index){
   stage.addEventListener('pointercancel',()=>{down=null;});
   viewPhoto(index);
 }
-$('.journal-entry').forEach(b=>b.addEventListener('click',()=>{const post=blogPosts[Number(b.dataset.post)];showModal(`<p class="modal-type">INTERNET FIELD NOTES / ${post.date}</p><h2 class="modal-title" id="modal-title">${post.title}</h2><p class="modal-sub">${post.subtitle} · ${post.date}</p><div class="modal-body">${post.html}</div>`);}));
+$$('.journal-entry').forEach(b=>b.addEventListener('click',()=>{const post=blogPosts[Number(b.dataset.post)];showModal(`<p class="modal-type">INTERNET FIELD NOTES / ${post.date}</p><h2 class="modal-title" id="modal-title">${post.title}</h2><p class="modal-sub">${post.subtitle} · ${post.date}</p><div class="modal-body">${post.html}</div>`);}));
 $('#modal-close').addEventListener('click',hideModal);modal.addEventListener('click',e=>{if(e.target===modal)hideModal();});
 
 /* Command jump */
@@ -553,7 +609,7 @@ function openCommand(){commandFocus=document.activeElement;command.hidden=false;
 function closeCommand(){command.hidden=true;commandFocus?.focus?.();}
 $('#command-open').addEventListener('click',openCommand);$('#floating-console').addEventListener('click',openCommand);
 command.addEventListener('click',e=>{if(e.target===command)closeCommand();});
-$('.command-options button').forEach(b=>b.addEventListener('click',()=>{const target=b.dataset.target;closeCommand();$(target)?.scrollIntoView({behavior:'smooth',block:'start'});}));
+$$('.command-options button').forEach(b=>b.addEventListener('click',()=>{const target=b.dataset.target;closeCommand();$(target)?.scrollIntoView({behavior:'smooth',block:'start'});}));
 document.addEventListener('keydown',e=>{if(!modal.hidden&&modal.classList.contains('is-photo')&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();viewPhoto(activePhotoIndex+(e.key==='ArrowRight'?1:-1));return;}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();command.hidden?openCommand():closeCommand();}if(e.key==='Escape'){if(!modal.hidden)hideModal();if(!command.hidden)closeCommand();}});
 $('#back-top').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 
@@ -582,7 +638,7 @@ function drawKeyboard(){
     const el=document.createElement('div');el.className='kb-key';el.style.setProperty('--heat',String(Math.min(1,Math.max(0,Number(val)/15||0))));el.style.setProperty('--size',size);el.textContent=label;el.title=key;r.append(el);
   });outer.append(r);});
 }
-$('.kb-tab').forEach(btn=>btn.addEventListener('click',()=>{activeKeyboard=btn.dataset.kb;$('.kb-tab').forEach(b=>b.classList.toggle('active',b===btn));drawKeyboard();}));drawKeyboard();
+$$('.kb-tab').forEach(btn=>btn.addEventListener('click',()=>{activeKeyboard=btn.dataset.kb;$$('.kb-tab').forEach(b=>b.classList.toggle('active',b===btn));drawKeyboard();}));drawKeyboard();
 function normalKeyboard(value){let d=safeParse(value);if(!d||d.v!==1||!d.heat||typeof d.heat!=='object')return null;let total=numberWithin(d.total,1e7);if(total===null)return null;return {total,heat:Object.fromEntries(Object.entries(d.heat).filter(([k,v])=>typeof k==='string'&&numberWithin(v,15)!==null).slice(0,100))};}
 function normalizeApps(value){let d=safeParse(value);if(!d||!Array.isArray(d.apps))return [];return d.apps.filter(v=>v&&typeof v.name==='string'&&v.name.length<=120&&numberWithin(v.minutes,1440)!==null).slice(0,8).map(v=>({name:v.name,minutes:Number(v.minutes)}));}
 function appUsage(kv){const merged=new Map();for(const app of [...normalizeApps(kv.apps_today_mac||kv.apps_today),...normalizeApps(kv.apps_today_win)])merged.set(app.name,(merged.get(app.name)||0)+app.minutes);return [...merged].map(([name,minutes])=>({name,minutes})).sort((a,b)=>b.minutes-a.minutes).slice(0,8);}
@@ -676,9 +732,9 @@ function tick(){const fmtTime=new Intl.DateTimeFormat('en-GB',{timeZone:OWNER_LO
 tick();setInterval(tick,30000);
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target);}}),{threshold:.09,rootMargin:'0px 0px -35px 0px'});
-$('.reveal').forEach(el=>observer.observe(el));
-const sectionObs=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting)return;$('.desktop-nav a').forEach(a=>a.classList.toggle('active',a.dataset.nav===entry.target.id));});},{threshold:.2,rootMargin:'-15% 0px -50% 0px'});
-$('#signal,#archive,#journal,#uses').forEach(e=>sectionObs.observe(e));
+$$('.reveal').forEach(el=>observer.observe(el));
+const sectionObs=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting)return;$$('.desktop-nav a').forEach(a=>a.classList.toggle('active',a.dataset.nav===entry.target.id));});},{threshold:.2,rootMargin:'-15% 0px -50% 0px'});
+$$('#signal,#archive,#journal,#uses').forEach(e=>sectionObs.observe(e));
 let scrollScheduled=false;window.addEventListener('scroll',()=>{if(!scrollScheduled){requestAnimationFrame(()=>{$('#scroll-progress').style.width=`${100*window.scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight)}%`;scrollScheduled=false;});scrollScheduled=true;}},{passive:true});
 
 /* Scroll-directed composition: RAF-limited transforms and a scrubbed photographic interlude.
@@ -728,7 +784,7 @@ function renderScrollScenes(){
     if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');
   });
   if(reducedMotion)return;
-  for(const intro of $('.section-intro')){
+  for(const intro of $$('.section-intro')){
     const r=intro.getBoundingClientRect();
     if(r.top<vh*1.2&&r.bottom>-vh*.2){
       const p=clamp01((vh-r.top)/(vh+r.height));
@@ -977,7 +1033,7 @@ void main(){
   function schedule(){
     if(ready&&!lost&&!document.hidden&&visible&&!raf)raf=requestAnimationFrame(draw);
   }
-  const images=['../assets/earth-day.jpg','../assets/earth-clouds.png'];
+  const images=['./assets/earth-day.jpg','./assets/earth-clouds.png'];
   Promise.all(images.map(src=>new Promise((resolve,reject)=>{
     const img=new Image();img.decoding='async';img.onload=()=>resolve(img);img.onerror=reject;img.src=new URL(src,document.baseURI).href;
   }))).then(bitmaps=>{
@@ -1025,7 +1081,7 @@ void main(){
 
 /* Touch + keyboard utility: keep focus inside active dialog. */
 document.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const active=!modal.hidden?modal:!command.hidden?command:null;if(!active)return;
-  const focusable=$('button:not([disabled]),a[href]',active).filter(el=>el.getClientRects().length);if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  const focusable=$$('button:not([disabled]),a[href]',active).filter(el=>el.getClientRects().length);if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
 });
 
 </script>
