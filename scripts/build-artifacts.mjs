@@ -7,6 +7,11 @@
 
 export const ALLOWED_PREFIXES = [
   "index.html",
+  "routes.html",
+  "main.js",
+  "styles.css",
+  "lib/vrchat-presence.mjs",
+  "lib/presence-sanitize.mjs",
   "assets/",
   "staticwebapp.config.json",
   "robots.txt",
@@ -16,6 +21,9 @@ export const ALLOWED_PREFIXES = [
 // Files copied verbatim from publicDir that the SPA is allowed to publish.
 export const ALLOWED_ROOT_FILES = [
   "index.html",
+  "routes.html",
+  "main.js",
+  "styles.css",
   "staticwebapp.config.json",
   "robots.txt",
   "sitemap.xml",
@@ -38,10 +46,12 @@ export function isAllowedBuildArtifact(relPath) {
 // (e.g. "assets" or "assets/foo" stay, so nested assets are walked).
 export function isAllowedBuildDirectory(relPath) {
   const rel = normalizeBuildPath(relPath).replace(/\/$/, "");
-  return ALLOWED_PREFIXES.some(
-    (prefix) =>
-      prefix.endsWith("/") &&
-      (prefix.slice(0, -1) === rel || rel.startsWith(prefix)) &&
-      rel.length > 0
+  return (
+    rel.length > 0 &&
+    ALLOWED_PREFIXES.some((prefix) =>
+      prefix.endsWith("/")
+        ? prefix.slice(0, -1) === rel || rel.startsWith(prefix)
+        : prefix.startsWith(rel + "/")
+    )
   );
 }

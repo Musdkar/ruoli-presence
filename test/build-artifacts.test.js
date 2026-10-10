@@ -28,6 +28,13 @@ describe("isAllowedBuildArtifact", () => {
   it("does not treat robots.txt as a directory prefix", () => {
     expect(isAllowedBuildArtifact("robots.txt/evil.js")).toBe(false);
   });
+  it("publishes only the two reviewed browser modules from lib", () => {
+    expect(isAllowedBuildDirectory("lib")).toBe(true);
+    expect(isAllowedBuildArtifact("lib/vrchat-presence.mjs")).toBe(true);
+    expect(isAllowedBuildArtifact("lib/presence-sanitize.mjs")).toBe(true);
+    expect(isAllowedBuildArtifact("lib/private-config.json")).toBe(false);
+    expect(isAllowedBuildDirectory("lib-private")).toBe(false);
+  });
   it("works for windows-style input", () => {
     expect(isAllowedBuildArtifact("assets\\software-icons\\vscode.png")).toBe(true);
     expect(isAllowedBuildArtifact("secret\\file.txt")).toBe(false);

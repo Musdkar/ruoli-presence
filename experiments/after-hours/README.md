@@ -42,17 +42,17 @@ Deploy the modular source, including `lib/`, `api/`, and bundled assets. `lib/pr
 - The Archive: all **19** existing photos referenced from the public original site, editorial photo wall, full-view lightbox, and show-all toggle.
 - Notes: the two published blog entries as interactive reading overlays.
 - Toolkit: original software groups and hardware inventory, with interactive categories.
-- Contact and original-site links, command palette (`Cmd/Ctrl + K`), keyboard-accessible dialogs, reduced-motion support, responsive tablet/mobile layouts.
+- Contact links, command palette (`Cmd/Ctrl + K`), keyboard-accessible dialogs, reduced-motion support, responsive tablet/mobile layouts.
 
 ## Important integration notes
 
-This is a **standalone visual theme prototype**, not a wholesale migration of the original React application. It reuses existing **public** image endpoints and the **read-only** public presence API. For a permanent replacement, we'd merge the design into the existing repo so routing, SEO, multilingual strings and publication workflows remain first class. The original deployment and ingest endpoints remain independent. The approved optional VPS hook publishes only owner VRChat data through the same Lanyard account; it does not overwrite iPhone or other KV keys.
+AFTER HOURS is the approved production homepage. The root build publishes this entry alongside the existing React photo, blog, toolkit and email routes, then the main branch deploys through the existing Azure Static Web Apps workflow. The old homepage and its opening link are removed. The homepage reuses public image endpoints and the anonymous read-only `/api/presence` API; existing ingest endpoints remain unchanged. The approved optional VPS hook publishes only owner VRChat data through the same Lanyard account; it does not overwrite iPhone or other KV keys.
 
 - Photos and the avatar are fetched from `https://kalieri.com/assets/`; the user's browser must be able to access that site.
 - Weather is loaded from Open-Meteo in the browser. Live telemetry is requested at `/api/presence` every 10 seconds only while visible.
 - Fonts are fetched from Google Fonts with system fallback.
 - Local `server.mjs` supplies the same read-only proxy for development, so local telemetry requires the machine to be online and the original API to be available.
-- The notes panel includes a shorter view of the running log and links to the full original when appropriate; full markdown publishing remains on the original website.
+- The notes panel includes a shorter view of the running log and links to the full original when appropriate; full Markdown posts retain their existing `/blog` routes.
 - No environment variables or secret credentials are required to view the new theme.
 
 ## Files
@@ -85,7 +85,7 @@ Designed as a fresh direction rather than a superficial reskin. © 2026 Kalieri.
 
 - The author-specific globe now centres on Wuhan (30.5928° N, 114.3055° E) from the first frame. Reset eases the view back to Wuhan by the shortest rotation path; it no longer resets to arbitrary latitude zero. Manual pointer/keyboard controls remain.
 - Idle motion subtly sways around the home longitude instead of slowly rotating the home city out of view. The site does **not** request browser geolocation (which would refer to a visitor rather than Kalieri).
-- Updated peripheral labels and hero prose. The headline **A corner of the world** stays. Sonnet excerpt is from William Shakespeare, *Sonnet 14* (“Not from the stars do I my judgement pluck”), with attribution visible on the page.
+- Updated peripheral labels and hero prose. The headline **A corner of the world** stays. Sonnet excerpt is from William Shakespeare, _Sonnet 14_ (“Not from the stars do I my judgement pluck”), with attribution visible on the page.
 
 ## Editorial and keyboard follow-up
 
@@ -110,7 +110,7 @@ The position of the site owner is contextual telemetry, not part of the site's b
 - The location embed is now a static visual: pointer events pass through to page scrolling, while `inert` and `tabindex=-1` exclude its controls from keyboard navigation. The separate **Open in Map** and map-data attribution links remain interactive.
 - A dark purple / slate / teal treatment integrates the map with the editorial palette. Unused iframe controls are cropped, and the owner marker and OpenStreetMap attribution remain visible.
 - The hero uses the available viewport height after the header, with responsive type, globe dimensions and compact spacing for short screens. Intro, sonnet, actions and the bottom strip fit common desktop/tablet/mobile sizes; enlarged text and unusually small viewports can still grow naturally.
-- [VRChat presence architecture and rollout plan](../../docs/vrchat-presence-plan.md): assess reuse of the owner's existing VPS collector without a second login or polling loop; keep credentials scoped to that private process. Windows-local VRCX is an alternative closer to the API device/IP guidelines. This visual update preceded collector activation. The later dedicated preview reader and approved VPS hook now supply independent VRChat records; the original site’s allowlist remains unchanged.
+- [VRChat presence architecture and rollout plan](../../docs/vrchat-presence-plan.md): assess reuse of the owner's existing VPS collector without a second login or polling loop; keep credentials scoped to that private process. Windows-local VRCX is an alternative closer to the API device/IP guidelines. This visual update preceded collector activation. The later dedicated preview reader and approved VPS hook now supply independent VRChat records; the canonical production and preview sanitizer now share the approved VRChat allowlist.
 
 ## v1.8: avatar map and restored Worldline choreography
 

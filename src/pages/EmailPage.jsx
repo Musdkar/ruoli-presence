@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
 import { metadataFor, applyMetadata } from "../lib/seo";
 
 // Contact address, kept Base64-encoded so it is not sitting in the page source
@@ -17,9 +16,9 @@ export default function EmailPage() {
 
   return (
     <div className="email-page">
-      <Link className="email-back" to="/" aria-label="Back to home">
+      <a className="email-back" href="/" aria-label="Back to home">
         ←
-      </Link>
+      </a>
       <h2 className="email-address">Y29udGFjdEBrYWxpZXJpLmNvbQ==</h2>
     </div>
   );

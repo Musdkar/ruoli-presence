@@ -24,11 +24,11 @@ VRChat 的最新 Creator Guidelines 允许按规则开发 API 应用，但没有
 
 ## 三种方案比较
 
-| 方案 | 适合的工作 | 主要问题 | 建议 |
-| --- | --- | --- | --- |
-| GitHub Actions + Secrets | 构建、部署、低频检查 | 定时最短 5 分钟，会延迟或丢弃任务；只在默认分支运行；临时运行器难以安全持续保存更新后的 Cookie，并从云端 IP 访问 VRChat | 不作为实时状态采集器 |
-| VPS private daemon 直接访问 VRChat | 复用你已运行的采集器，电脑关闭后仍可观测服务端状态 | 服务器持有账户会话、异地 IP、登录挑战；与官方设备/IP 指引存在冲突，不能保证合规或稳定 | 本次已复用现有服务，仅扩展最小发布模块 |
-| Windows 本地 VRCX 同步 | PC 使用时，复用本机已有状态与本人登录流程 | 需要核验版本和可用接口；电脑关机时不能覆盖 Quest 独立使用 | 更贴近设备/IP 指引，作为替代来源；使用同一过期与兜底协议 |
+| 方案                               | 适合的工作                                         | 主要问题                                                                                                                | 建议                                                     |
+| ---------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| GitHub Actions + Secrets           | 构建、部署、低频检查                               | 定时最短 5 分钟，会延迟或丢弃任务；只在默认分支运行；临时运行器难以安全持续保存更新后的 Cookie，并从云端 IP 访问 VRChat | 不作为实时状态采集器                                     |
+| VPS private daemon 直接访问 VRChat | 复用你已运行的采集器，电脑关闭后仍可观测服务端状态 | 服务器持有账户会话、异地 IP、登录挑战；与官方设备/IP 指引存在冲突，不能保证合规或稳定                                   | 本次已复用现有服务，仅扩展最小发布模块                   |
+| Windows 本地 VRCX 同步             | PC 使用时，复用本机已有状态与本人登录流程          | 需要核验版本和可用接口；电脑关机时不能覆盖 Quest 独立使用                                                               | 更贴近设备/IP 指引，作为替代来源；使用同一过期与兜底协议 |
 
 GitHub 的调度限制见[官方 schedule 文档](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)。VRCX 是维护中的 VRChat 工具，但不能假定每个版本都提供现成的通用 HTTP 状态接口；实施前检查你安装的版本与实际数据入口。[VRCX 项目](https://github.com/vrcx-team/VRCX)
 
@@ -36,13 +36,13 @@ GitHub 的调度限制见[官方 schedule 文档](https://docs.github.com/en/act
 
 **代码可以提交 GitHub；任何实际密码、Cookie、token、2FA 秘钥都不能提交，包括私有仓库。** 已泄露的凭据要撤销或轮换，仅删除文件无法清除历史。
 
-| 内容 | 放置位置 | 用途 |
-| --- | --- | --- |
-| 已有 VRChat 登录会话 | 现有 VPS 采集器的私有 cookie jar；或替代方案中的本机 VRCX | 保持原持有者范围，不复制给 GitHub、网页或新接收器 |
-| `VRCHAT_INGEST_TOKEN`（拟新增） | Windows 的凭据存储；接收器的私有配置 | 只允许向本站单一状态入口发布 |
-| 现有 `LANYARD_API_KEY` | 本次为 VPS 权限 0600 的 `presence-private.json`；iPhone 原后端仍使用其环境配置 | 写入 Lanyard KV；不交给浏览器或 Windows bridge |
-| GitHub Actions Secrets | GitHub 仓库或环境设置 | 只供需要的 CI 任务读取，例如部署凭据 |
-| 非敏感的接口地址、字段约定 | 仓库配置 | 可公开、可审查 |
+| 内容                            | 放置位置                                                                       | 用途                                              |
+| ------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------- |
+| 已有 VRChat 登录会话            | 现有 VPS 采集器的私有 cookie jar；或替代方案中的本机 VRCX                      | 保持原持有者范围，不复制给 GitHub、网页或新接收器 |
+| `VRCHAT_INGEST_TOKEN`（拟新增） | Windows 的凭据存储；接收器的私有配置                                           | 只允许向本站单一状态入口发布                      |
+| 现有 `LANYARD_API_KEY`          | 本次为 VPS 权限 0600 的 `presence-private.json`；iPhone 原后端仍使用其环境配置 | 写入 Lanyard KV；不交给浏览器或 Windows bridge    |
+| GitHub Actions Secrets          | GitHub 仓库或环境设置                                                          | 只供需要的 CI 任务读取，例如部署凭据              |
+| 非敏感的接口地址、字段约定      | 仓库配置                                                                       | 可公开、可审查                                    |
 
 Secrets 是 GitHub 提供的加密配置机制，环境变量是程序运行时接收配置的途径；两者不是不同的登录凭据，也不会自动同步到 VPS 或 Vercel。普通 GitHub Variables 不用于秘密。日志遮蔽不是完整防泄露措施，不输出认证头，不上传 Cookie 到缓存或构建产物，限制可读取 Secrets 的工作流权限。[GitHub Secrets 文档](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
 
@@ -59,8 +59,8 @@ Secrets 是 GitHub 提供的加密配置机制，环境变量是程序运行时�
   "status": "online",
   "observedAt": "<真实观测时刻的 UTC ISO 时间>",
   "availability": "join me",
-  "profile": {"displayName": "<本人账号显示名>", "avatarUrl": "<无凭据的官方头像地址>"},
-  "location": {"kind": "world", "worldName": "<可公开的世界名>", "access": "public"}
+  "profile": { "displayName": "<本人账号显示名>", "avatarUrl": "<无凭据的官方头像地址>" },
+  "location": { "kind": "world", "worldName": "<可公开的世界名>", "access": "public" }
 }
 ```
 

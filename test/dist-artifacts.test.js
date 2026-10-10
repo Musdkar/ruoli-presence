@@ -70,3 +70,50 @@ describe("dist artifacts — index.html static head", () => {
     expect(html).toMatch(/name="twitter:card"/);
   });
 });
+
+describe("AFTER HOURS production entry", () => {
+  it("publishes the approved homepage instead of the React shell", () => {
+    expect(read("index.html")).toContain('id="hero-heading"');
+    expect(read("index.html")).toContain('id="vr-world-image"');
+    expect(read("index.html")).not.toContain('id="root"');
+    expect(read("index.html")).not.toContain("ORIGINAL SITE");
+    expect(existsSync(resolve(dist, "classic.html"))).toBe(false);
+    for (const file of [
+      "main.js",
+      "styles.css",
+      "assets/earth-day.jpg",
+      "assets/map-avatar.webp",
+    ]) {
+      expect(existsSync(resolve(dist, file)), file).toBe(true);
+    }
+  });
+
+  it("keeps the compiled React entry and its bundles for existing routes", () => {
+    expect(existsSync(resolve(dist, "routes.html"))).toBe(true);
+    const html = read("routes.html");
+    expect(html).toContain('id="root"');
+    const scripts = [...html.matchAll(/src="(\/assets\/[^"]+\.js)"/g)];
+    expect(scripts.length).toBeGreaterThan(0);
+    for (const match of scripts) expect(existsSync(resolve(dist, match[1].slice(1)))).toBe(true);
+  });
+
+  it("ships a working VRChat view module with the canonical privacy filter", async () => {
+    expect(existsSync(resolve(dist, "lib/vrchat-presence.mjs"))).toBe(true);
+    const { selectVrchatPresence } = await import(resolve(dist, "lib/vrchat-presence.mjs"));
+    const now = Date.parse("2026-10-10T08:00:00Z");
+    const value = {
+      kv: {
+        vrchat_presence: {
+          status: "online",
+          observedAt: new Date(now).toISOString(),
+          availability: "busy",
+          location: { kind: "world", worldName: "Hidden world", access: "public" },
+        },
+      },
+    };
+    expect(selectVrchatPresence(value, now, now)).toMatchObject({
+      title: "PRIVATE",
+      worldImageUrl: null,
+    });
+  });
+});

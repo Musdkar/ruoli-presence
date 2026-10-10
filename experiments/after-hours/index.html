@@ -1,109 +1,674 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#09090f" />
-  <meta name="description" content="A corner of the world — a personal signal with music, memories, thoughts and little traces of everyday life." />
-  <meta property="og:title" content="KALIERI — After Hours" />
-  <meta property="og:description" content="A corner of the world. Always changing, mostly online." />
-  <title>KALIERI® — After Hours / A corner of the world</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css" />
-</head>
-<body>
-  <div class="grain" aria-hidden="true"></div>
-  <div class="scroll-meter" aria-hidden="true"><span id="scroll-progress"></span></div>
-  <aside class="chapter-rail" aria-label="Page journey"><span class="chapter-rail-kicker">THE JOURNEY</span><span class="chapter-rail-count" id="chapter-count">00 <i>/</i> 05</span><span class="chapter-rail-name" id="chapter-name">THE BEGINNING</span><div class="chapter-rail-track"><span id="chapter-rail-progress"></span></div></aside>
-  <a class="skip-link" href="#main">Skip to content</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#09090f" />
+    <meta
+      name="description"
+      content="A corner of the world — a personal signal with music, memories, thoughts and little traces of everyday life."
+    />
+    <meta property="og:title" content="KALIERI — After Hours" />
+    <meta
+      property="og:description"
+      content="A corner of the world. Always changing, mostly online."
+    />
+    <link rel="canonical" href="https://kalieri.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KALIERI — After Hours" />
+    <meta property="og:url" content="https://kalieri.com/" />
+    <meta property="og:image" content="https://kalieri.com/assets/avatar.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="KALIERI — After Hours" />
+    <meta name="twitter:image" content="https://kalieri.com/assets/avatar.webp" />
+    <title>KALIERI® — After Hours / A corner of the world</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="scroll-meter" aria-hidden="true"><span id="scroll-progress"></span></div>
+    <aside class="chapter-rail" aria-label="Page journey">
+      <span class="chapter-rail-kicker">THE JOURNEY</span
+      ><span class="chapter-rail-count" id="chapter-count">00 <i>/</i> 05</span
+      ><span class="chapter-rail-name" id="chapter-name">THE BEGINNING</span>
+      <div class="chapter-rail-track"><span id="chapter-rail-progress"></span></div>
+    </aside>
+    <a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="site-header" id="top">
-    <a class="wordmark" href="#top" aria-label="Kalieri home"><span class="wordmark-symbol">✳</span><span>KALIERI<sup>®</sup></span></a>
-    <nav class="desktop-nav" aria-label="Main navigation">
-      <a href="#signal" data-nav="signal">THE SIGNAL <span>01</span></a>
-      <a href="#archive" data-nav="archive">THE ARCHIVE <span>02</span></a>
-      <a href="#journal" data-nav="journal">NOTES <span>03</span></a>
-      <a href="#uses" data-nav="uses">TOOLKIT <span>04</span></a>
-    </nav>
-    <div class="header-right"><span class="site-clock" id="nav-time">LOCAL · --:--</span><button class="command-btn" id="command-open" aria-label="Open quick navigation"><span>⌘</span> K</button><a class="header-contact" href="#contact" aria-label="Contact">↗</a></div>
-  </header>
+    <header class="site-header" id="top">
+      <a class="wordmark" href="#top" aria-label="Kalieri home"
+        ><span class="wordmark-symbol">✳</span><span>KALIERI<sup>®</sup></span></a
+      >
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="#signal" data-nav="signal">THE SIGNAL <span>01</span></a>
+        <a href="#archive" data-nav="archive">THE ARCHIVE <span>02</span></a>
+        <a href="#journal" data-nav="journal">NOTES <span>03</span></a>
+        <a href="#uses" data-nav="uses">TOOLKIT <span>04</span></a>
+      </nav>
+      <div class="header-right">
+        <span class="site-clock" id="nav-time">LOCAL · --:--</span
+        ><button class="command-btn" id="command-open" aria-label="Open quick navigation">
+          <span>⌘</span> K</button
+        ><a class="header-contact" href="#contact" aria-label="Contact">↗</a>
+      </div>
+    </header>
 
-  <main id="main">
-    <section class="hero" aria-labelledby="hero-heading">
-      <div class="hero-topline"><span class="eyebrow"><span class="asterisk">✳</span> A LIFE, OBSERVED FROM HERE</span><span class="issue">EST. 2006 — INTERNET EDITION <span class="separator">/</span> PERSONAL ARCHIVE</span></div>
-      <div class="hero-content">
-        <div class="hero-copy">
-          <div class="hello-badge"><span class="badge-emoji">↳</span> A PERSONAL TRANSMISSION <b>FROM SOMEWHERE ON EARTH.</b></div>
-          <h1 id="hero-heading">A corner<br /><span class="hero-heading-outline">of the</span><br /><span class="hero-last">world<span class="hero-period">.</span></span></h1>
-          <div class="hero-subrow"><div class="hero-rule"></div><p>Hello, I'm <b>Kalieri.</b> I make things, collect passing moments, and wander between the tangible and the virtual. This is where a few of those fragments live.</p></div>
-          <figure class="hero-sonnet"><blockquote>“Not from the stars do I my judgment pluck.”</blockquote><figcaption><a href="https://www.folger.edu/explore/shakespeares-works/shakespeares-sonnets/read/14/" target="_blank" rel="noopener noreferrer">WILLIAM SHAKESPEARE <span>—</span> SONNET 14 ↗</a></figcaption></figure><div class="hero-actions"><a class="circle-cta" href="#signal"><span class="circle-cta-label">EXPLORE THE SIGNAL</span><span class="circle-cta-icon">↘</span></a><span class="hero-side-note">TRACES OF<br />A LIFE IN PROGRESS <span class="spin-star">✳</span></span></div>
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-heading">
+        <div class="hero-topline">
+          <span class="eyebrow"><span class="asterisk">✳</span> A LIFE, OBSERVED FROM HERE</span
+          ><span class="issue"
+            >EST. 2006 — INTERNET EDITION <span class="separator">/</span> PERSONAL ARCHIVE</span
+          >
         </div>
-        <div class="hero-art"><div class="art-coordinate art-coordinate-tl">FIG. 001 <span>—</span> EARTH / INTERACTIVE STUDY</div><div class="art-coordinate art-coordinate-tr">[ IN ORBIT ]</div><canvas id="space-canvas"></canvas><div class="planet-backglow"></div><div class="planet earth-planet" id="earth-control" tabindex="0" role="group" aria-label="Interactive Earth. Drag to rotate. Arrow keys rotate; R resets orientation." title="Drag the globe to rotate"><div class="planet-surface"></div><canvas id="earth-canvas" class="earth-render" aria-hidden="true"></canvas><div class="planet-shadow"></div></div><button type="button" class="earth-reset" id="earth-reset" aria-label="Recenter Earth on my location" title="Recenter the globe">↺ <span>RECENTER</span></button><div class="orbital orbital-1"></div><div class="orbital orbital-2"></div><div class="orbital orbital-3"></div><div class="orbit-satellite"></div><div class="art-cross art-cross-a">+</div><div class="art-cross art-cross-b">+</div><div class="art-caption"><span>DRAG TO EXPLORE ↔</span><span>A SLOWLY TURNING WORLD.<br />A SMALL PLACE WITHIN IT.</span></div><div class="art-index">K—001</div></div>
-      </div>
-      <div class="hero-bottom"><div class="online-label"><span class="live-pulse"></span><span id="hero-status">WAITING FOR SIGNAL</span></div><div class="tiny-manifesto">ONE SMALL CORNER <span>✳</span> A WORLD STILL TURNING</div><div class="hero-bottom-arrow"><span class="hero-scroll-signal">SCROLL / EXPLORE</span><span class="hero-arrow-glyph">↓</span></div></div>
-    </section>
-
-    <div class="marquee" aria-hidden="true"><div class="marquee-track">CREATING THINGS <span>✳</span> STAYING CURIOUS <span>✳</span> OTHER WORLDS <span>✳</span> MOSTLY ONLINE <span>✳</span> CREATING THINGS <span>✳</span> STAYING CURIOUS <span>✳</span> OTHER WORLDS <span>✳</span> MOSTLY ONLINE <span>✳</span></div></div>
-
-    <section class="signal-section editorial-section" id="signal">
-      <div class="section-intro reveal"><div class="section-number">01 / REAL-TIME TELEMETRY</div><div class="section-intro-main"><h2>The signal<span class="accent-period">.</span><small>LIVE FEED / 正在发生</small></h2><p>Little traces of my ordinary day, turned into something you can see. No performance, no perfection — just actual life happening somewhere on the other side of the screen.</p></div></div>
-      <div class="signal-grid">
-        <article class="tile tile-presence reveal"><div class="tile-top"><span class="tile-index">01.01 / PRESENCE</span><span class="tile-icon">◉</span></div><div class="presence-center"><span class="big-status-sigil">✺</span><span class="presence-label" id="presence-title">Awaiting<br />signal<span class="accent-period">.</span></span></div><div class="tile-bottom"><span><span class="mini-dot" id="presence-dot"></span> <span id="presence-source">iPhone</span></span></div></article>
-        <article class="tile tile-weather reveal"><div class="tile-top"><span class="tile-index">01.02 / THE OUTSIDE WORLD</span><span class="weather-icon" id="weather-icon">☼</span></div><div class="weather-center"><div class="weather-location"><span id="weather-city">—</span> <span id="weather-region">↗ LOCATION</span></div><div class="weather-temp" id="weather-temp">--<sup>°</sup></div><div class="weather-desc" id="weather-desc">Checking the atmosphere...</div></div><div class="weather-bottom"><span>APPARENT <b id="weather-feels">--°</b></span><span>WIND <b id="weather-wind">-- KM/H</b></span></div><div class="weather-orbit" aria-hidden="true"></div></article>
-        <article class="tile tile-fitness reveal"><div class="tile-top"><span class="tile-index">01.03 / IN MOTION</span><span class="micro">HEALTH / TODAY</span></div><div class="steps-graphic"><svg viewBox="0 0 250 250" role="img" aria-label="Step progress towards 6000 steps"><defs><linearGradient id="steps-gradient" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#caacff"/><stop offset="1" stop-color="#ddffa4"/></linearGradient></defs><circle class="steps-track" cx="125" cy="125" r="103"/><circle class="steps-progress" id="steps-progress" cx="125" cy="125" r="103"/><g class="steps-ticks" id="steps-ticks"></g></svg><div class="steps-count"><span id="steps-number">—</span><small>STEPS TODAY</small></div></div><div class="tile-bottom"><span>GOAL <b>6,000</b> STEPS</span><span class="micro" id="steps-percent">NOT SYNCED</span></div></article>
-        <article class="tile tile-music reveal"><div class="tile-top"><span class="tile-index">01.04 / THE SOUNDTRACK</span><span class="tile-icon">♫</span></div><div class="music-layout"><div class="album-art"><img id="album-image" src="" alt="Album artwork" hidden /><div class="album-placeholder" id="album-placeholder"><span>♪</span><small>K—FM</small></div><div class="vinyl"></div></div><div class="music-info"><span class="music-state" id="music-state"><span class="live-pulse"></span> WAITING FOR MUSIC</span><h3 id="music-title">The sound of<br />silence</h3><p id="music-artist">Music status not linked</p><span class="music-service" id="music-service">— KALIERI FM</span></div></div><div class="tile-bottom"><div class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>ON ROTATION / MUSIC ARCHIVE</span></div></article>
-        <article class="tile tile-activity reveal"><div class="tile-top"><span class="tile-index">01.05 / TODAY'S SCREEN TIME</span><span class="micro">FOREGROUND APPS · TOP 08</span></div><div class="activity-heading">TIME SPENT<br /><span>MAKING / THINKING</span></div><div id="app-list" class="app-list"><div class="empty-data">No activity sync yet. <span>ActivityWatch → WhatPulse</span></div></div><div class="tile-bottom"><span>ONLY FOCUSED WINDOWS COUNT</span><span>MAC + WINDOWS ↗</span></div></article>
-        <article class="tile tile-keyboard reveal"><div class="tile-top"><span class="tile-index">01.06 / PHANTOM KEYSTROKES</span><span class="micro">QUANTIZED / PRIVATE</span></div><div class="keyboard-switch"><button class="kb-tab active" data-kb="mac">MACBOOK</button><button class="kb-tab" data-kb="win">WINDOWS</button></div><div class="keyboard-count"><b id="keyboard-total">—</b><span>KEY PRESSES<br />TODAY</span></div><div class="keyboard-visual" id="keyboard-visual" aria-label="Keyboard activity heatmap"></div><div class="tile-bottom"><span>NO KEYS OR WORDS ARE LOGGED</span><span>HEAT 0—15</span></div></article>
-        <article class="tile tile-portal reveal"><div class="tile-top"><span class="tile-index">01.07 / OTHER WORLDS</span><span class="micro">VIRTUAL PRESENCE</span></div><div class="portal-visual" aria-hidden="true"><div class="portal-scan"><span class="portal-scan-top">ANOTHER DIMENSION</span><span class="portal-scan-bottom">VRC / 01</span></div><div class="portal-rim"></div><div class="portal-gate"><div class="portal-memory"></div><img class="portal-world-image" id="vr-world-image" alt="" referrerpolicy="no-referrer" hidden /></div><div class="portal-core">✳</div></div><div class="portal-content"><div class="vr-identity"><img class="vr-avatar" id="vr-avatar" src="./assets/map-avatar.webp" alt="Kalieri’s VRChat avatar" width="54" height="54" referrerpolicy="no-referrer" /><div class="vr-person"><div class="vr-name" id="vr-name">Kalieri</div><div class="vr-availability"><span class="vr-status-dot" id="vr-status-dot" aria-hidden="true"></span><span id="vr-availability">No signal</span></div></div></div><span class="portal-kicker">CURRENT WORLD</span><h3 id="vr-title">No current world.</h3><p id="vr-detail">Waiting for public activity data</p><a class="portal-archive-link" href="#archive">EXPLORE THE WORLD ARCHIVE ↗</a></div><div class="tile-bottom"><span id="vr-source">DISCORD ACTIVITY</span><span id="vr-state">NOT DETECTED</span></div></article>
-      </div>
-      <div class="coordinate-strip reveal">
- <div class="location-heading">
-  <div><span class="location-eyebrow">FIELD RECORDING / LOCATION</span><h3>Where I am<span>.</span></h3><p>Somewhere around here. For now.</p></div>
-  <div class="location-facts"><a id="location-map-link" href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OPEN IN MAP ↗</a></div>
- </div>
- <div class="location-map-stage">
-  <div class="location-map-viewport" role="img" aria-label="Static regional map. Use Open in Map to explore.">
-   <iframe id="location-map" title="Static regional map" loading="lazy" tabindex="-1" inert aria-hidden="true" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-  </div>
-  <div class="location-map-avatar"><img src="./assets/map-avatar.webp" alt="Kalieri's VRChat avatar" width="66" height="66" loading="lazy" decoding="async" /></div>
-  <span class="map-corner map-corner-tl" aria-hidden="true">+</span><span class="map-corner map-corner-br" aria-hidden="true">+</span>
-  <div class="location-map-attribution">MAP DATA <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OPENSTREETMAP CONTRIBUTORS · ODbL</a></div>
- </div>
-</div>
-    </section>
-
-    <section class="worldline" id="worldline" aria-label="Between worlds — a scroll-driven visual journey">
-      <div class="worldline-sticky">
-        <div class="worldline-ambient" aria-hidden="true"></div>
-        <div class="worldline-grid" aria-hidden="true"></div>
-        <div class="worldline-top"><span><span class="worldline-star">✳</span> FIELD RECORDING / 000.5</span><span>BETWEEN PHYSICAL & VIRTUAL</span><span>SCROLL-DRIVEN / 01—03</span></div>
-        <div class="worldline-images" aria-hidden="true">
-          <div class="worldline-photo worldline-earth"><img src="https://kalieri.com/assets/photos/2026-10-05-155539.webp" alt="" loading="lazy" /><span class="worldline-photo-label">01 / THE REAL</span></div>
-          <div class="worldline-photo worldline-liminal"><img src="https://kalieri.com/assets/photos/2026-08-21-230444.webp" alt="" loading="lazy" /><span class="worldline-photo-label">02 / IN BETWEEN</span></div>
-          <div class="worldline-photo worldline-digital"><img src="https://kalieri.com/assets/photos/2026-09-06-022351.webp" alt="" loading="lazy" /><span class="worldline-photo-label">03 / THE VIRTUAL</span></div>
+        <div class="hero-content">
+          <div class="hero-copy">
+            <div class="hello-badge">
+              <span class="badge-emoji">↳</span> A PERSONAL TRANSMISSION
+              <b>FROM SOMEWHERE ON EARTH.</b>
+            </div>
+            <h1 id="hero-heading">
+              A corner<br /><span class="hero-heading-outline">of the</span><br /><span
+                class="hero-last"
+                >world<span class="hero-period">.</span></span
+              >
+            </h1>
+            <div class="hero-subrow">
+              <div class="hero-rule"></div>
+              <p>
+                Hello, I'm <b>Kalieri.</b> I make things, collect passing moments, and wander
+                between the tangible and the virtual. This is where a few of those fragments live.
+              </p>
+            </div>
+            <figure class="hero-sonnet">
+              <blockquote>“Not from the stars do I my judgment pluck.”</blockquote>
+              <figcaption>
+                <a
+                  href="https://www.folger.edu/explore/shakespeares-works/shakespeares-sonnets/read/14/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >WILLIAM SHAKESPEARE <span>—</span> SONNET 14 ↗</a
+                >
+              </figcaption>
+            </figure>
+            <div class="hero-actions">
+              <a class="circle-cta" href="#signal"
+                ><span class="circle-cta-label">EXPLORE THE SIGNAL</span
+                ><span class="circle-cta-icon">↘</span></a
+              ><span class="hero-side-note"
+                >TRACES OF<br />A LIFE IN PROGRESS <span class="spin-star">✳</span></span
+              >
+            </div>
+          </div>
+          <div class="hero-art">
+            <div class="art-coordinate art-coordinate-tl">
+              FIG. 001 <span>—</span> EARTH / INTERACTIVE STUDY
+            </div>
+            <div class="art-coordinate art-coordinate-tr">[ IN ORBIT ]</div>
+            <canvas id="space-canvas"></canvas>
+            <div class="planet-backglow"></div>
+            <div
+              class="planet earth-planet"
+              id="earth-control"
+              tabindex="0"
+              role="group"
+              aria-label="Interactive Earth. Drag to rotate. Arrow keys rotate; R resets orientation."
+              title="Drag the globe to rotate"
+            >
+              <div class="planet-surface"></div>
+              <canvas id="earth-canvas" class="earth-render" aria-hidden="true"></canvas>
+              <div class="planet-shadow"></div>
+            </div>
+            <button
+              type="button"
+              class="earth-reset"
+              id="earth-reset"
+              aria-label="Recenter Earth on my location"
+              title="Recenter the globe"
+            >
+              ↺ <span>RECENTER</span>
+            </button>
+            <div class="orbital orbital-1"></div>
+            <div class="orbital orbital-2"></div>
+            <div class="orbital orbital-3"></div>
+            <div class="orbit-satellite"></div>
+            <div class="art-cross art-cross-a">+</div>
+            <div class="art-cross art-cross-b">+</div>
+            <div class="art-caption">
+              <span>DRAG TO EXPLORE ↔</span
+              ><span>A SLOWLY TURNING WORLD.<br />A SMALL PLACE WITHIN IT.</span>
+            </div>
+            <div class="art-index">K—001</div>
+          </div>
         </div>
-        <div class="worldline-headline"><div class="worldline-supra"><span>FIELD NOTES FROM EARTH</span><i>↗</i><span>2026 / ELSEWHERE</span></div><h2>MORE THAN<br /><em>ONE</em> WORLD<span>.</span></h2><p class="worldline-caption" id="worldline-caption" aria-live="off">A life made of ordinary afternoons.</p></div>
-        <div class="worldline-coordinates" aria-hidden="true"><div class="worldline-crosshair">✳</div><span>NO FIXED COORDINATES<br/>FOR THESE PLACES</span></div>
-        <div class="worldline-bottom"><div><span class="worldline-stage-index" id="worldline-stage-index">01</span><span class="worldline-stage-name" id="worldline-stage-name">IN THE PHYSICAL</span></div><div class="worldline-timeline"><span id="worldline-progress"></span><i></i><i></i><i></i></div><span class="worldline-gesture">KEEP SCROLLING <b>↓</b></span></div>
+        <div class="hero-bottom">
+          <div class="online-label">
+            <span class="live-pulse"></span><span id="hero-status">WAITING FOR SIGNAL</span>
+          </div>
+          <div class="tiny-manifesto">ONE SMALL CORNER <span>✳</span> A WORLD STILL TURNING</div>
+          <div class="hero-bottom-arrow">
+            <span class="hero-scroll-signal">SCROLL / EXPLORE</span
+            ><span class="hero-arrow-glyph">↓</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          CREATING THINGS <span>✳</span> STAYING CURIOUS <span>✳</span> OTHER WORLDS
+          <span>✳</span> MOSTLY ONLINE <span>✳</span> CREATING THINGS <span>✳</span> STAYING CURIOUS
+          <span>✳</span> OTHER WORLDS <span>✳</span> MOSTLY ONLINE <span>✳</span>
+        </div>
       </div>
-    </section>
 
-    <section class="archive-section editorial-section" id="archive"><div class="section-intro reveal"><div class="section-number">02 / THE MEMORY VAULT</div><div class="section-intro-main"><h2>Fragments<br /><em>of elsewhere.</em></h2><p>Sometimes reality is a little too ordinary. These are postcards from the places I've been — real, virtual, and somewhere in between.</p></div></div><div class="archive-meta reveal"><span>VISUAL DIARY © 2026</span><span id="archive-count">19 FRAGMENTS IN THE VAULT</span><span>CLICK · USE ARROWS TO BROWSE ↗</span></div><div class="archive-grid" id="archive-grid"></div><div class="archive-end reveal"><span>MEMORIES ARE NOT MEANT TO STAY STILL.</span><a class="underline-link" href="https://kalieri.com/photo" target="_blank" rel="noreferrer">EXPLORE THE ORIGINAL ARCHIVE ↗</a></div></section>
+      <section class="signal-section editorial-section" id="signal">
+        <div class="section-intro reveal">
+          <div class="section-number">01 / REAL-TIME TELEMETRY</div>
+          <div class="section-intro-main">
+            <h2>
+              The signal<span class="accent-period">.</span><small>LIVE FEED / 正在发生</small>
+            </h2>
+            <p>
+              Little traces of my ordinary day, turned into something you can see. No performance,
+              no perfection — just actual life happening somewhere on the other side of the screen.
+            </p>
+          </div>
+        </div>
+        <div class="signal-grid">
+          <article class="tile tile-presence reveal">
+            <div class="tile-top">
+              <span class="tile-index">01.01 / PRESENCE</span><span class="tile-icon">◉</span>
+            </div>
+            <div class="presence-center">
+              <span class="big-status-sigil">✺</span
+              ><span class="presence-label" id="presence-title"
+                >Awaiting<br />signal<span class="accent-period">.</span></span
+              >
+            </div>
+            <div class="tile-bottom">
+              <span
+                ><span class="mini-dot" id="presence-dot"></span>
+                <span id="presence-source">iPhone</span></span
+              >
+            </div>
+          </article>
+          <article class="tile tile-weather reveal">
+            <div class="tile-top">
+              <span class="tile-index">01.02 / THE OUTSIDE WORLD</span
+              ><span class="weather-icon" id="weather-icon">☼</span>
+            </div>
+            <div class="weather-center">
+              <div class="weather-location">
+                <span id="weather-city">—</span> <span id="weather-region">↗ LOCATION</span>
+              </div>
+              <div class="weather-temp" id="weather-temp">--<sup>°</sup></div>
+              <div class="weather-desc" id="weather-desc">Checking the atmosphere...</div>
+            </div>
+            <div class="weather-bottom">
+              <span>APPARENT <b id="weather-feels">--°</b></span
+              ><span>WIND <b id="weather-wind">-- KM/H</b></span>
+            </div>
+            <div class="weather-orbit" aria-hidden="true"></div>
+          </article>
+          <article class="tile tile-fitness reveal">
+            <div class="tile-top">
+              <span class="tile-index">01.03 / IN MOTION</span
+              ><span class="micro">HEALTH / TODAY</span>
+            </div>
+            <div class="steps-graphic">
+              <svg viewBox="0 0 250 250" role="img" aria-label="Step progress towards 6000 steps">
+                <defs>
+                  <linearGradient id="steps-gradient" x1="0" y1="1" x2="1" y2="0">
+                    <stop offset="0" stop-color="#caacff" />
+                    <stop offset="1" stop-color="#ddffa4" />
+                  </linearGradient>
+                </defs>
+                <circle class="steps-track" cx="125" cy="125" r="103" />
+                <circle class="steps-progress" id="steps-progress" cx="125" cy="125" r="103" />
+                <g class="steps-ticks" id="steps-ticks"></g>
+              </svg>
+              <div class="steps-count">
+                <span id="steps-number">—</span><small>STEPS TODAY</small>
+              </div>
+            </div>
+            <div class="tile-bottom">
+              <span>GOAL <b>6,000</b> STEPS</span
+              ><span class="micro" id="steps-percent">NOT SYNCED</span>
+            </div>
+          </article>
+          <article class="tile tile-music reveal">
+            <div class="tile-top">
+              <span class="tile-index">01.04 / THE SOUNDTRACK</span><span class="tile-icon">♫</span>
+            </div>
+            <div class="music-layout">
+              <div class="album-art">
+                <img id="album-image" src="" alt="Album artwork" hidden />
+                <div class="album-placeholder" id="album-placeholder">
+                  <span>♪</span><small>K—FM</small>
+                </div>
+                <div class="vinyl"></div>
+              </div>
+              <div class="music-info">
+                <span class="music-state" id="music-state"
+                  ><span class="live-pulse"></span> WAITING FOR MUSIC</span
+                >
+                <h3 id="music-title">The sound of<br />silence</h3>
+                <p id="music-artist">Music status not linked</p>
+                <span class="music-service" id="music-service">— KALIERI FM</span>
+              </div>
+            </div>
+            <div class="tile-bottom">
+              <div class="equalizer" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <span>ON ROTATION / MUSIC ARCHIVE</span>
+            </div>
+          </article>
+          <article class="tile tile-activity reveal">
+            <div class="tile-top">
+              <span class="tile-index">01.05 / TODAY'S SCREEN TIME</span
+              ><span class="micro">FOREGROUND APPS · TOP 08</span>
+            </div>
+            <div class="activity-heading">TIME SPENT<br /><span>MAKING / THINKING</span></div>
+            <div id="app-list" class="app-list">
+              <div class="empty-data">
+                No activity sync yet. <span>ActivityWatch → WhatPulse</span>
+              </div>
+            </div>
+            <div class="tile-bottom">
+              <span>ONLY FOCUSED WINDOWS COUNT</span><span>MAC + WINDOWS ↗</span>
+            </div>
+          </article>
+          <article class="tile tile-keyboard reveal">
+            <div class="tile-top">
+              <span class="tile-index">01.06 / PHANTOM KEYSTROKES</span
+              ><span class="micro">QUANTIZED / PRIVATE</span>
+            </div>
+            <div class="keyboard-switch">
+              <button class="kb-tab active" data-kb="mac">MACBOOK</button
+              ><button class="kb-tab" data-kb="win">WINDOWS</button>
+            </div>
+            <div class="keyboard-count">
+              <b id="keyboard-total">—</b><span>KEY PRESSES<br />TODAY</span>
+            </div>
+            <div
+              class="keyboard-visual"
+              id="keyboard-visual"
+              aria-label="Keyboard activity heatmap"
+            ></div>
+            <div class="tile-bottom">
+              <span>NO KEYS OR WORDS ARE LOGGED</span><span>HEAT 0—15</span>
+            </div>
+          </article>
+          <article class="tile tile-portal reveal">
+            <div class="tile-top">
+              <span class="tile-index">01.07 / OTHER WORLDS</span
+              ><span class="micro">VIRTUAL PRESENCE</span>
+            </div>
+            <div class="portal-visual" aria-hidden="true">
+              <div class="portal-scan">
+                <span class="portal-scan-top">ANOTHER DIMENSION</span
+                ><span class="portal-scan-bottom">VRC / 01</span>
+              </div>
+              <div class="portal-rim"></div>
+              <div class="portal-gate">
+                <div class="portal-memory"></div>
+                <img
+                  class="portal-world-image"
+                  id="vr-world-image"
+                  alt=""
+                  referrerpolicy="no-referrer"
+                  hidden
+                />
+              </div>
+              <div class="portal-core">✳</div>
+            </div>
+            <div class="portal-content">
+              <div class="vr-identity">
+                <img
+                  class="vr-avatar"
+                  id="vr-avatar"
+                  src="./assets/map-avatar.webp"
+                  alt="Kalieri’s VRChat avatar"
+                  width="54"
+                  height="54"
+                  referrerpolicy="no-referrer"
+                />
+                <div class="vr-person">
+                  <div class="vr-name" id="vr-name">Kalieri</div>
+                  <div class="vr-availability">
+                    <span class="vr-status-dot" id="vr-status-dot" aria-hidden="true"></span
+                    ><span id="vr-availability">No signal</span>
+                  </div>
+                </div>
+              </div>
+              <span class="portal-kicker">CURRENT WORLD</span>
+              <h3 id="vr-title">No current world.</h3>
+              <p id="vr-detail">Waiting for public activity data</p>
+              <a class="portal-archive-link" href="#archive">EXPLORE THE WORLD ARCHIVE ↗</a>
+            </div>
+            <div class="tile-bottom">
+              <span id="vr-source">DISCORD ACTIVITY</span><span id="vr-state">NOT DETECTED</span>
+            </div>
+          </article>
+        </div>
+        <div class="coordinate-strip reveal">
+          <div class="location-heading">
+            <div>
+              <span class="location-eyebrow">FIELD RECORDING / LOCATION</span>
+              <h3>Where I am<span>.</span></h3>
+              <p>Somewhere around here. For now.</p>
+            </div>
+            <div class="location-facts">
+              <a
+                id="location-map-link"
+                href="https://www.openstreetmap.org/"
+                target="_blank"
+                rel="noreferrer"
+                >OPEN IN MAP ↗</a
+              >
+            </div>
+          </div>
+          <div class="location-map-stage">
+            <div
+              class="location-map-viewport"
+              role="img"
+              aria-label="Static regional map. Use Open in Map to explore."
+            >
+              <iframe
+                id="location-map"
+                title="Static regional map"
+                loading="lazy"
+                tabindex="-1"
+                inert
+                aria-hidden="true"
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+            </div>
+            <div class="location-map-avatar">
+              <img
+                src="./assets/map-avatar.webp"
+                alt="Kalieri's VRChat avatar"
+                width="66"
+                height="66"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <span class="map-corner map-corner-tl" aria-hidden="true">+</span
+            ><span class="map-corner map-corner-br" aria-hidden="true">+</span>
+            <div class="location-map-attribution">
+              MAP DATA
+              <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer"
+                >© OPENSTREETMAP CONTRIBUTORS · ODbL</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <section class="journal-section editorial-section" id="journal"><div class="section-intro reveal"><div class="section-number">03 / THINGS ON MY MIND</div><div class="section-intro-main"><h2>Notes from<br /><em>the margins.</em></h2><p>Unfinished thoughts, small discoveries, and the occasional number that becomes a memory.</p></div></div><div class="journal-list"><button class="journal-entry reveal" data-post="0"><span class="journal-no">NOTE № 001</span><span class="journal-name">对抗无聊 <small>Against boredom</small></span><span class="journal-date">JAN 29, 2026</span><span class="journal-arrow">↗</span></button><button class="journal-entry reveal" data-post="1"><span class="journal-no">NOTE № 002</span><span class="journal-name">1 <small>Running log</small></span><span class="journal-date">FEB 02, 2026</span><span class="journal-arrow">↗</span></button></div><div class="journal-foot"><span>A FEW WORDS, LEFT HERE FOR LATER.</span><span>STAY CURIOUS. ✳</span></div></section>
+      <section
+        class="worldline"
+        id="worldline"
+        aria-label="Between worlds — a scroll-driven visual journey"
+      >
+        <div class="worldline-sticky">
+          <div class="worldline-ambient" aria-hidden="true"></div>
+          <div class="worldline-grid" aria-hidden="true"></div>
+          <div class="worldline-top">
+            <span><span class="worldline-star">✳</span> FIELD RECORDING / 000.5</span
+            ><span>BETWEEN PHYSICAL & VIRTUAL</span><span>SCROLL-DRIVEN / 01—03</span>
+          </div>
+          <div class="worldline-images" aria-hidden="true">
+            <div class="worldline-photo worldline-earth">
+              <img
+                src="https://kalieri.com/assets/photos/2026-10-05-155539.webp"
+                alt=""
+                loading="lazy"
+              /><span class="worldline-photo-label">01 / THE REAL</span>
+            </div>
+            <div class="worldline-photo worldline-liminal">
+              <img
+                src="https://kalieri.com/assets/photos/2026-08-21-230444.webp"
+                alt=""
+                loading="lazy"
+              /><span class="worldline-photo-label">02 / IN BETWEEN</span>
+            </div>
+            <div class="worldline-photo worldline-digital">
+              <img
+                src="https://kalieri.com/assets/photos/2026-09-06-022351.webp"
+                alt=""
+                loading="lazy"
+              /><span class="worldline-photo-label">03 / THE VIRTUAL</span>
+            </div>
+          </div>
+          <div class="worldline-headline">
+            <div class="worldline-supra">
+              <span>FIELD NOTES FROM EARTH</span><i>↗</i><span>2026 / ELSEWHERE</span>
+            </div>
+            <h2>MORE THAN<br /><em>ONE</em> WORLD<span>.</span></h2>
+            <p class="worldline-caption" id="worldline-caption" aria-live="off">
+              A life made of ordinary afternoons.
+            </p>
+          </div>
+          <div class="worldline-coordinates" aria-hidden="true">
+            <div class="worldline-crosshair">✳</div>
+            <span>NO FIXED COORDINATES<br />FOR THESE PLACES</span>
+          </div>
+          <div class="worldline-bottom">
+            <div>
+              <span class="worldline-stage-index" id="worldline-stage-index">01</span
+              ><span class="worldline-stage-name" id="worldline-stage-name">IN THE PHYSICAL</span>
+            </div>
+            <div class="worldline-timeline">
+              <span id="worldline-progress"></span><i></i><i></i><i></i>
+            </div>
+            <span class="worldline-gesture">KEEP SCROLLING <b>↓</b></span>
+          </div>
+        </div>
+      </section>
 
-    <section class="uses-section editorial-section" id="uses"><div class="section-intro reveal"><div class="section-number">04 / MY EVERYDAY COMPANIONS</div><div class="section-intro-main"><h2>The toolkit<span class="accent-period">.</span></h2><p>The devices I use, the tools I return to, and a few habits that quietly shape my days.</p></div></div><div class="tools-layout"><div class="tools-feature reveal"><span class="micro">THE MACHINE I COME BACK TO</span><div class="device-sculpture" aria-hidden="true"><div class="laptop-screen"><span class="laptop-glow"></span><span class="laptop-text">hello,<br/>world<span>.</span></span></div><div class="laptop-base"></div></div><div class="device-desc"><span>001 / DAILY DRIVER</span><strong>MacBook Pro</strong><small>M1 PRO · macOS</small></div></div><div class="tools-content reveal"><div class="tools-tabs" role="tablist" aria-label="Software groups"><button class="tool-tab active" data-tool="development" role="tab" aria-selected="true">DEVELOPMENT</button><button class="tool-tab" data-tool="ai" role="tab" aria-selected="false">AI & THINKING</button><button class="tool-tab" data-tool="vr" role="tab" aria-selected="false">OTHER WORLDS</button><button class="tool-tab" data-tool="daily" role="tab" aria-selected="false">EVERYDAY</button></div><div class="tools-list" id="tools-list"></div><div class="tools-footer"><span>MY TOOLS CHANGE. THE CURIOSITY DOESN'T.</span><span>LAST EDITED / 2026 ↗</span></div></div></div><div class="devices-row reveal"><div class="device-item"><span>02 / DAILY · MOBILE</span><strong>iPhone 16 Pro Max</strong><small>mobile</small></div><div class="device-item"><span>03 / DAILY · AUDIO</span><strong>AirPods Pro 3</strong><small>audio</small></div><div class="device-item"><span>04 / PLAY · VR</span><strong>Quest 3</strong><small>VR</small></div><div class="device-item"><span>05 / PLAY · LAPTOP</span><strong>Gaming Laptop</strong><small>7945HX · RTX 5070 Ti</small></div><div class="device-item"><span>06 / PLAY · DESKTOP</span><strong>Desktop PC</strong><small>5800X · RX 6900 XT</small></div><div class="device-item"><span>07 / PLAY · TABLET</span><strong>Xiaomi Pad 7S Pro</strong><small>tablet</small></div></div></section>
+      <section class="archive-section editorial-section" id="archive">
+        <div class="section-intro reveal">
+          <div class="section-number">02 / THE MEMORY VAULT</div>
+          <div class="section-intro-main">
+            <h2>Fragments<br /><em>of elsewhere.</em></h2>
+            <p>
+              Sometimes reality is a little too ordinary. These are postcards from the places I've
+              been — real, virtual, and somewhere in between.
+            </p>
+          </div>
+        </div>
+        <div class="archive-meta reveal">
+          <span>VISUAL DIARY © 2026</span><span id="archive-count">19 FRAGMENTS IN THE VAULT</span
+          ><span>CLICK · USE ARROWS TO BROWSE ↗</span>
+        </div>
+        <div class="archive-grid" id="archive-grid"></div>
+        <div class="archive-end reveal">
+          <span>MEMORIES ARE NOT MEANT TO STAY STILL.</span
+          ><a
+            class="underline-link"
+            href="https://kalieri.com/photo"
+            target="_blank"
+            rel="noreferrer"
+            >EXPLORE THE ORIGINAL ARCHIVE ↗</a
+          >
+        </div>
+      </section>
 
-    <section class="about-bridge"><span class="about-bridge-index">SELF PORTRAIT / 005</span><div class="about-avatar"><img src="https://kalieri.com/assets/avatar.webp" alt="Kalieri's avatar" onerror="this.style.opacity=0" /></div><div class="about-bridge-copy"><span class="eyebrow">A FEW MORE THINGS ABOUT ME</span><p>20 / STUDENT / <i>INTJ-A</i><br/>LEARNING JAPANESE / <i>CREATING</i><br/>AMATEUR VRCHAT DANCER / <i>CURIOUS</i><br/>USUALLY HERE, OCCASIONALLY SOMEWHERE ELSE.</p></div><div class="about-kanji" aria-hidden="true">夢</div></section>
+      <section class="journal-section editorial-section" id="journal">
+        <div class="section-intro reveal">
+          <div class="section-number">03 / THINGS ON MY MIND</div>
+          <div class="section-intro-main">
+            <h2>Notes from<br /><em>the margins.</em></h2>
+            <p>
+              Unfinished thoughts, small discoveries, and the occasional number that becomes a
+              memory.
+            </p>
+          </div>
+        </div>
+        <div class="journal-list">
+          <button class="journal-entry reveal" data-post="0">
+            <span class="journal-no">NOTE № 001</span
+            ><span class="journal-name">对抗无聊 <small>Against boredom</small></span
+            ><span class="journal-date">JAN 29, 2026</span
+            ><span class="journal-arrow">↗</span></button
+          ><button class="journal-entry reveal" data-post="1">
+            <span class="journal-no">NOTE № 002</span
+            ><span class="journal-name">1 <small>Running log</small></span
+            ><span class="journal-date">FEB 02, 2026</span><span class="journal-arrow">↗</span>
+          </button>
+        </div>
+        <div class="journal-foot">
+          <span>A FEW WORDS, LEFT HERE FOR LATER.</span><span>STAY CURIOUS. ✳</span>
+        </div>
+      </section>
 
-    <footer class="footer" id="contact"><div class="footer-top"><span>05 / THE OTHER SIDE OF THE SCREEN</span><span>LET'S MAKE THE INTERNET A LITTLE LESS LONELY.</span></div><div class="footer-main"><span>Have something<br/>in mind?</span><a href="mailto:contact@kalieri.com" class="footer-big-link">Say hello<span>↗</span></a></div><div class="footer-links"><a href="https://github.com/Musdkar" target="_blank" rel="noreferrer">GITHUB ↗</a><a href="mailto:contact@kalieri.com">EMAIL ↗</a><a href="https://kalieri.com" target="_blank" rel="noreferrer">ORIGINAL SITE ↗</a><button id="back-top">BACK TO TOP ↑</button></div><div class="footer-bottom"><span>KALIERI® <span class="footer-year">© 2026</span></span><span>FROM THIS CORNER OF THE WORLD, WITH CURIOSITY.</span><span>STILL HERE <span class="live-pulse"></span></span></div></footer>
-  </main>
+      <section class="uses-section editorial-section" id="uses">
+        <div class="section-intro reveal">
+          <div class="section-number">04 / MY EVERYDAY COMPANIONS</div>
+          <div class="section-intro-main">
+            <h2>The toolkit<span class="accent-period">.</span></h2>
+            <p>
+              The devices I use, the tools I return to, and a few habits that quietly shape my days.
+            </p>
+          </div>
+        </div>
+        <div class="tools-layout">
+          <div class="tools-feature reveal">
+            <span class="micro">THE MACHINE I COME BACK TO</span>
+            <div class="device-sculpture" aria-hidden="true">
+              <div class="laptop-screen">
+                <span class="laptop-glow"></span
+                ><span class="laptop-text">hello,<br />world<span>.</span></span>
+              </div>
+              <div class="laptop-base"></div>
+            </div>
+            <div class="device-desc">
+              <span>001 / DAILY DRIVER</span><strong>MacBook Pro</strong
+              ><small>M1 PRO · macOS</small>
+            </div>
+          </div>
+          <div class="tools-content reveal">
+            <div class="tools-tabs" role="tablist" aria-label="Software groups">
+              <button
+                class="tool-tab active"
+                data-tool="development"
+                role="tab"
+                aria-selected="true"
+              >
+                DEVELOPMENT</button
+              ><button class="tool-tab" data-tool="ai" role="tab" aria-selected="false">
+                AI & THINKING</button
+              ><button class="tool-tab" data-tool="vr" role="tab" aria-selected="false">
+                OTHER WORLDS</button
+              ><button class="tool-tab" data-tool="daily" role="tab" aria-selected="false">
+                EVERYDAY
+              </button>
+            </div>
+            <div class="tools-list" id="tools-list"></div>
+            <div class="tools-footer">
+              <span>MY TOOLS CHANGE. THE CURIOSITY DOESN'T.</span><span>LAST EDITED / 2026 ↗</span>
+            </div>
+          </div>
+        </div>
+        <div class="devices-row reveal">
+          <div class="device-item">
+            <span>02 / DAILY · MOBILE</span><strong>iPhone 16 Pro Max</strong><small>mobile</small>
+          </div>
+          <div class="device-item">
+            <span>03 / DAILY · AUDIO</span><strong>AirPods Pro 3</strong><small>audio</small>
+          </div>
+          <div class="device-item">
+            <span>04 / PLAY · VR</span><strong>Quest 3</strong><small>VR</small>
+          </div>
+          <div class="device-item">
+            <span>05 / PLAY · LAPTOP</span><strong>Gaming Laptop</strong
+            ><small>7945HX · RTX 5070 Ti</small>
+          </div>
+          <div class="device-item">
+            <span>06 / PLAY · DESKTOP</span><strong>Desktop PC</strong
+            ><small>5800X · RX 6900 XT</small>
+          </div>
+          <div class="device-item">
+            <span>07 / PLAY · TABLET</span><strong>Xiaomi Pad 7S Pro</strong><small>tablet</small>
+          </div>
+        </div>
+      </section>
 
-  <button class="floating-console" id="floating-console" aria-label="Open navigation command deck"><span>✳</span><small>QUICK JUMP</small></button>
-  <div class="modal-backdrop" id="modal-backdrop" hidden><div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Close">✕</button><div id="modal-content"></div></div></div>
-  <div class="command-backdrop" id="command-backdrop" hidden><div class="command-panel" role="dialog" aria-modal="true" aria-label="Jump to section"><div class="command-head"><span>✳</span> WHERE TO? <span>ESC TO CLOSE</span></div><div class="command-options"><button data-target="#top"><span>00</span> THE BEGINNING <b>↗</b></button><button data-target="#signal"><span>01</span> THE SIGNAL <b>↗</b></button><button data-target="#archive"><span>02</span> THE ARCHIVE <b>↗</b></button><button data-target="#journal"><span>03</span> THE NOTES <b>↗</b></button><button data-target="#uses"><span>04</span> THE TOOLKIT <b>↗</b></button><button data-target="#contact"><span>05</span> SAY HELLO <b>↗</b></button></div></div></div>
-  <script type="module" src="./main.js"></script>
-</body>
+      <section class="about-bridge">
+        <span class="about-bridge-index">SELF PORTRAIT / 005</span>
+        <div class="about-avatar">
+          <img
+            src="https://kalieri.com/assets/avatar.webp"
+            alt="Kalieri's avatar"
+            onerror="this.style.opacity = 0"
+          />
+        </div>
+        <div class="about-bridge-copy">
+          <span class="eyebrow">A FEW MORE THINGS ABOUT ME</span>
+          <p>
+            20 / STUDENT / <i>INTJ-A</i><br />LEARNING JAPANESE / <i>CREATING</i><br />AMATEUR
+            VRCHAT DANCER / <i>CURIOUS</i><br />USUALLY HERE, OCCASIONALLY SOMEWHERE ELSE.
+          </p>
+        </div>
+        <div class="about-kanji" aria-hidden="true">夢</div>
+      </section>
+
+      <footer class="footer" id="contact">
+        <div class="footer-top">
+          <span>05 / THE OTHER SIDE OF THE SCREEN</span
+          ><span>LET'S MAKE THE INTERNET A LITTLE LESS LONELY.</span>
+        </div>
+        <div class="footer-main">
+          <span>Have something<br />in mind?</span
+          ><a href="mailto:contact@kalieri.com" class="footer-big-link">Say hello<span>↗</span></a>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/Musdkar" target="_blank" rel="noreferrer">GITHUB ↗</a
+          ><a href="mailto:contact@kalieri.com">EMAIL ↗</a
+          ><button id="back-top">BACK TO TOP ↑</button>
+        </div>
+        <div class="footer-bottom">
+          <span>KALIERI® <span class="footer-year">© 2026</span></span
+          ><span>FROM THIS CORNER OF THE WORLD, WITH CURIOSITY.</span
+          ><span>STILL HERE <span class="live-pulse"></span></span>
+        </div>
+      </footer>
+    </main>
+
+    <button
+      class="floating-console"
+      id="floating-console"
+      aria-label="Open navigation command deck"
+    >
+      <span>✳</span><small>QUICK JUMP</small>
+    </button>
+    <div class="modal-backdrop" id="modal-backdrop" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+        <div id="modal-content"></div>
+      </div>
+    </div>
+    <div class="command-backdrop" id="command-backdrop" hidden>
+      <div class="command-panel" role="dialog" aria-modal="true" aria-label="Jump to section">
+        <div class="command-head"><span>✳</span> WHERE TO? <span>ESC TO CLOSE</span></div>
+        <div class="command-options">
+          <button data-target="#top"><span>00</span> THE BEGINNING <b>↗</b></button
+          ><button data-target="#signal"><span>01</span> THE SIGNAL <b>↗</b></button
+          ><button data-target="#archive"><span>02</span> THE ARCHIVE <b>↗</b></button
+          ><button data-target="#journal"><span>03</span> THE NOTES <b>↗</b></button
+          ><button data-target="#uses"><span>04</span> THE TOOLKIT <b>↗</b></button
+          ><button data-target="#contact"><span>05</span> SAY HELLO <b>↗</b></button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
 </html>

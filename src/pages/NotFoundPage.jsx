@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { useT } from "../i18n";
 
 // Unknown URLs render an explicit not-found view instead of silently redirecting
@@ -13,7 +12,7 @@ export default function NotFoundPage() {
         <span>404</span>
         <h3>{T.notFoundTitle}</h3>
         <p>{T.notFoundBody}</p>
-        <Link to="/">← {T.backHome}</Link>
+        <a href="/">← {T.backHome}</a>
       </div>
     </div>
   );

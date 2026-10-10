@@ -1,8 +1,19 @@
 # ruoli-presence
 
-A personal digital-presence site with a fixed identity rail and four editorial views:
+A personal digital-presence site. **AFTER HOURS** is the approved production homepage;
+the existing React archive, blog and toolkit keep their routes.
 
-- **Home** — live presence overview
+`npm run build` compiles the React routes, retains their entry as `routes.html`,
+then publishes the approved files from `experiments/after-hours` as `index.html`
+with the same anonymous `/api/presence` chain. The Azure navigation fallback serves
+the React entry for `/photo`, `/blog`, `/blog/:slug`, `/uses`, `/email` and unknown
+routes; `/` serves AFTER HOURS. The previous homepage and its opening link are removed.
+The build copies only the reviewed browser files and images, including the shared
+sanitizer; no collector, development server, private config or stale single-file
+preview enters `dist`.
+
+The retained React site has a fixed identity rail and three editorial views:
+
 - **Photo** — VRChat / visual archive
 - **Blog** — Markdown-ready long-form notes
 - **Uses** — software inventory
@@ -11,12 +22,12 @@ The UI is custom; mature projects own the data collection and common rendering p
 
 ## Existing wheels used
 
-- **React Router** — shared layout + Home / Photo / Blog / Uses routing while keeping About Me stable.
+- **React Router** — shared layout + Photo / Blog / Uses routing while keeping About Me stable.
 - **Lanyard + `use-lanyard`** — Discord status, VRCX/VRChat Rich Presence, iPhone Focus KV, and Spotify as a fallback music source.
 - **Local music bridge** — macOS Now Playing for Apple Music / Netease Music → `/api/music` → canonical `music_now`; live states expire to `last_played`, while the last track and artwork are retained indefinitely.
 - **WhatPulse** — one local, read-only collector for both Software and Keyboard. Today’s Software aggregate comes from raw ActivityWatch `aw-watcher-window` events without AFK intersection, so foreground reading/thinking/video time still counts. Today’s keyboard counters come from WhatPulse and are quantized locally to 0–15 heat levels before upload. No window titles, URLs, key order, hourly buckets, or exact per-key counts leave the computer.
 - **Health Auto Export** — Apple Health. POST JSON to `/api/health`; the endpoint reduces it to steps/latest heart rate and writes the summary to Lanyard KV.
-- **React Photo Album** — Masonry archive. Home uses one contained photo over a blurred copy so the whole frame remains visible.
+- **React Photo Album** — Masonry archive.
 - **react-markdown + remark-gfm** — blog rendering without a custom Markdown parser.
 - **Self-hosted brand icons** — software logos in Uses are served from `/assets/software-icons/`, not a third-party CDN; a monogram fallback covers any missing file.
 - **MapLibre + OpenFreeMap** — locked city-level map.
@@ -52,7 +63,7 @@ npm run dev        # Vite dev server
 npm run lint       # ESLint
 npm run format     # Prettier --write
 npm test           # Vitest (normalizers, presence, cache, SEO, build guard)
-npm run build      # vite build + bundle-budget guard
+npm run build      # Vite routes + AFTER HOURS entry + bundle-budget guard
 npm run check      # lint + test + build
 ```
 
@@ -64,8 +75,8 @@ renderer must stay in on-demand chunks — never in the initial bundle.
 
 ```
 src/
-  app/        App, Layout (keep-mounted Home), Router
-  pages/      Home, Blog, BlogPost, Photo, Uses, NotFound
+  app/        App, Layout, Router
+  pages/      Blog, BlogPost, Photo, Uses, NotFound
   components/ Sidebar, toggles, LangPicker, BrandMark, cards/*
   hooks/      useTheme, useResolvedTheme, useFastLanyard, useWeather
   lib/        normalize, presence, lanyard-cache, weather, seo, format

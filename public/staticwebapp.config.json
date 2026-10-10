@@ -1,9 +1,13 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/api/*", "*.{png,jpg,jpeg,gif,svg,webp,ico,css,js}"]
+    "rewrite": "/routes.html",
+    "exclude": ["/assets/*", "/lib/*", "/api/*", "*.{png,jpg,jpeg,gif,svg,webp,ico,css,js,mjs}"]
   },
   "routes": [
+    {
+      "route": "/",
+      "rewrite": "/index.html"
+    },
     {
       "route": "/assets/*.{js,css}",
       "headers": {
@@ -24,5 +28,8 @@
   ],
   "globalHeaders": {
     "Cache-Control": "public, max-age=0, must-revalidate"
+  },
+  "mimeTypes": {
+    ".mjs": "text/javascript"
   }
 }
