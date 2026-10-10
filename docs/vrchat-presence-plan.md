@@ -1,16 +1,16 @@
 # AFTER HOURS 的 VRChat 状态同步方案
 
-核验日期：2026-10-10。用户说明 VPS 已保存 VRChat 登录 Cookie，并用于检测好友状态。已确认实际服务器是 CPA 正在连接的 `20.243.64.134:2222`，采集器为 `/home/azureuser/vrcx-collector`。现有 kai 会话通过身份核验，并已取得本人 `/users/{id}` 的 HTTP 200 响应；发布链路尚缺 Lanyard 写入 key。
+核验日期：2026-10-10。现有 VPS 采集器的本人状态发布已启用，真实记录已经过 Lanyard、预览专属匿名接口和浏览器显示。采集器为 `/home/azureuser/vrcx-collector`，复用已核验的 kai 会话；Cookie 未离开原采集器，Lanyard key 仅保存于 VPS 私有配置。
 
 ## 建议采用的路径
 
 **针对你已有的 VPS：现有采集器 → 本人状态过滤模块 → Lanyard KV → 匿名只读 `/api/presence` → AFTER HOURS。**
 
-复用现有采集器的会话和串行调度，不创建第二套登录或并行进程。现有 keepalive 为 1800 秒，不能用于 180 秒的网页有效期；可选发布钩子启用后，在同一循环里每 60–90 秒查询固定本人一次。Cookie 继续仅由现有私有采集进程持有；新发布模块与网站只处理状态和观测时间，不能读取或复制 Cookie。若当前采集器只输出好友状态，要增加本人状态适配，并计入同一限频预算。
+复用现有采集器的会话和串行调度，不创建第二套登录或并行进程。现有 keepalive 为 1800 秒，不能用于 180 秒的网页有效期；已启用的发布钩子在同一循环里每 60–90 秒查询固定本人一次。发布模块不自行读取 Cookie 文件，只通过原会话查询本人；发给 Lanyard 的独立会话没有 VRChat Cookie。
 
 这是对现有服务的最小扩展建议，不是对云端访问官方合规性的保证。若会话频繁失效、遇到 IP 挑战，或希望采用更符合设备/IP 指引的来源，再切换到 Windows 本地 VRCX → HTTPS 接收器 → 同一发布链路。两种来源只能启用一个，避免相互覆盖。
 
-1GB VPS 可以作为轻量发布模块的候选：优先在现有程序中增加一个小模块，保存单条最新记录，不需要在 VPS 上运行完整 VRCX 桌面程序或新增公网入口。若使用独立接收器，给它设置例如 128MB 的内存预算并测量实际占用；这不是对当前 VPS 剩余资源的保证，现已备份并安装默认关闭的可选钩子；未重启原服务。模块无需新增依赖或公网端口。
+1GB VPS 可以作为轻量发布模块的候选：在现有程序中增加小模块，保存单条最新记录，不需要在 VPS 上运行完整 VRCX 桌面程序或新增公网入口。若使用独立接收器，给它设置例如 128MB 的内存预算并测量实际占用；这不是对当前 VPS 剩余资源的保证。本次已备份原程序、安装并启用钩子，于 2026-10-10 04:48:39 UTC 重启服务，随后确认两个原有账户均登录成功、本人发布持续更新。模块无需新增依赖或公网端口。
 
 ## API 能做什么，官方怎样看待
 
@@ -27,7 +27,7 @@ VRChat 的最新 Creator Guidelines 允许按规则开发 API 应用，但没有
 | 方案 | 适合的工作 | 主要问题 | 建议 |
 | --- | --- | --- | --- |
 | GitHub Actions + Secrets | 构建、部署、低频检查 | 定时最短 5 分钟，会延迟或丢弃任务；只在默认分支运行；临时运行器难以安全持续保存更新后的 Cookie，并从云端 IP 访问 VRChat | 不作为实时状态采集器 |
-| VPS private daemon 直接访问 VRChat | 复用你已运行的采集器，电脑关闭后仍可观测服务端状态 | 服务器持有账户会话、异地 IP、登录挑战；与官方设备/IP 指引存在冲突，不能保证合规或稳定 | 本次先评估复用现有服务，不新增会话；只扩展最小发布模块 |
+| VPS private daemon 直接访问 VRChat | 复用你已运行的采集器，电脑关闭后仍可观测服务端状态 | 服务器持有账户会话、异地 IP、登录挑战；与官方设备/IP 指引存在冲突，不能保证合规或稳定 | 本次已复用现有服务，仅扩展最小发布模块 |
 | Windows 本地 VRCX 同步 | PC 使用时，复用本机已有状态与本人登录流程 | 需要核验版本和可用接口；电脑关机时不能覆盖 Quest 独立使用 | 更贴近设备/IP 指引，作为替代来源；使用同一过期与兜底协议 |
 
 GitHub 的调度限制见[官方 schedule 文档](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)。VRCX 是维护中的 VRChat 工具，但不能假定每个版本都提供现成的通用 HTTP 状态接口；实施前检查你安装的版本与实际数据入口。[VRCX 项目](https://github.com/vrcx-team/VRCX)
@@ -40,7 +40,7 @@ GitHub 的调度限制见[官方 schedule 文档](https://docs.github.com/en/act
 | --- | --- | --- |
 | 已有 VRChat 登录会话 | 现有 VPS 采集器的私有 cookie jar；或替代方案中的本机 VRCX | 保持原持有者范围，不复制给 GitHub、网页或新接收器 |
 | `VRCHAT_INGEST_TOKEN`（拟新增） | Windows 的凭据存储；接收器的私有配置 | 只允许向本站单一状态入口发布 |
-| 现有 `LANYARD_API_KEY` | 接收器所在后端的环境配置 | 写入 Lanyard KV；不交给浏览器或 Windows bridge |
+| 现有 `LANYARD_API_KEY` | 本次为 VPS 权限 0600 的 `presence-private.json`；iPhone 原后端仍使用其环境配置 | 写入 Lanyard KV；不交给浏览器或 Windows bridge |
 | GitHub Actions Secrets | GitHub 仓库或环境设置 | 只供需要的 CI 任务读取，例如部署凭据 |
 | 非敏感的接口地址、字段约定 | 仓库配置 | 可公开、可审查 |
 
@@ -61,7 +61,7 @@ Secrets 是 GitHub 提供的加密配置机制，环境变量是程序运行时�
 }
 ```
 
-上面是格式示例，不是已采集数据。公开 `status` 枚举沿用 `online / active / join me / ask me / busy / offline`；你可以只公开 `online`，减少社交偏好暴露。未知时不写 `offline`，而是停止更新、让记录过期。
+上面是格式示例。实际公开 `status` 严格只接受 API `state` 的 `online / active / offline`，不接受 `join me / ask me / busy` 等社交偏好。未知时不写 `offline`，而是停止更新、让记录过期。
 
 VRChat 用户数据中的 `state` 与 `status` 是不同字段。社交偏好 `active` / `busy` 不能独立证明正在游戏；VRCX 正在运行、网页登录成功、VRChat 进程存在或 SQLite 中有历史记录，也不能独立证明当前会话在线。适配器必须在当前版本上验证实际游戏状态的映射，未识别的新值进入未知态。任何原始位置只在本地用于判定，之后立即丢弃。[用户响应字段](https://vrchat.community/reference/get-user)
 
@@ -97,21 +97,24 @@ VPS relay 使用现有 TLS 反向代理；接收服务只监听 localhost，关�
 - 预览专属 `experiments/after-hours/api/presence.js` 替换旧 rewrite，直接读取已核验的同一个公开 Lanyard 用户。该函数没有写 key 或 VRChat Cookie，不支持写请求，不允许访客指定上游。读取后使用原有 sanitizer / KV allowlist。实验目录中的 sanitizer 是指向原模块的符号链接，部署时上传原模块内容；没有第二份过滤规则。
 - 独立过期检查在页面前台每 10 秒及恢复前台时执行，成功读取与否都不影响 180 秒有效期。旧 Discord 活动也会过期；没有新鲜证据时显示 `NO PUBLIC SIGNAL`。iPhone 保留原有 36 小时 Focus 更新规则。
 - 原站与预览原代理曾因请求 User-Agent 返回 Cloudflare 403，带正常浏览器 UA 时现已验证 HTTP 200。新的预览读函数直接读取 Lanyard，不修改原站防护或原站 API。
-- 已有原站 iPhone 记录与公开 Lanyard 记录一致。当前 Lanyard 尚无 `vrchat_presence`；因此不能声称网站实时同步已接通。
+- 已有原站 iPhone 记录与预览记录一致，发布前后状态和更新时间未被改写。真实 `vrchat_presence` 仅有 `status` 和 `observedAt`；首次成功观测时间为 2026-10-10 04:48:42.466 UTC，后续观测更新至 04:52:24.570 UTC。服务已连续发布四次，无发布警告或新的登录标记。
+- 实际浏览器显示 `OWNER SYNC / WEB ACTIVE`，游戏在线效果未亮起。用户确认此时仅挂着 VRCX、没有进入任何世界；此场景与 `active` 对得上。不能由此推断游戏启动、进入世界或退出游戏的全部状态转换均已验收。
+- 使用首条真实公开记录在本地页面回放一次成功读取，后续读取返回 503；等待实际观测时间满 180 秒后，页面回退为 `NO PUBLIC SIGNAL`，iPhone 仍显示 `Mostly online / iPhone / Focus`。没有停止真实 VPS 采集器，也没有向公开 Lanyard 写测试状态。
 
-## 在 VPS 私下补齐 key
+## 私有配置与维护
 
-已有文件：`/home/azureuser/vrcx-collector/after-hours-hook-staging/configure_presence.py`。
-在你的 SSH 会话中执行：
+私有配置已由用户填写并启用，权限与文件所有者已核验；不需要再次提供 key。需要更换 Lanyard key 时，在 VPS 的私有 SSH 会话中执行已有设置脚本：
 
 ```sh
 python3 /home/azureuser/vrcx-collector/after-hours-hook-staging/configure_presence.py
 ```
 
-输入用于 iPhone 同步的 Lanyard API key（输入不显示）。它写入权限 0600 的 `presence-private.json`，不写入 GitHub、不进入网页；不要提供 VRChat Cookie、账户密码或 2FA 秘钥。填好后由维护者重启采集器并验证实际写入、匿名读取、页面显示和停止后的过期。当前尚未重启服务，因此现有好友监测仍在运行。
+输入用于 iPhone 同步的 Lanyard API key（输入不显示）。它写入权限 0600 的 `presence-private.json`，不写入 GitHub、不进入网页；不要提供 VRChat Cookie、账户密码或 2FA 秘钥。更换配置后重启 `vrcx-collector.service`，再检查真实时间戳是否继续更新。源认证失效时使用原采集器的私有登录流程；只有本人完成必要的 2FA 后才恢复有效观测。
 
 回退：关闭私有配置的 enabled 或移走该配置即可在下一次重启时禁用发布。完整代码回退使用 VPS 安装时保存的 `after-hours-backup-<UTC timestamp>/collector.py`，然后重启原服务；模块可留在磁盘上但不再调用。预览读链回退可恢复旧 rewrite，原站与 main 全程不变。
 
 ## 验证边界
 
-已测试 iPhone online / VRChat offline、iPhone sleeping / VRChat online、网页 active、旧数据和未来时间、接口失败、任意上游参数、过滤敏感字段、源 401/429/500、Lanyard 401，以及禁用时零请求。测试不往公开 Lanyard 写假状态。实际 game online/offline 转换、发布成功以及端到端过期，必须在 key 配置后继续核验。
+自动检查覆盖 iPhone online / VRChat offline、iPhone sleeping / VRChat online、网页 active、旧数据和未来时间、接口失败、任意上游参数、过滤敏感字段、源 401/429/500、Lanyard 401、无效私有配置、日志不记录状态历史，以及禁用时零请求。发布器的八项测试在启用前重新通过。
+
+真实发布、持续更新时间、预览匿名读取、桌面与移动尺寸中的当前状态已验证。本地浏览器以真实记录验证读取持续失败时的 180 秒过期回退；这没有模拟真实服务器停机。当前仅 VRCX 活跃且未入世界的场景获得用户确认，实际启动/进入/退出 VRChat 游戏的转换仍待验收。原站与 main 未修改；原站原 allowlist 不返回新 VRChat 键。
