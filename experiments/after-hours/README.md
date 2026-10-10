@@ -110,3 +110,9 @@ The position of the site owner is contextual telemetry, not part of the site's b
 - A dark purple / slate / teal treatment integrates the map with the editorial palette. Unused iframe controls are cropped, and the owner marker and OpenStreetMap attribution remain visible.
 - The hero uses the available viewport height after the header, with responsive type, globe dimensions and compact spacing for short screens. Intro, sonnet, actions and the bottom strip fit common desktop/tablet/mobile sizes; enlarged text and unusually small viewports can still grow naturally.
 - [VRChat presence architecture and rollout plan](../../docs/vrchat-presence-plan.md): assess reuse of the owner's existing VPS collector without a second login or polling loop; keep credentials scoped to that private process. Windows-local VRCX is an alternative closer to the API device/IP guidelines. No collector is connected to the website by this visual update. The current preview forwards to the original site's API, whose allowlist must be addressed separately before independent VRChat records can appear.
+
+## v1.8: avatar map and restored Worldline choreography
+
+- The map reuses the original site's VRChat map portrait, bundled locally, as a circular marker. The standard OSM pin is removed.
+- The map shows a wider regional view, based on a rounded city centre; the external map opens at zoom 8. Decimal coordinates and explicit approximation notices are omitted from the visible map panel. The dark palette and input passthrough remain.
+- Fixed the navigation selector returning one element where the scroll renderer expected a list. That exception stopped all subsequent scene updates. The **More than one world** interlude once again pins to the viewport while its three photo stages, captions and timeline follow actual scroll progress; reduced-motion behavior is preserved.

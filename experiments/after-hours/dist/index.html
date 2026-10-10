@@ -298,6 +298,9 @@ body{overflow-x:clip}
 .location-map-viewport iframe{position:absolute;inset:-64px;width:calc(100% + 128px);height:calc(100% + 128px);border:0;pointer-events:none;filter:grayscale(1) invert(1) sepia(.18) saturate(1.4) hue-rotate(155deg) brightness(.72) contrast(1.15)}
 .location-map-viewport::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(125deg,#4c2c6859,#22233b20 55%,#22505e40),radial-gradient(ellipse at center,transparent 35%,#100c2070);mix-blend-mode:screen}
 .location-map-caption{position:absolute;top:18px;right:18px;z-index:2;pointer-events:none;background:#110e1fe6;padding:8px 10px;color:#bdb0d1;font:9px var(--mono);letter-spacing:.04em}
+.location-map-avatar{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:72px;height:72px;padding:3px;border:1px solid #c7b5ecb0;border-radius:50%;background:#151221;box-shadow:0 0 0 8px #a18ab516,0 0 0 9px #c7b5ec28,0 8px 26px #080710b0;z-index:3;pointer-events:none}
+.location-map-avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+@media(max-width:560px){.location-map-avatar{width:62px;height:62px}}
 .map-corner{position:absolute;color:var(--lime);font:26px var(--mono);z-index:2;pointer-events:none;text-shadow:0 0 11px #12161e}
 .map-corner-tl{top:12px;left:17px}.map-corner-br{bottom:11px;right:18px}
 .location-map-attribution{position:absolute;bottom:13px;left:14px;z-index:3;background:#080a10df;color:#c4bfcc;padding:8px 10px;backdrop-filter:blur(9px);font:9px var(--mono)}
@@ -424,14 +427,15 @@ body{overflow-x:clip}
       </div>
       <div class="coordinate-strip reveal">
  <div class="location-heading">
-  <div><span class="location-eyebrow">FIELD RECORDING / LOCATION</span><h3>Where I am<span>.</span></h3><p>One point on a much larger map. For now.</p></div>
-  <div class="location-facts"><span id="location-coordinates">--° N / --° E</span><a id="location-map-link" href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OPEN IN MAP ↗</a></div>
+  <div><span class="location-eyebrow">FIELD RECORDING / LOCATION</span><h3>Where I am<span>.</span></h3><p>Somewhere around here. For now.</p></div>
+  <div class="location-facts"><a id="location-map-link" href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OPEN IN MAP ↗</a></div>
  </div>
  <div class="location-map-stage">
-  <div class="location-map-viewport" role="img" aria-label="Static map of my approximate location. Use Open in Map to explore.">
-   <iframe id="location-map" title="Static location map" loading="lazy" tabindex="-1" inert aria-hidden="true" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <div class="location-map-viewport" role="img" aria-label="Static regional map. Use Open in Map to explore.">
+   <iframe id="location-map" title="Static regional map" loading="lazy" tabindex="-1" inert aria-hidden="true" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </div>
-  <span class="location-map-caption" aria-hidden="true">A POINT IN THE WORLD / APPROXIMATE LOCATION</span>
+  <div class="location-map-avatar"><img src="./assets/map-avatar.webp" alt="Kalieri's VRChat avatar" width="66" height="66" loading="lazy" decoding="async" /></div>
+  <span class="location-map-caption" aria-hidden="true">A CORNER OF THE WORLD</span>
   <span class="map-corner map-corner-tl" aria-hidden="true">+</span><span class="map-corner map-corner-br" aria-hidden="true">+</span>
   <div class="location-map-attribution">MAP DATA <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OPENSTREETMAP CONTRIBUTORS · ODbL</a></div>
  </div>
@@ -489,15 +493,14 @@ const OWNER_LOCATION=Object.freeze({
   city:'Wuhan',region:'Hubei',country:'CN',
   latitude:30.5928,longitude:114.3055,timeZone:'Asia/Shanghai'
 });
-function coordinateText(value,isLatitude){
-  return `${Math.abs(value).toFixed(4)}° ${isLatitude?(value>=0?'N':'S'):(value>=0?'E':'W')}`;
-}
 $('#weather-city').textContent=OWNER_LOCATION.city.toUpperCase();
 $('#weather-region').textContent=`↗ ${OWNER_LOCATION.region.toUpperCase()}, ${OWNER_LOCATION.country}`;
-$('#location-coordinates').textContent=`${coordinateText(OWNER_LOCATION.latitude,true)} / ${coordinateText(OWNER_LOCATION.longitude,false)}`;
-$('#location-map-link').href=`https://www.openstreetmap.org/#map=12/${OWNER_LOCATION.latitude}/${OWNER_LOCATION.longitude}`;
-const mapBounds=[OWNER_LOCATION.longitude-.065,OWNER_LOCATION.latitude-.037,OWNER_LOCATION.longitude+.065,OWNER_LOCATION.latitude+.037].map(v=>v.toFixed(5)).join(',');
-$('#location-map').src=`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(mapBounds)}&layer=mapnik&marker=${encodeURIComponent(OWNER_LOCATION.latitude+','+OWNER_LOCATION.longitude)}`;
+// The map is a regional illustration, never a precise owner-location pin.
+const mapLatitude=Math.round(OWNER_LOCATION.latitude*10)/10;
+const mapLongitude=Math.round(OWNER_LOCATION.longitude*10)/10;
+$('#location-map-link').href=`https://www.openstreetmap.org/#map=8/${mapLatitude}/${mapLongitude}`;
+const mapBounds=[mapLongitude-1.2,mapLatitude-.7,mapLongitude+1.2,mapLatitude+.7].map(v=>v.toFixed(1)).join(',');
+$('#location-map').src=`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(mapBounds)}&layer=mapnik`;
 
 
 const photoData = [
@@ -778,7 +781,7 @@ function renderScrollScenes(){
   }
   const currentId=chapterEntries[currentChapter].el.id;
   const navId=['signal','archive','journal','uses'].includes(currentId)?currentId:null;
-  $('.desktop-nav a[data-nav]').forEach(link=>{
+  $$('.desktop-nav a[data-nav]').forEach(link=>{
     const active=link.dataset.nav===navId;
     link.classList.toggle('active',active);
     if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');

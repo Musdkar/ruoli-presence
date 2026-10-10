@@ -18,15 +18,14 @@ const OWNER_LOCATION=Object.freeze({
   city:'Wuhan',region:'Hubei',country:'CN',
   latitude:30.5928,longitude:114.3055,timeZone:'Asia/Shanghai'
 });
-function coordinateText(value,isLatitude){
-  return `${Math.abs(value).toFixed(4)}° ${isLatitude?(value>=0?'N':'S'):(value>=0?'E':'W')}`;
-}
 $('#weather-city').textContent=OWNER_LOCATION.city.toUpperCase();
 $('#weather-region').textContent=`↗ ${OWNER_LOCATION.region.toUpperCase()}, ${OWNER_LOCATION.country}`;
-$('#location-coordinates').textContent=`${coordinateText(OWNER_LOCATION.latitude,true)} / ${coordinateText(OWNER_LOCATION.longitude,false)}`;
-$('#location-map-link').href=`https://www.openstreetmap.org/#map=12/${OWNER_LOCATION.latitude}/${OWNER_LOCATION.longitude}`;
-const mapBounds=[OWNER_LOCATION.longitude-.065,OWNER_LOCATION.latitude-.037,OWNER_LOCATION.longitude+.065,OWNER_LOCATION.latitude+.037].map(v=>v.toFixed(5)).join(',');
-$('#location-map').src=`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(mapBounds)}&layer=mapnik&marker=${encodeURIComponent(OWNER_LOCATION.latitude+','+OWNER_LOCATION.longitude)}`;
+// The map is a regional illustration, never a precise owner-location pin.
+const mapLatitude=Math.round(OWNER_LOCATION.latitude*10)/10;
+const mapLongitude=Math.round(OWNER_LOCATION.longitude*10)/10;
+$('#location-map-link').href=`https://www.openstreetmap.org/#map=8/${mapLatitude}/${mapLongitude}`;
+const mapBounds=[mapLongitude-1.2,mapLatitude-.7,mapLongitude+1.2,mapLatitude+.7].map(v=>v.toFixed(1)).join(',');
+$('#location-map').src=`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(mapBounds)}&layer=mapnik`;
 
 
 const photoData = [
@@ -307,7 +306,7 @@ function renderScrollScenes(){
   }
   const currentId=chapterEntries[currentChapter].el.id;
   const navId=['signal','archive','journal','uses'].includes(currentId)?currentId:null;
-  $('.desktop-nav a[data-nav]').forEach(link=>{
+  $$('.desktop-nav a[data-nav]').forEach(link=>{
     const active=link.dataset.nav===navId;
     link.classList.toggle('active',active);
     if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');
