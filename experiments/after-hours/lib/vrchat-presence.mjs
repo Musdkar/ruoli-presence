@@ -8,8 +8,19 @@ export function selectVrchatPresence(presence, receivedAt, now = Date.now()) {
   if (Number.isFinite(seen) && seen <= now + 60000 && now - seen < VRCHAT_MAX_AGE &&
       ['online', 'active', 'offline'].includes(status)) {
     const live = !['active', 'offline'].includes(status);
+    const loc = live ? owner.location : null;
+    if (loc?.kind === 'private') return {
+      live, source: 'OWNER SYNC', state: 'ONLINE', title: 'Somewhere private.', detail: 'PRIVATE · Location hidden.',
+    };
+    if (loc?.kind === 'traveling') return {
+      live, source: 'OWNER SYNC', state: 'TRAVELING', title: 'Between worlds.', detail: 'TRAVELING · Changing worlds.',
+    };
+    if (loc?.kind === 'world' && typeof loc.worldName === 'string' && loc.worldName.trim() &&
+        ['public', 'friends', 'friends+', 'group public', 'group+'].includes(loc.access)) return {
+      live, source: 'OWNER SYNC', state: 'ONLINE', title: loc.worldName.slice(0, 120), detail: `${loc.access.toUpperCase()} INSTANCE · In VRChat.`,
+    };
     return {
-      live, source: 'OWNER SYNC', state: status === 'active' ? 'WEB ACTIVE' : status.toUpperCase(),
+      live, source: 'OWNER SYNC', state: status === 'active' ? 'ACCOUNT ACTIVE' : status.toUpperCase(),
       title: live ? 'Beyond the screen. ✳' : 'Between worlds.',
       detail: live ? 'VRChat game connection reported.' : status === 'active' ?
         'Active on VRChat; no game connection reported.' : 'VRChat reports the account offline.',

@@ -22,9 +22,9 @@ PORT=5000 npm start
 
 ## Vercel deployment
 
-Upload/import this project into a separate Vercel project. The framework can be **Other**, with no build command, and the output directory can be the project root. The included `vercel.json` forwards the **read-only** `/api/presence` request to the existing public API at `https://kalieri.com/api/presence`. It does not ingest or write any telemetry.
+Upload/import this project into a separate Vercel project. The framework can be **Other**, with no build command, and the output directory can be the project root. The dedicated `api/presence.js` function reads the fixed owner’s public Lanyard record and applies the shared KV allowlist. It accepts read requests only and has no credentials or ingest capability. The original deployment is independent.
 
-A self-contained single-page alternative is at `dist/index.html`; it contains all HTML, CSS and JavaScript inline. If you deploy only this file, remember to include `vercel.json` for live-presence proxying.
+Deploy the modular source, including `lib/`, `api/`, and bundled assets. `lib/presence-sanitize.mjs` is a symlink to the canonical root API filter; file-upload deployments must dereference it. A previously generated local `dist/index.html` is not the current release source.
 
 ## New in v1.1 — WORLDLINE
 
@@ -46,7 +46,7 @@ A self-contained single-page alternative is at `dist/index.html`; it contains al
 
 ## Important integration notes
 
-This is a **standalone visual theme prototype**, not a wholesale migration of the original React application. It reuses existing **public** image endpoints and the **read-only** public presence API. For a permanent replacement, we'd merge the design into the existing repo so routing, SEO, multilingual strings and publication workflows remain first class. The new demo deliberately does not alter ingest endpoints, privacy controls, collectors, API keys or original deployment.
+This is a **standalone visual theme prototype**, not a wholesale migration of the original React application. It reuses existing **public** image endpoints and the **read-only** public presence API. For a permanent replacement, we'd merge the design into the existing repo so routing, SEO, multilingual strings and publication workflows remain first class. The original deployment and ingest endpoints remain independent. The approved optional VPS hook publishes only owner VRChat data through the same Lanyard account; it does not overwrite iPhone or other KV keys.
 
 - Photos and the avatar are fetched from `https://kalieri.com/assets/`; the user's browser must be able to access that site.
 - Weather is loaded from Open-Meteo in the browser. Live telemetry is requested at `/api/presence` every 10 seconds only while visible.
@@ -61,8 +61,9 @@ This is a **standalone visual theme prototype**, not a wholesale migration of th
 - `styles.css` — design system, layout, visuals, responsive rules
 - `main.js` — animations, interactions, public data adapters
 - `server.mjs` — no-dependency local Node server and presence proxy
-- `vercel.json` — Vercel read-only route proxy
-- `dist/index.html` — self-contained build
+- `vercel.json` — dedicated preview configuration
+- `api/presence.js` — anonymous fixed-owner Lanyard reader
+- `lib/` — shared data filter and VRChat view adapter
 - `desktop-hero.png` and `mobile-hero.png` — offline-captured first-fold visual previews
 
 Designed as a fresh direction rather than a superficial reskin. © 2026 Kalieri.
@@ -109,7 +110,7 @@ The position of the site owner is contextual telemetry, not part of the site's b
 - The location embed is now a static visual: pointer events pass through to page scrolling, while `inert` and `tabindex=-1` exclude its controls from keyboard navigation. The separate **Open in Map** and map-data attribution links remain interactive.
 - A dark purple / slate / teal treatment integrates the map with the editorial palette. Unused iframe controls are cropped, and the owner marker and OpenStreetMap attribution remain visible.
 - The hero uses the available viewport height after the header, with responsive type, globe dimensions and compact spacing for short screens. Intro, sonnet, actions and the bottom strip fit common desktop/tablet/mobile sizes; enlarged text and unusually small viewports can still grow naturally.
-- [VRChat presence architecture and rollout plan](../../docs/vrchat-presence-plan.md): assess reuse of the owner's existing VPS collector without a second login or polling loop; keep credentials scoped to that private process. Windows-local VRCX is an alternative closer to the API device/IP guidelines. No collector is connected to the website by this visual update. The current preview forwards to the original site's API, whose allowlist must be addressed separately before independent VRChat records can appear.
+- [VRChat presence architecture and rollout plan](../../docs/vrchat-presence-plan.md): assess reuse of the owner's existing VPS collector without a second login or polling loop; keep credentials scoped to that private process. Windows-local VRCX is an alternative closer to the API device/IP guidelines. This visual update preceded collector activation. The later dedicated preview reader and approved VPS hook now supply independent VRChat records; the original site’s allowlist remains unchanged.
 
 ## v1.8: avatar map and restored Worldline choreography
 
@@ -122,3 +123,11 @@ The position of the site owner is contextual telemetry, not part of the site's b
 - Removed the map's `A CORNER OF THE WORLD` overlay; the avatar and external map link remain.
 - Constrained the orbital stage width by available viewport height so the globe is no longer cropped in short desktop windows. Compact first-fold typography also keeps the full opening content visible.
 - Brought the mobile globe fully into view, with fewer decorative annotations and an icon-only recenter control retaining its accessible label.
+
+## v1.11: owner world presence
+
+- Existing VPS owner hook now resolves authenticated current presence and cached world metadata, following VRCX’s distinction between current location and connection state.
+- 01.07 displays a visible world name and access label; Invite/Invite+, group members, non-public worlds and hidden social states display **PRIVATE**. **TRAVELING** never reveals the destination. Unsupported data is kept unknown.
+- Only approved display fields enter Lanyard and the shared anonymous API. Instance IDs, nonce, join URLs, friends and credentials stay private. Names render as text, wrap on mobile and clamp to three lines with a title tooltip.
+- Account activity now says **ACCOUNT ACTIVE**, accurately covering VRCX as well as web activity. The iPhone/Focus card and opening status remain separate.
+- Old names clear on active/offline and after the existing 180-second validity window, including repeated read failures. The current live account-active scene is distinct from local browser fixtures used to check world displays; real enter/leave transitions still require in-game observation.

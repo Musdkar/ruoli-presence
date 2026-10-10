@@ -210,6 +210,7 @@ function updateVR(presence){
   const view = selectVrchatPresence(presence, lastPresenceReceivedAt);
   $('.tile-portal').classList.toggle('is-live', view.live);
   $('#vr-title').textContent = view.title;
+  $('#vr-title').title = view.title;
   $('#vr-detail').textContent = view.detail;
   $('#vr-state').textContent = view.state;
   $('#vr-source').textContent = view.source;

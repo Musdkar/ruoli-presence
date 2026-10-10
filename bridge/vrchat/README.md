@@ -5,20 +5,40 @@ passwords or Cookie files. It reuses that session on the existing serial loop.
 Only account kai and the fixed website owner can publish; the other account is
 untouched. Without presence-private.json, it makes no requests.
 
-The collector's API `state` determines connection presence; `status` is a social
-preference and is ignored. Only state and observation time enter public Lanyard
-KV, under the fixed vrchat_presence key. Phone, music and other keys are untouched.
-The source observations and writer use separate HTTP sessions. No raw profile,
-location, friends, response body or authentication value is logged or published.
+`GET /users/{owner}` supplies connection state (`online`, `active`, `offline`).
+Only while online, `GET /auth/user` supplies the authenticated owner's current
+presence, as in VRCX. Its `state` is ignored. Social `status` cannot prove game
+presence; `ask me` and `busy` only suppress public location.
 
-Upload the three Python files to a private staging directory on the VPS, then
-run install_hook.py. It checks exact anchors, compiles the new source and backs
-up collector.py before installing. It does not restart the service.
+The fixed Lanyard `vrchat_presence` key contains `status`, `observedAt` and, only
+while online, an optional filtered `location`. A visible public-release world
+may publish `kind: world`, `worldName` (max 120 characters) and an access label
+(public, friends, friends+, group public, group+). Invite, Invite+, group members,
+non-public worlds and hidden social states publish `kind: private` without a
+name. Traveling publishes only `kind: traveling`; unrecognized data publishes
+only `kind: unknown`. Ambiguous access fails closed. No instance or world IDs,
+join URLs, nonce, group or friend details enter public KV. Names render as text.
+
+Current location is checked on every 60–90 second randomized observation.
+World metadata is cached in memory (max 32 entries, one-hour TTL); the previous
+location is never retained by that cache. HTTP errors and 2FA stop publication,
+respect retry/backoff, and never retimestamp old data. The browser expires a
+record after 180 seconds. A short traveling phase can fall between observations.
+
+Phone, music and other keys are untouched. Source observations and publication
+use separate HTTP sessions. No raw profile, location, response body, credential
+or game history is logged. Cookie authentication and 2FA stay with the existing
+collector; this module never logs in or opens a listener.
+
+For a first install, upload the three Python files to a private staging directory,
+then run install_hook.py. It checks exact anchors, compiles the new source and
+backs up collector.py before installing; it does not restart the service. For
+an existing hook, back up and replace only presence_publisher.py, run the fixture
+tests, compile it and restart the existing collector. Preserve private config.
 
 Run configure_presence.py on the VPS to privately enter the existing Lanyard
-API key. The resulting file is mode 0600 and excluded from Git. Restart the
-collector only after configuring, then verify a real KV record and browser.
-Authentication and 2FA remain handled by the existing collector; this module
-never calls login. Missing/failed observations expire instead of emitting offline.
+API key when needed. The resulting file is mode 0600 and excluded from Git.
+After restart, verify real KV timestamps and the preview browser. Fixture tests
+alone do not prove real in-game location transitions.
 
 Tests: python3 -m unittest discover -s bridge/vrchat -p 'test_*.py'

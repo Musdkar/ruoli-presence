@@ -118,6 +118,7 @@ html{overflow-x:clip}
 .tile-portal.is-live .portal-rim{border-color:#d8ffa1a8;box-shadow:0 0 35px #baf9b755,0 0 0 23px #c1f5940b}
 .tile-portal.is-live .portal-core{color:var(--lime);text-shadow:0 0 35px #d8ffa180}
 .tile-portal.is-live #vr-state{color:var(--lime)}
+#vr-title{overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
 .tile-music.is-playing .vinyl{animation:slow-spin 9s linear infinite}
 .tile-music:not(.is-playing) .equalizer i{animation-play-state:paused}
 

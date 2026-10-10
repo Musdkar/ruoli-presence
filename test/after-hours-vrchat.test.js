@@ -12,8 +12,8 @@ describe('independent iPhone and VRChat signals',()=>{
   expect(getDisplayPresence(data,now).status).toBe('online');
   expect(selectVrchatPresence(data,now,now)).toMatchObject({live:false,state:'OFFLINE',source:'OWNER SYNC'});
  });
- it('VRChat web active never lights the game-online tile',()=>{
-  expect(selectVrchatPresence(presence('active'),now,now)).toMatchObject({live:false,state:'WEB ACTIVE'});
+ it('VRChat account active never lights the game-online tile',()=>{
+  expect(selectVrchatPresence(presence('active'),now,now)).toMatchObject({live:false,state:'ACCOUNT ACTIVE'});
  });
  it('social moods cannot be used as connection presence',()=>{
   for(const status of ['busy','join me','ask me'])expect(selectVrchatPresence(presence(status),now,now).live).toBe(false);
@@ -59,5 +59,35 @@ describe('preview anonymous read API',()=>{
   const res=response();await createPresenceHandler({fetcher:async()=>{throw new Error('Cookie=secret');}})({method:'GET'},res);
   expect(res.statusCode).toBe(503);expect(res.headers['Cache-Control']).toBe('no-store');
   expect(JSON.stringify(res.body)).not.toContain('secret');
+ });
+});
+
+describe('owner world display and privacy',()=>{
+ it('shows visible world names with room access while phone remains independent',()=>{
+  const data=presence('online');data.kv.vrchat_presence.location={kind:'world',worldName:'A quiet world',access:'friends+'};
+  const view=selectVrchatPresence(data,now,now);
+  expect(view.title).toBe('A quiet world');expect(view.detail).toContain('FRIENDS+');expect(view.live).toBe(true);
+  expect(getDisplayPresence(data,now).status).toBe('online');
+ });
+ it('clears world names for private rooms, travel, and expired observations',()=>{
+  const data=presence('online');
+  data.kv.vrchat_presence.location={kind:'private',worldName:'private name'};
+  expect(selectVrchatPresence(data,now,now).detail).toContain('PRIVATE');
+  expect(JSON.stringify(selectVrchatPresence(data,now,now))).not.toContain('private name');
+  data.kv.vrchat_presence.location={kind:'traveling',worldName:'destination'};
+  expect(selectVrchatPresence(data,now,now).state).toBe('TRAVELING');
+  expect(JSON.stringify(selectVrchatPresence(data,now,now))).not.toContain('destination');
+  data.kv.vrchat_presence.location={kind:'world',worldName:'A quiet world',access:'public'};
+  expect(JSON.stringify(selectVrchatPresence(data,now,now+180000))).not.toContain('A quiet world');
+ });
+ it('the anonymous API permits only filtered location fields and hides private names',async()=>{
+  const data=presence('online');data.kv.vrchat_presence.location={kind:'world',worldName:'Visible world',access:'public',worldId:'secret',instanceId:'secret',nonce:'secret'};
+  const res=response();await createPresenceHandler({fetcher:async()=>({ok:true,json:async()=>({success:true,data})})})({method:'GET'},res);
+  expect(res.body.data.kv.vrchat_presence.location).toEqual({kind:'world',worldName:'Visible world',access:'public'});
+  expect(JSON.stringify(res.body)).not.toContain('secret');
+  data.kv.vrchat_presence.location={kind:'private',worldName:'hidden name',instanceId:'secret'};
+  const hidden=response();await createPresenceHandler({fetcher:async()=>({ok:true,json:async()=>({success:true,data})})})({method:'GET'},hidden);
+  expect(hidden.body.data.kv.vrchat_presence.location).toEqual({kind:'private'});
+  expect(JSON.stringify(hidden.body)).not.toContain('hidden name');
  });
 });

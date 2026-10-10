@@ -62,8 +62,8 @@ export function sanitizePresence(value) {
       const item = boundedKvValue(value.kv[key]);
       if (item === null) continue;
       if (key === "vrchat_presence") {
-        // Allow only the owner's explicitly published status and observation time.
-        // In particular, never expose current world IDs, instance IDs, friends,
+        // Allow the owner's filtered status, time and optional world display.
+        // Never expose world IDs, instance IDs, friends,
         // authentication cookies or profile data in the anonymous public API.
         let record = item;
         if (typeof record === "string") {
@@ -75,6 +75,17 @@ export function sanitizePresence(value) {
         if (!["online", "active", "offline"].includes(status?.toLowerCase()) ||
             !observedAt || !Number.isFinite(Date.parse(observedAt))) continue;
         kv[key] = { status: status.toLowerCase(), observedAt };
+        const loc = record.location;
+        if (kv[key].status === "online" && loc && typeof loc === "object" && !Array.isArray(loc)) {
+          if (["private", "traveling", "unknown"].includes(loc.kind)) {
+            kv[key].location = { kind: loc.kind };
+          } else if (loc.kind === "world") {
+            const rawName = cleanText(loc.worldName, 120);
+            const worldName = rawName && Array.from(rawName).filter(ch => ch.codePointAt(0) >= 32 && ch.codePointAt(0) !== 127).join("").trim();
+            const access = ["public", "friends", "friends+", "group public", "group+"].includes(loc.access) ? loc.access : null;
+            kv[key].location = worldName && access ? { kind: "world", worldName, access } : { kind: "unknown" };
+          }
+        }
         continue;
       }
       kv[key] = item;

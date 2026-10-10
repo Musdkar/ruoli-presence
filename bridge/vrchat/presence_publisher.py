@@ -15,14 +15,84 @@ USER_AGENT = 'AFTER-HOURS/1.0 (+https://kalieri.com)'
 log = logging.getLogger('after-hours-presence')
 
 
-def public_record(user, owner_id, observed_at):
+def location_descriptor(user):
+    """Parse VRCX-style owner presence; identifiers stay inside the collector."""
+    if user.get('status') in ('ask me', 'busy'):
+        return {'kind': 'private'}
+    presence = user.get('presence')
+    instance_type = None
+    if isinstance(presence, dict):
+        instance_type = presence.get('instanceType')
+        if instance_type == 'private':
+            return {'kind': 'private'}
+        if instance_type not in (None, '', 'public', 'friends', 'hidden', 'group'):
+            return {'kind': 'unknown'}
+        world = presence.get('world')
+        instance = presence.get('instance')
+        tag = f'{world}:{instance}' if isinstance(world, str) and world.startswith('wrld_') and isinstance(instance, str) else world
+    else:
+        tag = user.get('location')
+    if tag in ('private', 'private:private'):
+        return {'kind': 'private'}
+    if tag in ('traveling', 'traveling:traveling'):
+        return {'kind': 'traveling'}
+    if not isinstance(tag, str) or len(tag) > 2048:
+        return {'kind': 'unknown'}
+    match = re.fullmatch(r'(wrld_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}):([A-Za-z0-9_-]{1,128})(.*)', tag)
+    if not match:
+        return {'kind': 'unknown'}
+    wid, _, suffix = match.groups()
+    qualifiers = {}
+    for part in suffix.split('~')[1:]:
+        q = re.fullmatch(r'([A-Za-z]+)(?:\(([^()]*)\))?', part)
+        if not q or q[1] not in ('private', 'hidden', 'friends', 'group', 'groupAccessType', 'canRequestInvite', 'region', 'nonce', 'strict', 'ageGate') or q[1] in qualifiers:
+            return {'kind': 'unknown'}
+        qualifiers[q[1]] = q[2]
+    if suffix and not suffix.startswith('~'):
+        return {'kind': 'unknown'}
+    if 'private' in qualifiers or qualifiers.get('groupAccessType') == 'members':
+        return {'kind': 'private'}
+    if sum(key in qualifiers for key in ('friends', 'hidden', 'group')) > 1:
+        return {'kind': 'unknown'}
+    access = 'public'
+    if 'friends' in qualifiers:
+        access = 'friends'
+    elif 'hidden' in qualifiers:
+        access = 'friends+'
+    elif 'group' in qualifiers:
+        access = {'public': 'group public', 'plus': 'group+'}.get(qualifiers.get('groupAccessType'))
+        if not access:
+            return {'kind': 'private'}
+    elif 'groupAccessType' in qualifiers or 'canRequestInvite' in qualifiers:
+        return {'kind': 'unknown'}
+    if instance_type == 'group' and 'group' not in qualifiers:
+        return {'kind': 'private'}
+    if instance_type in ('friends', 'hidden') and access == 'public':
+        access = 'friends' if instance_type == 'friends' else 'friends+'
+    return {'kind': 'world', 'worldId': wid, 'access': access}
+
+
+def public_record(user, owner_id, observed_at, *, world=None):
     if not isinstance(user, dict) or user.get('id') != owner_id or user.get('requiresTwoFactorAuth'):
         return None
-    # state is connection presence; status is a social preference and is ignored.
+    # state proves connection presence; status can only hide a location.
     state = user.get('state')
     if state not in ('online', 'active', 'offline'):
         return None
-    return {'status': state, 'observedAt': observed_at.isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
+    record = {'status': state, 'observedAt': observed_at.isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
+    if state == 'online':
+        loc = location_descriptor(user)
+        if loc['kind'] == 'world':
+            if not isinstance(world, dict) or world.get('id') != loc['worldId']:
+                loc = {'kind': 'unknown'}
+            elif world.get('releaseStatus') != 'public':
+                loc = {'kind': 'private'}
+            else:
+                name = world.get('name')
+                name = re.sub(r'[\x00-\x1f\x7f]', '', name).strip()[:120] if isinstance(name, str) else ''
+                loc = {'kind': 'world', 'worldName': name, 'access': loc['access']} if name else {'kind': 'unknown'}
+        record['location'] = loc
+    return record
 
 
 class PresencePublisher:
@@ -36,6 +106,7 @@ class PresencePublisher:
         self.jitter = jitter or random.uniform
         self.next_due = 0
         self.failures = 0
+        self.world_cache = {}
 
     @classmethod
     def from_private_config(cls, account, path='presence-private.json'):
@@ -88,11 +159,52 @@ class PresencePublisher:
                 self._backoff(response)
                 log.warning('AFTER HOURS source unavailable: HTTP %s', response.status_code)
                 return
-            record = public_record(response.json(), self.owner_id, self.clock())
+            user = response.json()
+            observed_at = self.clock()
+            record = public_record(user, self.owner_id, observed_at)
             if record is None:
                 self._backoff()
                 log.warning('AFTER HOURS source unavailable: unrecognized owner presence')
                 return
+            if record['status'] == 'online':
+                # Like VRCX, use authenticated CurrentUser.presence for own location.
+                # /auth/user.state is intentionally ignored: it always says offline.
+                current = source_session.get(
+                    'https://api.vrchat.cloud/api/1/auth/user',
+                    headers={'User-Agent': USER_AGENT}, timeout=8, allow_redirects=False)
+                if current.status_code != 200:
+                    self._backoff(current)
+                    log.warning('AFTER HOURS owner location unavailable: HTTP %s', current.status_code)
+                    return
+                snapshot = current.json()
+                if not isinstance(snapshot, dict) or snapshot.get('id') != self.owner_id or snapshot.get('requiresTwoFactorAuth'):
+                    self._backoff()
+                    log.warning('AFTER HOURS owner location unavailable: authentication required')
+                    return
+                user = {**snapshot, 'state': 'online'}
+                desc = location_descriptor(user)
+                world = None
+                if desc['kind'] == 'world':
+                    wid = desc['worldId']
+                    cached = self.world_cache.get(wid)
+                    if cached and self.monotonic() - cached[0] < 3600:
+                        world = cached[1]
+                    else:
+                        meta = source_session.get(
+                            'https://api.vrchat.cloud/api/1/worlds/' + wid,
+                            headers={'User-Agent': USER_AGENT}, timeout=8, allow_redirects=False)
+                        if meta.status_code != 200:
+                            self._backoff(meta)
+                            log.warning('AFTER HOURS world metadata unavailable: HTTP %s', meta.status_code)
+                            return
+                        data = meta.json()
+                        if isinstance(data, dict):
+                            world = {k: data.get(k) for k in ('id', 'name', 'releaseStatus')}
+                            if len(self.world_cache) >= 32:
+                                self.world_cache.pop(next(iter(self.world_cache)))
+                            if world['id'] == wid:
+                                self.world_cache[wid] = (self.monotonic(), world)
+                record = public_record(user, self.owner_id, observed_at, world=world)
             if self.writer is None:
                 import requests
                 # A separate session must never inherit VRChat authentication.

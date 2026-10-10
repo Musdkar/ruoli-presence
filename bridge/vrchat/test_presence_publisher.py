@@ -14,7 +14,9 @@ class PublisherTests(unittest.TestCase):
  def test_state_wins_over_social_status_and_raw_fields_are_dropped(self):
   for state in ('online','active','offline'):
    record=public_record({'id':OWNER,'state':state,'status':'active','location':'private','friends':['secret'],'auth':'secret'},OWNER,NOW)
-   self.assertEqual(record,{'status':state,'observedAt':'2026-10-10T05:00:00.000Z'})
+   self.assertEqual(record['status'],state);self.assertEqual(record['observedAt'],'2026-10-10T05:00:00.000Z')
+   self.assertEqual(set(record),{'status','observedAt','location'} if state=='online' else {'status','observedAt'})
+   if state=='online':self.assertEqual(record['location'],{'kind':'private'})
  def test_wrong_owner_unknown_or_2fa_is_not_published(self):
   for payload in ({'id':'other','state':'online'},{'id':OWNER,'state':'unexpected'},{'id':OWNER,'state':'online','requiresTwoFactorAuth':['totp']}):
    self.assertIsNone(public_record(payload,OWNER,NOW))
@@ -54,4 +56,68 @@ class PublisherTests(unittest.TestCase):
   publisher=PresencePublisher(OWNER,'private-test-key',writer=writer,clock=lambda:NOW,monotonic=lambda:10,jitter=lambda a,b:a)
   with self.assertLogs('after-hours-presence',level='INFO') as captured:publisher.tick(source,OWNER)
   self.assertNotIn('online',' '.join(captured.output))
+
+class LocationTests(unittest.TestCase):
+ def test_private_and_hidden_status_never_publish_a_world_name(self):
+  for extra in ({'location':'private'}, {'location':'wrld_11111111-1111-1111-1111-111111111111:42~private(usr_owner)'}, {'status':'ask me','location':'wrld_11111111-1111-1111-1111-111111111111:42'}, {'status':'busy','location':'wrld_11111111-1111-1111-1111-111111111111:42'}):
+   record=public_record({'id':OWNER,'state':'online',**extra},OWNER,NOW)
+   self.assertEqual(record.get('location'),{'kind':'private'})
+ def test_traveling_ignores_the_destination_and_active_drops_old_location(self):
+  user={'id':OWNER,'state':'online','presence':{'world':'traveling','instance':'','travelingToWorld':'wrld_private'}}
+  self.assertEqual(public_record(user,OWNER,NOW).get('location'),{'kind':'traveling'})
+  user['state']='active'
+  self.assertNotIn('location',public_record(user,OWNER,NOW))
+ def test_visible_world_uses_authenticated_presence_and_never_exposes_ids(self):
+  wid='wrld_11111111-1111-1111-1111-111111111111'
+  user={'id':OWNER,'state':'online','location':'private','presence':{'world':wid,'instance':'42~hidden(usr_someone)~region(jp)~nonce(secret)'}}
+  world={'id':wid,'name':'A quiet world','releaseStatus':'public','instances':['secret'],'authorId':'secret'}
+  record=public_record(user,OWNER,NOW,world=world)
+  self.assertEqual(record['location'],{'kind':'world','worldName':'A quiet world','access':'friends+'})
+  self.assertNotIn('secret',json.dumps(record));self.assertNotIn(wid,json.dumps(record))
+ def test_unknown_qualifiers_or_private_world_metadata_fail_closed(self):
+  wid='wrld_11111111-1111-1111-1111-111111111111';base={'id':OWNER,'state':'online'}
+  for tag in (wid+':42~futureAccess(hidden)',wid, 'https://attacker.invalid/path'):
+   record=public_record({**base,'location':tag},OWNER,NOW)
+   self.assertEqual(record.get('location'),{'kind':'unknown'})
+  record=public_record({**base,'location':wid+':42'},OWNER,NOW,world={'id':wid,'name':'secret','releaseStatus':'private'})
+  self.assertEqual(record.get('location'),{'kind':'private'})
+ def test_cached_world_metadata_never_preserves_the_previous_room(self):
+  wid='wrld_11111111-1111-1111-1111-111111111111'
+  class Source:
+   def __init__(self):self.private=False;self.world_reads=0
+   def get(self,url,**kw):
+    if '/users/' in url:return Response(data={'id':OWNER,'state':'online'})
+    if '/auth/user' in url:return Response(data={'id':OWNER,'state':'offline','presence':{'world':'private' if self.private else wid,'instance':'42'}})
+    self.world_reads+=1;return Response(data={'id':wid,'name':'Visible world','releaseStatus':'public'})
+  source=Source();writer=Session(Response());t=[0]
+  pub=PresencePublisher(OWNER,'private-test-key',writer=writer,clock=lambda:NOW,monotonic=lambda:t[0],jitter=lambda a,b:a)
+  pub.tick(source,OWNER);t[0]=100;pub.tick(source,OWNER)
+  self.assertEqual(source.world_reads,1)
+  self.assertEqual(json.loads(writer.calls[-1][1]['json']['vrchat_presence'])['location']['worldName'],'Visible world')
+  source.private=True;t[0]=200;pub.tick(source,OWNER)
+  record=json.loads(writer.calls[-1][1]['json']['vrchat_presence'])
+  self.assertEqual(record['status'],'online');self.assertEqual(record['location'],{'kind':'private'})
+
+class LocationFailureTests(unittest.TestCase):
+ def test_conflicting_room_access_never_publishes_a_world_name(self):
+  wid='wrld_11111111-1111-1111-1111-111111111111'
+  user={'id':OWNER,'state':'online','location':wid+':42~friends(usr_owner)~group(grp_private)'}
+  world={'id':wid,'name':'Must be hidden','releaseStatus':'public'}
+  self.assertEqual(public_record(user,OWNER,NOW,world=world)['location'],{'kind':'unknown'})
+ def test_explicit_private_instance_type_hides_a_bare_instance_id(self):
+  user={'id':OWNER,'state':'online','presence':{'world':'wrld_11111111-1111-1111-1111-111111111111','instance':'42','instanceType':'private'}}
+  self.assertEqual(public_record(user,OWNER,NOW).get('location'),{'kind':'private'})
+ def test_auth_2fa_or_world_429_never_republishes_the_old_room(self):
+  wid='wrld_11111111-1111-1111-1111-111111111111'
+  for failure in ('auth','world'):
+   class Source:
+    def get(self,url,**kw):
+     if '/users/' in url:return Response(data={'id':OWNER,'state':'online'})
+     if '/auth/user' in url:return Response(data={'id':OWNER,'requiresTwoFactorAuth':['totp']} if failure=='auth' else {'id':OWNER,'presence':{'world':wid,'instance':'42'}})
+     return Response(429,headers={'Retry-After':'1000'})
+   writer=Session(Response());pub=PresencePublisher(OWNER,'private-test-key',writer=writer,clock=lambda:NOW,monotonic=lambda:0,jitter=lambda a,b:a)
+   pub.tick(Source(),OWNER)
+   self.assertEqual(writer.calls,[])
+   if failure=='world':self.assertGreaterEqual(pub.next_due,1000)
+
 if __name__=='__main__':unittest.main()
