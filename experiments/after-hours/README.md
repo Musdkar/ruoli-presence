@@ -85,3 +85,9 @@ Designed as a fresh direction rather than a superficial reskin. © 2026 Kalieri.
 - The author-specific globe now centres on Wuhan (30.5928° N, 114.3055° E) from the first frame. Reset eases the view back to Wuhan by the shortest rotation path; it no longer resets to arbitrary latitude zero. Manual pointer/keyboard controls remain.
 - Idle motion subtly sways around the home longitude instead of slowly rotating the home city out of view. The site does **not** request browser geolocation (which would refer to a visitor rather than Kalieri).
 - Updated peripheral labels and hero prose. The headline **A corner of the world** stays. Sonnet excerpt is from William Shakespeare, *Sonnet 14* (“Not from the stars do I my judgement pluck”), with attribution visible on the page.
+
+## Editorial and keyboard follow-up
+
+- Sonnet 14 is linked to the Folger Shakespeare Library source; accompanying copy is quieter and more deliberate.
+- The keyboard `R` shortcut allows the animated flight back to Wuhan to complete rather than cancelling it.
+- The original running-log title `1` and all seven devices are preserved.

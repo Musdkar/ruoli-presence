@@ -423,7 +423,11 @@ void main(){
     else if(event.key==='ArrowRight')yaw+=step;
     else if(event.key==='ArrowUp')pitch=clamp(pitch+step,-1.47,1.47);
     else if(event.key==='ArrowDown')pitch=clamp(pitch-step,-1.47,1.47);
-    else if(event.key.toLowerCase()==='r')resetOrientation();
+    else if(event.key.toLowerCase()==='r'){
+      event.preventDefault();
+      resetOrientation();
+      return;
+    }
     else return;
     event.preventDefault();returnHome=null;velocityX=0;velocityY=0;lastGesture=performance.now();schedule();
   });
