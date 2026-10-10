@@ -23,8 +23,10 @@ function coordinateText(value,isLatitude){
 }
 $('#weather-city').textContent=OWNER_LOCATION.city.toUpperCase();
 $('#weather-region').textContent=`↗ ${OWNER_LOCATION.region.toUpperCase()}, ${OWNER_LOCATION.country}`;
-$('#location-coordinates').innerHTML=`${coordinateText(OWNER_LOCATION.latitude,true)}<br />${coordinateText(OWNER_LOCATION.longitude,false)}`;
-$('#location-map-link').href=`https://www.openstreetmap.org/#map=10/${OWNER_LOCATION.latitude}/${OWNER_LOCATION.longitude}`;
+$('#location-coordinates').textContent=`${coordinateText(OWNER_LOCATION.latitude,true)} / ${coordinateText(OWNER_LOCATION.longitude,false)}`;
+$('#location-map-link').href=`https://www.openstreetmap.org/#map=12/${OWNER_LOCATION.latitude}/${OWNER_LOCATION.longitude}`;
+const mapBounds=[OWNER_LOCATION.longitude-.065,OWNER_LOCATION.latitude-.037,OWNER_LOCATION.longitude+.065,OWNER_LOCATION.latitude+.037].map(v=>v.toFixed(5)).join(',');
+$('#location-map').src=`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(mapBounds)}&layer=mapnik&marker=${encodeURIComponent(OWNER_LOCATION.latitude+','+OWNER_LOCATION.longitude)}`;
 
 
 const photoData = [
@@ -95,9 +97,38 @@ archiveViewMore.addEventListener('click',()=>{visiblePhotos=visiblePhotos===7?ph
 
 /* Modal: journal and lightbox */
 const modal=$('#modal-backdrop'); const modalContent=$('#modal-content');let restoreFocus=null;
-function showModal(content){restoreFocus=document.activeElement;modalContent.innerHTML=content;modal.hidden=false;document.body.style.overflow='hidden';$('#modal-close').focus();}
-function hideModal(){modal.hidden=true;modalContent.replaceChildren();document.body.style.overflow='';restoreFocus?.focus?.();}
-function openPhoto(index){const [id,date,caption]=photoData[index];showModal(`<p class="modal-type">MEMORY VAULT / FRAME ${String(index+1).padStart(2,'0')} — ${String(photoData.length).padStart(2,'0')}</p><h2 class="modal-title" id="modal-title">${caption}</h2><img class="modal-photo" src="${SOURCE_ASSETS}photos/${id}.webp" alt="${caption}"><div class="modal-photo-caption"><span>${date}</span><span>KALIERI / VISUAL ARCHIVE</span></div>`);}
+function showModal(content,mode='article'){restoreFocus=document.activeElement;modalContent.innerHTML=content;modal.classList.toggle('is-photo',mode==='photo');$('.modal-panel').classList.toggle('photo-mode',mode==='photo');modal.hidden=false;document.body.style.overflow='hidden';$('#modal-close').focus();}
+function hideModal(){modal.hidden=true;modal.classList.remove('is-photo');$('.modal-panel').classList.remove('photo-mode');modalContent.replaceChildren();document.body.style.overflow='';restoreFocus?.focus?.();}
+let activePhotoIndex=-1;
+function viewPhoto(index){
+  activePhotoIndex=(index+photoData.length)%photoData.length;
+  const [id,date,caption]=photoData[activePhotoIndex];
+  const img=$('#photo-viewer-image');if(!img)return;
+  img.src=`${SOURCE_ASSETS}photos/${id}.webp`;img.alt=caption;
+  $('#modal-title').textContent=caption;
+  $('#photo-viewer-date').textContent=date;
+  $('#photo-viewer-count').textContent=`${String(activePhotoIndex+1).padStart(2,'0')} / ${String(photoData.length).padStart(2,'0')}`;
+  for(const offset of [-1,1]){const next=new Image();next.src=`${SOURCE_ASSETS}photos/${photoData[(activePhotoIndex+offset+photoData.length)%photoData.length][0]}.webp`;}
+}
+function openPhoto(index){
+  showModal(`<div class="photo-viewer">
+   <div class="photo-viewer-head"><span>THE MEMORY VAULT / 19 FRAGMENTS</span><span id="photo-viewer-count" aria-live="polite"></span></div>
+   <div class="photo-viewer-stage" id="photo-viewer-stage">
+    <button class="photo-nav photo-prev" type="button" aria-label="Previous photograph">←</button>
+    <img id="photo-viewer-image" alt="" draggable="false">
+    <button class="photo-nav photo-next" type="button" aria-label="Next photograph">→</button>
+   </div>
+   <div class="photo-viewer-foot"><div><h2 class="photo-viewer-title" id="modal-title"></h2><span id="photo-viewer-date"></span></div><span class="photo-viewer-help">← → ARROWS · SWIPE · ESC</span></div>
+  </div>`,'photo');
+  $('.photo-prev').addEventListener('click',()=>viewPhoto(activePhotoIndex-1));
+  $('.photo-next').addEventListener('click',()=>viewPhoto(activePhotoIndex+1));
+  let down=null;
+  const stage=$('#photo-viewer-stage');
+  stage.addEventListener('pointerdown',e=>{if(!e.target.closest('button'))down={x:e.clientX,id:e.pointerId};});
+  stage.addEventListener('pointerup',e=>{if(down&&down.id===e.pointerId&&Math.abs(e.clientX-down.x)>55)viewPhoto(activePhotoIndex+(e.clientX<down.x?1:-1));down=null;});
+  stage.addEventListener('pointercancel',()=>{down=null;});
+  viewPhoto(index);
+}
 $$('.journal-entry').forEach(b=>b.addEventListener('click',()=>{const post=blogPosts[Number(b.dataset.post)];showModal(`<p class="modal-type">INTERNET FIELD NOTES / ${post.date}</p><h2 class="modal-title" id="modal-title">${post.title}</h2><p class="modal-sub">${post.subtitle} · ${post.date}</p><div class="modal-body">${post.html}</div>`);}));
 $('#modal-close').addEventListener('click',hideModal);modal.addEventListener('click',e=>{if(e.target===modal)hideModal();});
 
@@ -108,21 +139,30 @@ function closeCommand(){command.hidden=true;commandFocus?.focus?.();}
 $('#command-open').addEventListener('click',openCommand);$('#floating-console').addEventListener('click',openCommand);
 command.addEventListener('click',e=>{if(e.target===command)closeCommand();});
 $$('.command-options button').forEach(b=>b.addEventListener('click',()=>{const target=b.dataset.target;closeCommand();$(target)?.scrollIntoView({behavior:'smooth',block:'start'});}));
-document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();command.hidden?openCommand():closeCommand();}if(e.key==='Escape'){if(!modal.hidden)hideModal();if(!command.hidden)closeCommand();}});
+document.addEventListener('keydown',e=>{if(!modal.hidden&&modal.classList.contains('is-photo')&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();viewPhoto(activePhotoIndex+(e.key==='ArrowRight'?1:-1));return;}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();command.hidden?openCommand():closeCommand();}if(e.key==='Escape'){if(!modal.hidden)hideModal();if(!command.hidden)closeCommand();}});
 $('#back-top').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 
 /* Keyboard-shaped privacy-preserving heatmaps */
-const keyboardRows=[
+const macKeyboardRows=[
   [['ESC','ESC',1.3],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['0','0'],['-','MINUS'],['=','EQUAL']],
   [['TAB','TAB',1.5],...'QWERTYUIOP'.split('').map(x=>[x,x]),['[','BRACKETLEFT'],[']','BRACKETRIGHT']],
   [['CAPS','CAPSLOCK',1.8],...'ASDFGHJKL'.split('').map(x=>[x,x]),[';','SEMICOLON'],["'",'QUOTE'],['↵','ENTER',1.9]],
   [['SHIFT','SHIFT',2],...'ZXCVBNM'.split('').map(x=>[x,x]),[',','COMMA'],['.','PERIOD'],['/','SLASH'],['SHIFT','SHIFT',2]],
   [['CTRL','CONTROL',1.25],['⌥','ALT',1.25],['⌘','META',1.25],['','SPACE',6],['⌘','META',1.25],['←','ARROWLEFT'],['↓','ARROWDOWN'],['→','ARROWRIGHT']]
 ];
+const winKeyboardRows=[
+  [['ESC','ESC'],...'F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'.split(' ').map(k=>[k,k]),['DEL','DELETE',1.4]],
+  [['~','BACKQUOTE'],...'1234567890'.split('').map(x=>[x,x]),['-','MINUS'],['=','EQUAL'],['⌫','BACKSPACE',2.2]],
+  [['TAB','TAB',1.6],...'QWERTYUIOP'.split('').map(x=>[x,x]),['[','BRACKETLEFT'],[']','BRACKETRIGHT'],['\\','BACKSLASH',1.4]],
+  [['CAPS','CAPSLOCK',1.8],...'ASDFGHJKL'.split('').map(x=>[x,x]),[';','SEMICOLON'],["'",'QUOTE'],['↵','ENTER',2.2]],
+  [['SHIFT','SHIFT',2.3],...'ZXCVBNM'.split('').map(x=>[x,x]),[',','COMMA'],['.','PERIOD'],['/','SLASH'],['SHIFT','SHIFT',2.5]],
+  [['CTRL','CONTROL',1.2],['⊞','META',1.2],['ALT','ALT',1.2],['','SPACE',5],['ALT','ALT',1.2],['FN','FN',1],['MENU','CONTEXTMENU',1.2],['CTRL','CONTROL',1.2],['←','ARROWLEFT'],['↓','ARROWDOWN'],['→','ARROWRIGHT']]
+];
 let keyboards={mac:null,win:null},activeKeyboard='mac';
 function drawKeyboard(){
   const item=keyboards[activeKeyboard];$('#keyboard-total').textContent=item?fmt(item.total):'—';const outer=$('#keyboard-visual');outer.replaceChildren();
-  keyboardRows.forEach((row)=>{const r=document.createElement('div');r.className='kb-row';row.forEach(([label,key,size=1])=>{
+  outer.classList.toggle('is-windows',activeKeyboard==='win');const layout=activeKeyboard==='win'?winKeyboardRows:macKeyboardRows;
+  layout.forEach((row)=>{const r=document.createElement('div');r.className='kb-row';row.forEach(([label,key,size=1])=>{
     const val=item?.heat?.[key]??item?.heat?.[label]??0;
     const el=document.createElement('div');el.className='kb-key';el.style.setProperty('--heat',String(Math.min(1,Math.max(0,Number(val)/15||0))));el.style.setProperty('--size',size);el.textContent=label;el.title=key;r.append(el);
   });outer.append(r);});
@@ -166,18 +206,34 @@ function updateStatus(presence){const kv=presence?.kv||{};let label=null,source=
   $('#presence-dot').style.background=['online','dnd'].includes(status)?'var(--lime)':'var(--violet)';
 }
 function updateVR(presence){
+  const tile=$('.tile-portal');
+  const owner=safeParse(presence?.kv?.vrchat_presence);
+  const seen=Date.parse(owner?.observedAt||'');
+  const fresh=Number.isFinite(seen)&&seen<=Date.now()+60000&&Date.now()-seen<180000;
+  const status=typeof owner?.status==='string'?owner.status.toLowerCase():'';
+  // Owner-side publication, if configured later. Never put VRChat auth into public JS.
+  if(fresh&&['online','join me','active','ask me','busy','offline'].includes(status)){
+    const online=status!=='offline';
+    tile.classList.toggle('is-live',online);
+    $('#vr-title').textContent=online?'Beyond the screen. ✳':'Between worlds.';
+    $('#vr-detail').textContent=online?'VRChat presence shared by the owner.':'No current VRChat activity reported.';
+    $('#vr-state').textContent=status.toUpperCase();
+    $('#vr-source').textContent='OWNER SYNC';
+    return;
+  }
   const activities=Array.isArray(presence?.activities)?presence.activities:[];
-  const vr=activities.find(a=>a && typeof a.name==='string' && /VRChat|VRCX/i.test(a.name));
-  const tile=$('.tile-portal');tile.classList.toggle('is-live',Boolean(vr));
+  const vr=activities.find(a=>a&&typeof a.name==='string'&&/^VRChat$/i.test(a.name));
+  tile.classList.toggle('is-live',Boolean(vr));
   if(vr){
-    $('#vr-title').textContent='Somewhere else. ✳';
-    $('#vr-detail').textContent=String(vr.details||vr.state||vr.name).slice(0,120);
+    $('#vr-title').textContent='Beyond the screen. ✳';
+    $('#vr-detail').textContent=String(vr.details||vr.state||'VRChat activity detected').slice(0,120);
     $('#vr-state').textContent='ACTIVITY DETECTED';
   }else{
     $('#vr-title').textContent='The portal is quiet.';
-    $('#vr-detail').textContent='No VRChat activity in the public signal right now.';
-    $('#vr-state').textContent='NOT DETECTED';
+    $('#vr-detail').textContent='No verified VRChat activity in the public signal.';
+    $('#vr-state').textContent='NO PUBLIC SIGNAL';
   }
+  $('#vr-source').textContent='DISCORD ACTIVITY';
 }
 function updateHealth(v){const d=safeParse(v);if(!d||typeof d!=='object')return;const steps=numberWithin(d.steps,1e6);if(steps===null)return;
   $('#steps-number').textContent=fmt(Math.round(steps));const percent=Math.min(1,steps/6000);$('#steps-progress').style.strokeDashoffset=String(647.17*(1-percent));$('#steps-percent').textContent=`${Math.round(percent*100)}% OF DAILY GOAL`;
@@ -241,12 +297,21 @@ function renderScrollScenes(){
   $('#scroll-progress').style.width=`${progress*100}%`;
   $('#chapter-rail-progress').style.transform=`scaleY(${progress})`;
   chapterRail.classList.toggle('is-visible',y>vh*.55 && y<maxScroll-vh*.2);
+  let currentChapter=0;
   for(let i=chapterEntries.length-1;i>=0;i--){
     if(y+vh*.42>=chapterEntries[i].el.getBoundingClientRect().top+y){
+      currentChapter=i;
       if(motionCache.chapter!==i){motionCache.chapter=i;$('#chapter-count').innerHTML=`${chapterEntries[i].index} <i>/</i> 05`;$('#chapter-name').textContent=chapterEntries[i].name;}
       break;
     }
   }
+  const currentId=chapterEntries[currentChapter].el.id;
+  const navId=['signal','archive','journal','uses'].includes(currentId)?currentId:null;
+  $('.desktop-nav a[data-nav]').forEach(link=>{
+    const active=link.dataset.nav===navId;
+    link.classList.toggle('active',active);
+    if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');
+  });
   if(reducedMotion)return;
   for(const intro of $$('.section-intro')){
     const r=intro.getBoundingClientRect();

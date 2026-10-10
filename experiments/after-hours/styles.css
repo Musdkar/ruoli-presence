@@ -266,3 +266,44 @@ body{overflow-x:clip}
 .hero-sonnet figcaption a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:color .2s,border-color .2s}
 .hero-sonnet figcaption a:hover,.hero-sonnet figcaption a:focus-visible{color:var(--lime);border-color:currentColor}
 @media(prefers-reduced-motion:reduce){.hero-sonnet figcaption a{transition:none}}
+
+/* v1.6: a real contextual location map, rather than a decorative placeholder */
+.coordinate-strip{display:block;min-height:0;padding:0;overflow:hidden;border-color:var(--line-hi);margin-top:24px;background:#11131c}
+.location-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;padding:27px clamp(20px,3vw,37px) 24px}
+.location-eyebrow{font:10px var(--mono);color:var(--muted);letter-spacing:.07em}
+.location-heading h3{font:500 clamp(29px,4.3vw,55px)/1 var(--sans);letter-spacing:-.075em;margin:13px 0}
+.location-heading h3 span{color:var(--lime)}
+.location-heading p{font:12px/1.6 var(--mono);color:var(--dim);margin:0}
+.location-facts{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:14px;font:10px var(--mono);color:var(--muted)}
+.location-facts a{color:var(--lime);white-space:nowrap;padding:8px 11px;border:1px solid var(--line-hi);border-radius:3px}
+.location-facts a:hover{border-color:var(--lime)}
+.location-map-stage{position:relative;height:clamp(245px,27vw,355px);background:#141e27;overflow:hidden}
+.location-map-stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;filter:saturate(.65) contrast(1.06) brightness(.84)}
+.map-corner{position:absolute;color:var(--lime);font:26px var(--mono);z-index:2;pointer-events:none;text-shadow:0 0 11px #12161e}
+.map-corner-tl{top:12px;left:17px}.map-corner-br{bottom:11px;right:18px}
+.location-map-attribution{position:absolute;bottom:13px;left:14px;z-index:3;background:#080a10df;color:#c4bfcc;padding:8px 10px;backdrop-filter:blur(9px);font:9px var(--mono)}
+.location-map-attribution a{color:var(--lime);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:850px){.location-heading{padding:21px}.location-facts{justify-content:flex-start}.location-map-stage{height:270px}}
+@media(max-width:560px){.location-heading{display:block}.location-facts{justify-content:space-between;margin-top:16px}.location-heading h3{font-size:34px}.location-map-stage{height:270px}}
+
+/* Viewport-fitted photo browser; the separate note dialog still scrolls. */
+.modal-backdrop.is-photo{padding:0;background:rgba(4,5,12,.98);backdrop-filter:none}
+.modal-panel.photo-mode{width:100vw;height:100vh;height:100dvh;max-height:none;border:0;padding:0;overflow:hidden;display:flex;flex-direction:column;background:#080a11}
+.photo-mode #modal-content{flex:1;min-height:0;display:flex;flex-direction:column}
+.photo-mode .modal-close{position:absolute;top:20px;right:clamp(18px,3vw,45px);float:none;z-index:15}
+.photo-viewer{display:flex;flex:1;min-height:0;flex-direction:column;padding:clamp(20px,3vw,38px) clamp(17px,4vw,72px)}
+.photo-viewer-head{display:flex;justify-content:space-between;gap:60px;padding-right:70px;color:var(--muted);font:10px var(--mono);letter-spacing:.06em;flex-shrink:0}
+#photo-viewer-count{color:var(--lime);white-space:nowrap}
+.photo-viewer-stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;margin:15px 0 14px;overflow:hidden;touch-action:pan-y;background:radial-gradient(ellipse at 50% 40%,#25283a,#0b0e17 65%)}
+.photo-viewer-stage img{display:block;width:auto;max-width:100%;max-height:100%;height:auto;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.photo-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:5;border:1px solid #fbfbff49;background:#090c17b9;color:#f0ebff;width:49px;height:58px;display:grid;place-items:center;border-radius:3px;font:27px var(--sans);cursor:pointer;backdrop-filter:blur(13px)}
+.photo-nav:hover,.photo-nav:focus-visible{background:var(--lime);color:#090e0f;border-color:var(--lime)}
+.photo-prev{left:12px}.photo-next{right:12px}
+.photo-viewer-foot{min-height:66px;flex-shrink:0;display:flex;justify-content:space-between;align-items:flex-start;gap:22px}
+.photo-viewer-title{margin:0 0 5px;font:500 clamp(17px,2.4vw,30px)/1.14 var(--sans);letter-spacing:-.035em;color:var(--ink)}
+#photo-viewer-date,.photo-viewer-help{font:10px var(--mono);color:var(--muted)}
+.photo-viewer-help{white-space:nowrap;padding-top:8px}
+@media(max-width:560px){.photo-viewer{padding:18px 10px 15px}.photo-viewer-head{padding:0 62px 0 6px;font-size:8px}.photo-viewer-head>span:first-child{max-width:150px}.photo-viewer-stage{margin:12px 0;background:#0c0f19}.photo-nav{width:42px;height:52px;opacity:.91}.photo-prev{left:2px}.photo-next{right:2px}.photo-viewer-foot{padding:0 7px;min-height:62px}.photo-viewer-title{font-size:16px}.photo-viewer-help{display:none}}
+#keyboard-visual.is-windows .kb-row{gap:3px}
+#keyboard-visual.is-windows .kb-key{height:22px;font-size:7px}
+@media(max-width:560px){#keyboard-visual.is-windows .kb-key{font-size:6px;padding:0 1px}}

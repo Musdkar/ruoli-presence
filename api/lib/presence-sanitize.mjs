@@ -12,6 +12,7 @@
 // Device suffixes stay separate; nothing is merged across machines.
 const KV_KEYS = [
   "phone_presence",
+  "vrchat_presence",
   "apps_today",
   "health_today",
   "keyboard_today",

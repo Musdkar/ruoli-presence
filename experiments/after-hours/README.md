@@ -95,3 +95,11 @@ Designed as a fresh direction rather than a superficial reskin. © 2026 Kalieri.
 ## Location is data, not a visual theme
 
 The position of the site owner is contextual telemetry, not part of the site's brand. The previous draft overused a fixed city name in the hero, globe captions, reset action and footer; those are now neutral. The actual city is presented in the weather card, and coordinates are scoped to the optional map/location strip. The globe's **Recenter** points to the configured owner position, not the visitor's IP/GPS. Weather, time, map link, marker and globe view now read one `OWNER_LOCATION` object in `main.js` (currently a manual fallback; **automatic owner location synchronization is not implemented**). When an owner-location data feed is available, replace this one source. The location must never be inferred from a visitor.
+
+## v1.6: interaction repairs
+
+- Mac/Windows keyboard tabs now change the physical keyboard layout (the Windows view includes the Windows key, F1–F12, Backspace and a sixth row); both retain their independent heat data.
+- A real, lazy-loading OpenStreetMap iframe replaces the ornamental circles in the location section. Required ODbL map-data credit remains visible; the map can be opened externally.
+- Archive photos now use a viewport-fitted viewer with prev/next buttons, arrow keys, touch swipe, count, and ESC; the full 19-frame collection can be browsed from any frame without closing the viewer. Article modals keep their independent scrolling.
+- Header nav active link now follows the current scroll section and clears outside the four navigable chapters.
+- VRChat's users API requires authentication, and external automation is not officially supported. The frontend prioritizes a fresh owner-published `kv.vrchat_presence` record (if provided by a future authorised owner collector), else uses actual Discord VRChat activity; it never exposes credentials or invents online data.
