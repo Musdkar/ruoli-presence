@@ -116,3 +116,9 @@ The position of the site owner is contextual telemetry, not part of the site's b
 - The map reuses the original site's VRChat map portrait, bundled locally, as a circular marker. The standard OSM pin is removed.
 - The map shows a wider regional view, based on a rounded city centre; the external map opens at zoom 8. Decimal coordinates and explicit approximation notices are omitted from the visible map panel. The dark palette and input passthrough remain.
 - Fixed the navigation selector returning one element where the scroll renderer expected a list. That exception stopped all subsequent scene updates. The **More than one world** interlude once again pins to the viewport while its three photo stages, captions and timeline follow actual scroll progress; reduced-motion behavior is preserved.
+
+## v1.9: complete first-fold Earth
+
+- Removed the map's `A CORNER OF THE WORLD` overlay; the avatar and external map link remain.
+- Constrained the orbital stage width by available viewport height so the globe is no longer cropped in short desktop windows. Compact first-fold typography also keeps the full opening content visible.
+- Brought the mobile globe fully into view, with fewer decorative annotations and an icon-only recenter control retaining its accessible label.
