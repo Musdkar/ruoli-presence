@@ -10,6 +10,23 @@ const numberWithin = (value, max) => { const n = typeof value === 'string' || ty
 const fmt = (n) => n.toLocaleString('en-US');
 const formatMinutes = (m) => m >= 60 ? `${Math.floor(m/60)}h ${Math.round(m%60)}m` : `${Math.round(m)}m`;
 const SOURCE_ASSETS = 'https://kalieri.com/assets/';
+
+/* Owner-side location, not the visitor's GPS.
+   Fallback matches the current site setting. Future owner location telemetry
+   can replace this one source without making a city part of the visual theme. */
+const OWNER_LOCATION=Object.freeze({
+  city:'Wuhan',region:'Hubei',country:'CN',
+  latitude:30.5928,longitude:114.3055,timeZone:'Asia/Shanghai'
+});
+function coordinateText(value,isLatitude){
+  return `${Math.abs(value).toFixed(4)}° ${isLatitude?(value>=0?'N':'S'):(value>=0?'E':'W')}`;
+}
+$('#weather-city').textContent=OWNER_LOCATION.city.toUpperCase();
+$('#weather-region').textContent=`↗ ${OWNER_LOCATION.region.toUpperCase()}, ${OWNER_LOCATION.country}`;
+$('#location-coordinates').innerHTML=`${coordinateText(OWNER_LOCATION.latitude,true)}<br />${coordinateText(OWNER_LOCATION.longitude,false)}`;
+$('#location-map-link').href=`https://www.openstreetmap.org/#map=10/${OWNER_LOCATION.latitude}/${OWNER_LOCATION.longitude}`;
+
+
 const photoData = [
   ['2026-10-05-155539','OCT 05, 2026','Library light / a fleeting afternoon'],
   ['2026-09-14-001659','SEP 14, 2026','Somewhere after midnight'],
@@ -176,15 +193,15 @@ async function fetchPresence(){const ctrl=new AbortController(),timeout=setTimeo
 let liveTimer=null;function setPolling(){if(document.visibilityState==='visible'){if(!liveTimer){fetchPresence();liveTimer=setInterval(fetchPresence,10000);}}else if(liveTimer){clearInterval(liveTimer);liveTimer=null;}}
 document.addEventListener('visibilitychange',setPolling);setPolling();
 
-/* Wuhan live weather, directly from Open-Meteo */
+/* Owner's current location: weather from Open-Meteo */
 const weatherText={0:['Clear skies','☼'],1:['Mainly clear','☀'],2:['Partly cloudy','◒'],3:['Overcast','☁'],45:['Foggy','≋'],48:['Foggy','≋'],51:['Light drizzle','☂'],53:['Drizzle','☂'],55:['Heavy drizzle','☂'],61:['Light rain','☂'],63:['Rain','☂'],65:['Heavy rain','☂'],71:['Light snow','✳'],73:['Snow','✳'],75:['Heavy snow','✳'],80:['Showers','☂'],81:['Showers','☂'],82:['Heavy showers','☂'],95:['Thunderstorm','ϟ']};
-(async function fetchWeather(){try{const url='https://api.open-meteo.com/v1/forecast?latitude=30.537&longitude=114.361&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=Asia%2FShanghai';const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),7000);const response=await fetch(url,{signal:ctrl.signal});clearTimeout(timeout);if(!response.ok)throw Error();const d=(await response.json()).current;const temp=Number(d?.temperature_2m);if(!Number.isFinite(temp))throw Error();
+(async function fetchWeather(){try{const url=`https://api.open-meteo.com/v1/forecast?latitude=${OWNER_LOCATION.latitude}&longitude=${OWNER_LOCATION.longitude}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=${encodeURIComponent(OWNER_LOCATION.timeZone)}`;const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),7000);const response=await fetch(url,{signal:ctrl.signal});clearTimeout(timeout);if(!response.ok)throw Error();const d=(await response.json()).current;const temp=Number(d?.temperature_2m);if(!Number.isFinite(temp))throw Error();
   $('#weather-temp').innerHTML=`${Math.round(temp)}<sup>°</sup>`;const [condition,icon]=weatherText[d.weather_code]||['Current conditions','◌'];$('#weather-desc').textContent=condition;$('#weather-icon').textContent=icon;
   $('#weather-feels').textContent=Number.isFinite(d.apparent_temperature)?`${Math.round(d.apparent_temperature)}°`:'--°';$('#weather-wind').textContent=Number.isFinite(d.wind_speed_10m)?`${Math.round(d.wind_speed_10m)} KM/H`:'-- KM/H';
 }catch{$('#weather-desc').textContent='Atmosphere unavailable';}})();
 
 /* Local time, scroll meters, reveal choreography */
-function tick(){const fmtTime=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false});$('#nav-time').textContent=`WUHAN · ${fmtTime.format(new Date())}`;}
+function tick(){const fmtTime=new Intl.DateTimeFormat('en-GB',{timeZone:OWNER_LOCATION.timeZone,hour:'2-digit',minute:'2-digit',hour12:false});$('#nav-time').textContent=`LOCAL · ${fmtTime.format(new Date())}`;}
 tick();setInterval(tick,30000);
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target);}}),{threshold:.09,rootMargin:'0px 0px -35px 0px'});
@@ -313,6 +330,7 @@ uniform sampler2D dayMap;
 uniform sampler2D cloudMap;
 uniform float spin;
 uniform float pitch;
+uniform vec2 ownerUV;
 void main(){
   vec2 p=(v-0.5)*2.0;
   p.y=-p.y;
@@ -334,9 +352,9 @@ void main(){
   vec3 color=earth*light*vec3(0.97,1.02,1.09);
   float rim=pow(1.0-z,4.0);
   color+=vec3(0.17,0.50,0.98)*rim*0.69;
-  // A quiet pinpoint of light on Wuhan when its side faces the viewer.
-  float longitudeDelta=abs(fract(uv.x-0.81752+0.5)-0.5)*6.283185307;
-  float latitudeDelta=(uv.y-(0.5+0.53392/3.141592654))*3.141592654;
+  // A quiet pinpoint marking the owner's chosen location.
+  float longitudeDelta=abs(fract(uv.x-ownerUV.x+0.5)-0.5)*6.283185307;
+  float latitudeDelta=(uv.y-ownerUV.y)*3.141592654;
   float marker=exp(-900.0*(longitudeDelta*longitudeDelta+latitudeDelta*latitudeDelta))*0.40;
   color+=vec3(0.71,1.0,0.54)*marker;
   gl_FragColor=vec4(color,1.0);
@@ -361,21 +379,23 @@ void main(){
   gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
   const spinUniform=gl.getUniformLocation(program,'spin');
   const pitchUniform=gl.getUniformLocation(program,'pitch');
+  const ownerUniform=gl.getUniformLocation(program,'ownerUV');
+  gl.uniform2f(ownerUniform,0.5+OWNER_LOCATION.longitude/360,0.5+OWNER_LOCATION.latitude/180);
   const samplers=['dayMap','cloudMap'];
   samplers.forEach((name,i)=>gl.uniform1i(gl.getUniformLocation(program,name),i));
   let ready=false,visible=false,lost=false,raf=0;
   const natural=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const control=$('#earth-control'),reset=$('#earth-reset');
-  // Coordinates from the author's existing config: Wuhan, China.
-  // On the shader's equirectangular map the visible centre is (0.5 + spin, -pitch).
-  const HOME_LATITUDE=30.5928*Math.PI/180;
-  const HOME_SPIN=114.3055/360;
+  // The globe's camera follows the owner's location data; city names belong
+  // in the weather/map UI, never in the homepage's identity or captions.
+  const HOME_LATITUDE=OWNER_LOCATION.latitude*Math.PI/180;
+  const HOME_SPIN=OWNER_LOCATION.longitude/360;
   const HOME_PITCH=-HOME_LATITUDE;
   let yaw=0,pitch=HOME_PITCH,velocityX=0,velocityY=0,drag=null,hovered=false;
   let autoSpin=0,lastFrame=0,lastGesture=0;
   let returnHome=null;
   const clamp=(value,low,high)=>Math.max(low,Math.min(high,value));
-  // Smoothly fly back to Wuhan's latitude/longitude; never use device location
+  // Smoothly recenter to the owner's latest location; never use device location
   // or request visitor geolocation for this author-specific personal site.
   const resetOrientation=()=>{
     const now=performance.now();
@@ -462,7 +482,7 @@ void main(){
         const friction=Math.pow(0.92,dt/16);
         velocityX*=friction;velocityY*=friction;
       }else{velocityX=0;velocityY=0;}
-      // A gentle orbit around home rather than spinning Wuhan off the screen.
+      // A gentle idle motion that keeps the owner's location facing forward.
       // ±4° of longitude keeps the author location visible at all times.
       if(!hovered&&t-lastGesture>1200)autoSpin+=dt/390000;
     }

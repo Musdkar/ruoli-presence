@@ -91,3 +91,7 @@ Designed as a fresh direction rather than a superficial reskin. © 2026 Kalieri.
 - Sonnet 14 is linked to the Folger Shakespeare Library source; accompanying copy is quieter and more deliberate.
 - The keyboard `R` shortcut allows the animated flight back to Wuhan to complete rather than cancelling it.
 - The original running-log title `1` and all seven devices are preserved.
+
+## Location is data, not a visual theme
+
+The position of the site owner is contextual telemetry, not part of the site's brand. The previous draft overused a fixed city name in the hero, globe captions, reset action and footer; those are now neutral. The actual city is presented in the weather card, and coordinates are scoped to the optional map/location strip. The globe's **Recenter** points to the configured owner position, not the visitor's IP/GPS. Weather, time, map link, marker and globe view now read one `OWNER_LOCATION` object in `main.js` (currently a manual fallback; **automatic owner location synchronization is not implemented**). When an owner-location data feed is available, replace this one source. The location must never be inferred from a visitor.
