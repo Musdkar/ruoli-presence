@@ -964,13 +964,18 @@ sup {
   font: 9px var(--mono);
   color: #beb1c9;
 }
+.album-art img[hidden],
+.album-placeholder[hidden] {
+  display: none;
+}
 .vinyl {
   position: absolute;
   z-index: -1;
   right: -13%;
   top: 4%;
   width: 90%;
-  height: 90%;
+  aspect-ratio: 1;
+  height: auto;
   border-radius: 50%;
   background: repeating-radial-gradient(circle, #191921 0 2px, #292833 3px 4px);
   box-shadow: 10px 12px 25px #0009;

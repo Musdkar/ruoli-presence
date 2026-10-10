@@ -22,9 +22,10 @@ if (!existsSync(resolve(DIST, "index.html"))) {
 }
 
 const html = readFileSync(resolve(DIST, "index.html"), "utf8");
-const refs = [...html.matchAll(/(?:src|href)=["']([^"']+\.(?:js|css))["']/g)]
+const refs = [...html.matchAll(/(?:src|href)=["']([^"']+\.(?:js|css)(?:[?#][^"']*)?)["']/g)]
   .map((m) => m[1])
-  .filter((ref) => !/^https?:\/\//.test(ref));
+  .filter((ref) => !/^https?:\/\//.test(ref))
+  .map((ref) => ref.split(/[?#]/, 1)[0]);
 
 const kb = (bytes) => (bytes / 1024).toFixed(1);
 const gzipOf = (file) => gzipSync(readFileSync(file)).length;

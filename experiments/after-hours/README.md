@@ -151,3 +151,8 @@ The position of the site owner is contextual telemetry, not part of the site's b
 - The hero title, illustration and top/bottom annotations share a centred 1440px maximum content width. The Earth sits closer to the copy and scales within the viewport height while remaining complete.
 - Reduced the grain overlay and purple/blue haze; the dark palette, starfield, orbital movement and interactive Earth remain.
 - Versioned the stylesheet and entry script URLs so returning browsers receive this release instead of cached assets.
+
+## v1.13.1: circular music record
+
+- Hidden album artwork and its placeholder no longer occupy layout space together. The album area stays square when an image loads or fails, and the vinyl uses a fixed 1:1 aspect ratio.
+- The record still rotates only for a playing track; paused and last-played tracks stay still.
