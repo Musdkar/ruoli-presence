@@ -295,7 +295,123 @@ if(!reducedMotion && window.matchMedia('(hover:hover) and (pointer:fine)').match
   });
 }
 
-/* Canvas starfield: CSS paints the planet and its 3D rings, canvas does subtle reactive light */
+
+/* A real textured Earth, gently rotating on the existing orbital stage.
+   Built directly on WebGL 1 to avoid a 3D framework in the initial bundle.
+   If WebGL, images, or context recovery fail, the CSS Blue Marble fallback
+   remains visible. Reduced-motion renders one static frame only. */
+(function initEarth(){
+  const canvas=$('#earth-canvas');
+  if(!canvas)return;
+  let gl;
+  try{gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:true,powerPreference:'low-power'});}catch{return;}
+  if(!gl)return;
+  const vertex='attribute vec2 pos; varying vec2 v; void main(){v=(pos+1.0)*0.5;gl_Position=vec4(pos,0.0,1.0);}';
+  const fragment=`precision highp float;
+varying vec2 v;
+uniform sampler2D dayMap;
+uniform sampler2D cloudMap;
+uniform float spin;
+void main(){
+  vec2 p=(v-0.5)*2.0;
+  p.y=-p.y;
+  float r2=dot(p,p);
+  if(r2>=1.0)discard;
+  float z=sqrt(max(0.0,1.0-r2));
+  vec3 n=vec3(p.x,p.y,z);
+  float lon=atan(n.x,n.z);
+  float lat=asin(clamp(n.y,-1.0,1.0));
+  vec2 uv=vec2(fract(0.5+lon/6.283185307+spin),0.5+lat/3.141592654);
+  vec3 earth=texture2D(dayMap,uv).rgb;
+  vec3 cloud=texture2D(cloudMap,vec2(fract(uv.x+0.007),uv.y)).rgb;
+  float cloudMask=smoothstep(0.42,0.84,dot(cloud,vec3(0.33333)))*0.49;
+  earth=mix(earth,vec3(0.90,0.94,1.0),cloudMask);
+  float sun=dot(n,normalize(vec3(-0.54,0.47,0.91)));
+  float light=0.18+0.90*smoothstep(-0.58,0.80,sun);
+  vec3 color=earth*light*vec3(0.97,1.02,1.09);
+  float rim=pow(1.0-z,4.0);
+  color+=vec3(0.17,0.50,0.98)*rim*0.69;
+  // A quiet pinpoint of light on Wuhan when its side faces the viewer.
+  float cityLon=6.283185307*(0.81752-0.5-spin);
+  float cityLat=0.53392;
+  vec3 city=vec3(cos(cityLat)*sin(cityLon),sin(cityLat),cos(cityLat)*cos(cityLon));
+  float d=length(p-city.xy);
+  float marker=exp(-d*d*850.0)*step(0.0,city.z)*0.38;
+  color+=vec3(0.71,1.0,0.54)*marker;
+  gl_FragColor=vec4(color,1.0);
+}`;
+  function shader(type,src){
+    const item=gl.createShader(type);gl.shaderSource(item,src);gl.compileShader(item);
+    if(!gl.getShaderParameter(item,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(item));
+    return item;
+  }
+  let program;
+  try{
+    program=gl.createProgram();
+    gl.attachShader(program,shader(gl.VERTEX_SHADER,vertex));
+    gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragment));
+    gl.linkProgram(program);
+    if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
+  }catch{canvas.hidden=true;return;}
+  gl.useProgram(program);
+  const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const aPos=gl.getAttribLocation(program,'pos');gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+  const spinUniform=gl.getUniformLocation(program,'spin');
+  const samplers=['dayMap','cloudMap'];
+  samplers.forEach((name,i)=>gl.uniform1i(gl.getUniformLocation(program,name),i));
+  let ready=false,visible=false,lost=false,raf=0;
+  const natural=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function resize(){
+    const rect=canvas.getBoundingClientRect();
+    const dpr=Math.min(window.devicePixelRatio||1,1.8);
+    const w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
+    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
+  }
+  function draw(t){
+    raf=0;
+    if(!ready||lost||document.hidden||!visible)return;
+    resize();
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform1f(spinUniform,0.31752+(natural?0:t/390000));
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    if(!canvas.classList.contains('is-ready'))canvas.classList.add('is-ready');
+    if(!natural)raf=requestAnimationFrame(draw);
+  }
+  function schedule(){
+    if(ready&&!lost&&!document.hidden&&visible&&!raf)raf=requestAnimationFrame(draw);
+  }
+  const images=['./assets/earth-day.jpg','./assets/earth-clouds.png'];
+  Promise.all(images.map(src=>new Promise((resolve,reject)=>{
+    const img=new Image();img.decoding='async';img.onload=()=>resolve(img);img.onerror=reject;img.src=new URL(src,document.baseURI).href;
+  }))).then(bitmaps=>{
+    if(lost)return;
+    bitmaps.forEach((img,index)=>{
+      gl.activeTexture(gl.TEXTURE0+index);
+      const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    });
+    ready=true;schedule();
+  }).catch(()=>{canvas.hidden=true;});
+  const watch=new IntersectionObserver(([entry])=>{
+    visible=entry.isIntersecting;
+    if(!visible&&raf){cancelAnimationFrame(raf);raf=0;}
+    if(visible)schedule();
+  },{rootMargin:'80px'});
+  watch.observe(canvas);
+  document.addEventListener('visibilitychange',schedule);
+  window.addEventListener('resize',schedule,{passive:true});
+  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;canvas.classList.remove('is-ready');if(raf)cancelAnimationFrame(raf);});
+  canvas.addEventListener('webglcontextrestored',()=>{canvas.hidden=true;}); // Keep the photograph if GPU state was lost.
+})();
+
+/* Canvas starfield: a subtle field of stars and reactive light */
 (function initSpace(){const canvas=$('#space-canvas');if(!canvas)return;const ctx=canvas.getContext('2d',{alpha:true});if(!ctx)return;
   const rand=(i,s)=>{let x=Math.sin((i+1)*127.1+s*311.7)*43758.5453;return x-Math.floor(x);};
   const stars=Array.from({length:125},(_,i)=>({x:rand(i,1),y:rand(i,2),r:.4+rand(i,3)*1.3,phase:rand(i,4)*6.283,parallax:rand(i,5)*.6}));let w=0,h=0,pointerX=0,pointerY=0,currentX=0,currentY=0,frame=0,active=true,spaceFrame=0;

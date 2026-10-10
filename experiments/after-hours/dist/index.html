@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#09090f" />
-  <meta name="description" content="Kalieri's living digital universe — a personal signal from Wuhan, with music, memories, thoughts and little traces of everyday life." />
+  <meta name="description" content="A corner of the world — Kalieri's personal signal from Wuhan, with music, memories, thoughts and little traces of everyday life." />
   <meta property="og:title" content="KALIERI — After Hours" />
-  <meta property="og:description" content="A living little universe. Always changing, mostly online." />
-  <title>KALIERI® — After Hours / A living little universe</title>
+  <meta property="og:description" content="A corner of the world. Always changing, mostly online." />
+  <title>KALIERI® — After Hours / A corner of the world</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -204,6 +204,53 @@ body{overflow-x:clip}
 .hero-subrow p{text-shadow:0 2px 15px #050610}
 @media(max-width:560px){.worldline-supra{padding:6px 9px}.hero-subrow p{text-shadow:0 2px 10px #020409,0 0 20px #020409}}
 
+/* -----------------------------------------------------------------------
+   AFTER HOURS / EARTH EDITION — our actual home planet, not a gas giant.
+   The CSS photograph is a no-WebGL fallback; the lightweight fragment
+   renderer wraps the same locally hosted texture onto a real 3-D sphere.
+   ----------------------------------------------------------------------- */
+.earth-planet{
+  background:#061629;
+  box-shadow:inset -18px -15px 45px #010913e8,
+    0 0 0 1px #c1ebff78,
+    0 0 28px #4e9bdc55,
+    0 0 95px #4b8ccb33;
+}
+.earth-planet .planet-surface{
+  inset:0;
+  background:#17374e url("../assets/earth-day.jpg") 85% 50% / 205% 104% no-repeat;
+  filter:saturate(1.12) contrast(1.06);
+}
+.earth-planet .planet-surface:after{display:none}
+.earth-planet .earth-render{
+  position:absolute;inset:0;z-index:2;width:100%;height:100%;display:block;
+  opacity:0;transition:opacity 800ms ease-out;pointer-events:none;
+}
+.earth-planet .earth-render.is-ready{opacity:1}
+.earth-planet .planet-shadow{
+  position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:radial-gradient(ellipse at 31% 23%,transparent 22%,#00112e0d 55%,#020813c9 99%);
+  opacity:.3;
+}
+.earth-planet::after{
+  content:'';position:absolute;inset:0;z-index:4;border-radius:50%;
+  box-shadow:inset 5px 6px 15px #b3dffe38,inset -6px -10px 26px #03070e8c;
+  pointer-events:none;
+}
+.planet-backglow{
+  background:radial-gradient(circle,#3789d047 0%,#3b86d624 36%,transparent 69%);
+  filter:blur(39px);
+}
+.orbital-1{
+  border:1px solid #9fd1fc79;border-left-color:#c8edffbd;border-bottom-color:#75bde846;
+  filter:drop-shadow(0 0 4px #6ba8db5c);
+}
+.orbital-2{border-color:#c2e7fa3d}
+.orbital-3{border-color:#91bdde31}
+@media(prefers-reduced-motion:reduce){
+  .earth-planet .earth-render{transition:none}
+}
+
 </style>
 </head>
 <body>
@@ -229,11 +276,11 @@ body{overflow-x:clip}
       <div class="hero-content">
         <div class="hero-copy">
           <div class="hello-badge"><span class="badge-emoji">↳</span> A transmission from <b>Wuhan, China.</b></div>
-          <h1 id="hero-heading">A living<br /><span class="hero-heading-outline">little</span><br /><span class="hero-last">universe<span class="hero-period">.</span></span></h1>
+          <h1 id="hero-heading">A corner<br /><span class="hero-heading-outline">of the</span><br /><span class="hero-last">world<span class="hero-period">.</span></span></h1>
           <div class="hero-subrow"><div class="hero-rule"></div><p>Hello, I'm <b>Kalieri.</b> I build things, collect fleeting moments, and occasionally get lost in other worlds. This is the space in between.</p></div>
           <div class="hero-actions"><a class="circle-cta" href="#signal"><span class="circle-cta-label">ENTER THE SIGNAL</span><span class="circle-cta-icon">↘</span></a><span class="hero-side-note">SCROLL TO<br />GET TO KNOW ME <span class="spin-star">✳</span></span></div>
         </div>
-        <div class="hero-art" aria-hidden="true"><div class="art-coordinate art-coordinate-tl">FIG. 001 <span>—</span> UNIVERSE GENERATOR</div><div class="art-coordinate art-coordinate-tr">[ SIGNAL ACTIVE ]</div><canvas id="space-canvas"></canvas><div class="planet-backglow"></div><div class="planet"><div class="planet-surface"></div><div class="planet-shadow"></div></div><div class="orbital orbital-1"></div><div class="orbital orbital-2"></div><div class="orbital orbital-3"></div><div class="orbit-satellite"></div><div class="art-cross art-cross-a">+</div><div class="art-cross art-cross-b">+</div><div class="art-caption"><span>LOOK CLOSER ↗</span><span>THERE'S ALWAYS<br />SOMETHING HAPPENING.</span></div><div class="art-index">K—001</div></div>
+        <div class="hero-art" aria-hidden="true"><div class="art-coordinate art-coordinate-tl">FIG. 001 <span>—</span> PLANET EARTH · HOME</div><div class="art-coordinate art-coordinate-tr">[ SIGNAL ACTIVE ]</div><canvas id="space-canvas"></canvas><div class="planet-backglow"></div><div class="planet earth-planet"><div class="planet-surface"></div><canvas id="earth-canvas" class="earth-render" aria-hidden="true"></canvas><div class="planet-shadow"></div></div><div class="orbital orbital-1"></div><div class="orbital orbital-2"></div><div class="orbital orbital-3"></div><div class="orbit-satellite"></div><div class="art-cross art-cross-a">+</div><div class="art-cross art-cross-b">+</div><div class="art-caption"><span>OUR BLUE DOT ↗</span><span>30°35′N 114°18′E<br />A PLACE TO CALL HOME.</span></div><div class="art-index">K—001</div></div>
       </div>
       <div class="hero-bottom"><div class="online-label"><span class="live-pulse"></span><span id="hero-status">WAITING FOR SIGNAL</span></div><div class="tiny-manifesto">A PERSONAL DIGITAL PRESENCE EXPERIMENT <span>↗</span> UPDATED IN REAL TIME</div><div class="hero-bottom-arrow"><span class="hero-scroll-signal">SCROLL / TO ORBIT</span><span class="hero-arrow-glyph">↓</span></div></div>
     </section>
@@ -276,7 +323,7 @@ body{overflow-x:clip}
 
     <section class="uses-section editorial-section" id="uses"><div class="section-intro reveal"><div class="section-number">04 / MY EVERYDAY COMPANIONS</div><div class="section-intro-main"><h2>The toolkit<span class="accent-period">.</span></h2><p>The machines, programs and little rituals that help make all of this happen. The best tools tend to disappear when you're really into something.</p></div></div><div class="tools-layout"><div class="tools-feature reveal"><span class="micro">PRIMARY WEAPON OF CHOICE</span><div class="device-sculpture" aria-hidden="true"><div class="laptop-screen"><span class="laptop-glow"></span><span class="laptop-text">hello,<br/>world<span>.</span></span></div><div class="laptop-base"></div></div><div class="device-desc"><span>001 / DAILY DRIVER</span><strong>MacBook Pro</strong><small>M1 PRO · macOS</small></div></div><div class="tools-content reveal"><div class="tools-tabs" role="tablist" aria-label="Software groups"><button class="tool-tab active" data-tool="development" role="tab" aria-selected="true">DEVELOPMENT</button><button class="tool-tab" data-tool="ai" role="tab" aria-selected="false">AI & THINKING</button><button class="tool-tab" data-tool="vr" role="tab" aria-selected="false">OTHER WORLDS</button><button class="tool-tab" data-tool="daily" role="tab" aria-selected="false">EVERYDAY</button></div><div class="tools-list" id="tools-list"></div><div class="tools-footer"><span>MY TOOLS CHANGE. THE CURIOSITY DOESN'T.</span><span>LAST EDITED / 2026 ↗</span></div></div></div><div class="devices-row reveal"><div class="device-item"><span>02 / MOBILE</span><strong>iPhone 16 Pro Max</strong><small>the pocket universe</small></div><div class="device-item"><span>03 / OTHER WORLDS</span><strong>Meta Quest 3</strong><small>virtual everything</small></div><div class="device-item"><span>04 / PLAY</span><strong>RTX 5070 Ti</strong><small>gaming laptop</small></div><div class="device-item"><span>05 / LISTEN</span><strong>AirPods Pro 3</strong><small>soundtrack of my life</small></div></div></section>
 
-    <section class="about-bridge"><span class="about-bridge-index">SELF PORTRAIT / 005</span><div class="about-avatar"><img src="https://kalieri.com/assets/avatar.webp" alt="Kalieri's avatar" onerror="this.style.opacity=0" /></div><div class="about-bridge-copy"><span class="eyebrow">A FEW MORE THINGS ABOUT ME</span><p>19 / STUDENT / <i>INTJ-A</i><br/>LEARNING JAPANESE / <i>CREATING</i><br/>AMATEUR VRCHAT DANCER / <i>CURIOUS</i><br/>USUALLY HERE, OCCASIONALLY SOMEWHERE ELSE.</p></div><div class="about-kanji" aria-hidden="true">夢</div></section>
+    <section class="about-bridge"><span class="about-bridge-index">SELF PORTRAIT / 005</span><div class="about-avatar"><img src="https://kalieri.com/assets/avatar.webp" alt="Kalieri's avatar" onerror="this.style.opacity=0" /></div><div class="about-bridge-copy"><span class="eyebrow">A FEW MORE THINGS ABOUT ME</span><p>20 / STUDENT / <i>INTJ-A</i><br/>LEARNING JAPANESE / <i>CREATING</i><br/>AMATEUR VRCHAT DANCER / <i>CURIOUS</i><br/>USUALLY HERE, OCCASIONALLY SOMEWHERE ELSE.</p></div><div class="about-kanji" aria-hidden="true">夢</div></section>
 
     <footer class="footer" id="contact"><div class="footer-top"><span>05 / THE OTHER SIDE OF THE SCREEN</span><span>LET'S MAKE THE INTERNET A LITTLE LESS LONELY.</span></div><div class="footer-main"><span>Have something<br/>in mind?</span><a href="mailto:contact@kalieri.com" class="footer-big-link">Say hello<span>↗</span></a></div><div class="footer-links"><a href="https://github.com/Musdkar" target="_blank" rel="noreferrer">GITHUB ↗</a><a href="mailto:contact@kalieri.com">EMAIL ↗</a><a href="https://kalieri.com" target="_blank" rel="noreferrer">ORIGINAL SITE ↗</a><button id="back-top">BACK TO TOP ↑</button></div><div class="footer-bottom"><span>KALIERI® <span class="footer-year">© 2026</span></span><span>MADE OF PIXELS, STARDUST & TOO MUCH CAFFEINE.</span><span>WUHAN, CHINA <span class="live-pulse"></span></span></div></footer>
   </main>
@@ -291,7 +338,7 @@ body{overflow-x:clip}
    Never invent or persist private telemetry. */
 
 const $ = (selector, root = document) => root.querySelector(selector);
-const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const $ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const safeParse = (value) => { if (value && typeof value === 'object') return value; try { return JSON.parse(value); } catch { return null; } };
 const numberWithin = (value, max) => { const n = typeof value === 'string' || typeof value === 'number' ? Number(value) : NaN; return Number.isFinite(n) && n >= 0 && n <= max ? n : null; };
 const fmt = (n) => n.toLocaleString('en-US');
@@ -355,9 +402,9 @@ function renderTools(key='development'){
     const detail=document.createElement('span');detail.textContent=meta;
     el.append(no,title,detail);list.append(el);
   });
-  $$('.tool-tab').forEach(btn=>{let active=btn.dataset.tool===key;btn.classList.toggle('active',active);btn.setAttribute('aria-selected',String(active));});
+  $('.tool-tab').forEach(btn=>{let active=btn.dataset.tool===key;btn.classList.toggle('active',active);btn.setAttribute('aria-selected',String(active));});
 }
-$$('.tool-tab').forEach(b=>b.addEventListener('click',()=>renderTools(b.dataset.tool)));
+$('.tool-tab').forEach(b=>b.addEventListener('click',()=>renderTools(b.dataset.tool)));
 drawArchive();renderTools();
 const archiveViewMore=document.createElement('button');archiveViewMore.className='underline-link';archiveViewMore.style.cssText='border:0;background:none;font:10px var(--mono);cursor:pointer;';archiveViewMore.textContent='SHOW ALL 19 FRAGMENTS ↗';
 const archiveEnd=$('.archive-end');archiveEnd.insertBefore(archiveViewMore,archiveEnd.lastElementChild);
@@ -368,7 +415,7 @@ const modal=$('#modal-backdrop'); const modalContent=$('#modal-content');let res
 function showModal(content){restoreFocus=document.activeElement;modalContent.innerHTML=content;modal.hidden=false;document.body.style.overflow='hidden';$('#modal-close').focus();}
 function hideModal(){modal.hidden=true;modalContent.replaceChildren();document.body.style.overflow='';restoreFocus?.focus?.();}
 function openPhoto(index){const [id,date,caption]=photoData[index];showModal(`<p class="modal-type">MEMORY VAULT / FRAME ${String(index+1).padStart(2,'0')} — ${String(photoData.length).padStart(2,'0')}</p><h2 class="modal-title" id="modal-title">${caption}</h2><img class="modal-photo" src="${SOURCE_ASSETS}photos/${id}.webp" alt="${caption}"><div class="modal-photo-caption"><span>${date}</span><span>KALIERI / VISUAL ARCHIVE</span></div>`);}
-$$('.journal-entry').forEach(b=>b.addEventListener('click',()=>{const post=blogPosts[Number(b.dataset.post)];showModal(`<p class="modal-type">INTERNET FIELD NOTES / ${post.date}</p><h2 class="modal-title" id="modal-title">${post.title}</h2><p class="modal-sub">${post.subtitle} · ${post.date}</p><div class="modal-body">${post.html}</div>`);}));
+$('.journal-entry').forEach(b=>b.addEventListener('click',()=>{const post=blogPosts[Number(b.dataset.post)];showModal(`<p class="modal-type">INTERNET FIELD NOTES / ${post.date}</p><h2 class="modal-title" id="modal-title">${post.title}</h2><p class="modal-sub">${post.subtitle} · ${post.date}</p><div class="modal-body">${post.html}</div>`);}));
 $('#modal-close').addEventListener('click',hideModal);modal.addEventListener('click',e=>{if(e.target===modal)hideModal();});
 
 /* Command jump */
@@ -377,7 +424,7 @@ function openCommand(){commandFocus=document.activeElement;command.hidden=false;
 function closeCommand(){command.hidden=true;commandFocus?.focus?.();}
 $('#command-open').addEventListener('click',openCommand);$('#floating-console').addEventListener('click',openCommand);
 command.addEventListener('click',e=>{if(e.target===command)closeCommand();});
-$$('.command-options button').forEach(b=>b.addEventListener('click',()=>{const target=b.dataset.target;closeCommand();$(target)?.scrollIntoView({behavior:'smooth',block:'start'});}));
+$('.command-options button').forEach(b=>b.addEventListener('click',()=>{const target=b.dataset.target;closeCommand();$(target)?.scrollIntoView({behavior:'smooth',block:'start'});}));
 document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();command.hidden?openCommand():closeCommand();}if(e.key==='Escape'){if(!modal.hidden)hideModal();if(!command.hidden)closeCommand();}});
 $('#back-top').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 
@@ -397,7 +444,7 @@ function drawKeyboard(){
     const el=document.createElement('div');el.className='kb-key';el.style.setProperty('--heat',String(Math.min(1,Math.max(0,Number(val)/15||0))));el.style.setProperty('--size',size);el.textContent=label;el.title=key;r.append(el);
   });outer.append(r);});
 }
-$$('.kb-tab').forEach(btn=>btn.addEventListener('click',()=>{activeKeyboard=btn.dataset.kb;$$('.kb-tab').forEach(b=>b.classList.toggle('active',b===btn));drawKeyboard();}));drawKeyboard();
+$('.kb-tab').forEach(btn=>btn.addEventListener('click',()=>{activeKeyboard=btn.dataset.kb;$('.kb-tab').forEach(b=>b.classList.toggle('active',b===btn));drawKeyboard();}));drawKeyboard();
 function normalKeyboard(value){let d=safeParse(value);if(!d||d.v!==1||!d.heat||typeof d.heat!=='object')return null;let total=numberWithin(d.total,1e7);if(total===null)return null;return {total,heat:Object.fromEntries(Object.entries(d.heat).filter(([k,v])=>typeof k==='string'&&numberWithin(v,15)!==null).slice(0,100))};}
 function normalizeApps(value){let d=safeParse(value);if(!d||!Array.isArray(d.apps))return [];return d.apps.filter(v=>v&&typeof v.name==='string'&&v.name.length<=120&&numberWithin(v.minutes,1440)!==null).slice(0,8).map(v=>({name:v.name,minutes:Number(v.minutes)}));}
 function appUsage(kv){const merged=new Map();for(const app of [...normalizeApps(kv.apps_today_mac||kv.apps_today),...normalizeApps(kv.apps_today_win)])merged.set(app.name,(merged.get(app.name)||0)+app.minutes);return [...merged].map(([name,minutes])=>({name,minutes})).sort((a,b)=>b.minutes-a.minutes).slice(0,8);}
@@ -475,9 +522,9 @@ function tick(){const fmtTime=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Sh
 tick();setInterval(tick,30000);
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target);}}),{threshold:.09,rootMargin:'0px 0px -35px 0px'});
-$$('.reveal').forEach(el=>observer.observe(el));
-const sectionObs=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting)return;$$('.desktop-nav a').forEach(a=>a.classList.toggle('active',a.dataset.nav===entry.target.id));});},{threshold:.2,rootMargin:'-15% 0px -50% 0px'});
-$$('#signal,#archive,#journal,#uses').forEach(e=>sectionObs.observe(e));
+$('.reveal').forEach(el=>observer.observe(el));
+const sectionObs=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting)return;$('.desktop-nav a').forEach(a=>a.classList.toggle('active',a.dataset.nav===entry.target.id));});},{threshold:.2,rootMargin:'-15% 0px -50% 0px'});
+$('#signal,#archive,#journal,#uses').forEach(e=>sectionObs.observe(e));
 let scrollScheduled=false;window.addEventListener('scroll',()=>{if(!scrollScheduled){requestAnimationFrame(()=>{$('#scroll-progress').style.width=`${100*window.scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight)}%`;scrollScheduled=false;});scrollScheduled=true;}},{passive:true});
 
 /* Scroll-directed composition: RAF-limited transforms and a scrubbed photographic interlude.
@@ -518,7 +565,7 @@ function renderScrollScenes(){
     }
   }
   if(reducedMotion)return;
-  for(const intro of $$('.section-intro')){
+  for(const intro of $('.section-intro')){
     const r=intro.getBoundingClientRect();
     if(r.top<vh*1.2&&r.bottom>-vh*.2){
       const p=clamp01((vh-r.top)/(vh+r.height));
@@ -582,7 +629,123 @@ if(!reducedMotion && window.matchMedia('(hover:hover) and (pointer:fine)').match
   });
 }
 
-/* Canvas starfield: CSS paints the planet and its 3D rings, canvas does subtle reactive light */
+
+/* A real textured Earth, gently rotating on the existing orbital stage.
+   Built directly on WebGL 1 to avoid a 3D framework in the initial bundle.
+   If WebGL, images, or context recovery fail, the CSS Blue Marble fallback
+   remains visible. Reduced-motion renders one static frame only. */
+(function initEarth(){
+  const canvas=$('#earth-canvas');
+  if(!canvas)return;
+  let gl;
+  try{gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:true,powerPreference:'low-power'});}catch{return;}
+  if(!gl)return;
+  const vertex='attribute vec2 pos; varying vec2 v; void main(){v=(pos+1.0)*0.5;gl_Position=vec4(pos,0.0,1.0);}';
+  const fragment=`precision highp float;
+varying vec2 v;
+uniform sampler2D dayMap;
+uniform sampler2D cloudMap;
+uniform float spin;
+void main(){
+  vec2 p=(v-0.5)*2.0;
+  p.y=-p.y;
+  float r2=dot(p,p);
+  if(r2>=1.0)discard;
+  float z=sqrt(max(0.0,1.0-r2));
+  vec3 n=vec3(p.x,p.y,z);
+  float lon=atan(n.x,n.z);
+  float lat=asin(clamp(n.y,-1.0,1.0));
+  vec2 uv=vec2(fract(0.5+lon/6.283185307+spin),0.5+lat/3.141592654);
+  vec3 earth=texture2D(dayMap,uv).rgb;
+  vec3 cloud=texture2D(cloudMap,vec2(fract(uv.x+0.007),uv.y)).rgb;
+  float cloudMask=smoothstep(0.42,0.84,dot(cloud,vec3(0.33333)))*0.49;
+  earth=mix(earth,vec3(0.90,0.94,1.0),cloudMask);
+  float sun=dot(n,normalize(vec3(-0.54,0.47,0.91)));
+  float light=0.18+0.90*smoothstep(-0.58,0.80,sun);
+  vec3 color=earth*light*vec3(0.97,1.02,1.09);
+  float rim=pow(1.0-z,4.0);
+  color+=vec3(0.17,0.50,0.98)*rim*0.69;
+  // A quiet pinpoint of light on Wuhan when its side faces the viewer.
+  float cityLon=6.283185307*(0.81752-0.5-spin);
+  float cityLat=0.53392;
+  vec3 city=vec3(cos(cityLat)*sin(cityLon),sin(cityLat),cos(cityLat)*cos(cityLon));
+  float d=length(p-city.xy);
+  float marker=exp(-d*d*850.0)*step(0.0,city.z)*0.38;
+  color+=vec3(0.71,1.0,0.54)*marker;
+  gl_FragColor=vec4(color,1.0);
+}`;
+  function shader(type,src){
+    const item=gl.createShader(type);gl.shaderSource(item,src);gl.compileShader(item);
+    if(!gl.getShaderParameter(item,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(item));
+    return item;
+  }
+  let program;
+  try{
+    program=gl.createProgram();
+    gl.attachShader(program,shader(gl.VERTEX_SHADER,vertex));
+    gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragment));
+    gl.linkProgram(program);
+    if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
+  }catch{canvas.hidden=true;return;}
+  gl.useProgram(program);
+  const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const aPos=gl.getAttribLocation(program,'pos');gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+  const spinUniform=gl.getUniformLocation(program,'spin');
+  const samplers=['dayMap','cloudMap'];
+  samplers.forEach((name,i)=>gl.uniform1i(gl.getUniformLocation(program,name),i));
+  let ready=false,visible=false,lost=false,raf=0;
+  const natural=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function resize(){
+    const rect=canvas.getBoundingClientRect();
+    const dpr=Math.min(window.devicePixelRatio||1,1.8);
+    const w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
+    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
+  }
+  function draw(t){
+    raf=0;
+    if(!ready||lost||document.hidden||!visible)return;
+    resize();
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform1f(spinUniform,0.31752+(natural?0:t/390000));
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    if(!canvas.classList.contains('is-ready'))canvas.classList.add('is-ready');
+    if(!natural)raf=requestAnimationFrame(draw);
+  }
+  function schedule(){
+    if(ready&&!lost&&!document.hidden&&visible&&!raf)raf=requestAnimationFrame(draw);
+  }
+  const images=['../assets/earth-day.jpg','../assets/earth-clouds.png'];
+  Promise.all(images.map(src=>new Promise((resolve,reject)=>{
+    const img=new Image();img.decoding='async';img.onload=()=>resolve(img);img.onerror=reject;img.src=new URL(src,document.baseURI).href;
+  }))).then(bitmaps=>{
+    if(lost)return;
+    bitmaps.forEach((img,index)=>{
+      gl.activeTexture(gl.TEXTURE0+index);
+      const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    });
+    ready=true;schedule();
+  }).catch(()=>{canvas.hidden=true;});
+  const watch=new IntersectionObserver(([entry])=>{
+    visible=entry.isIntersecting;
+    if(!visible&&raf){cancelAnimationFrame(raf);raf=0;}
+    if(visible)schedule();
+  },{rootMargin:'80px'});
+  watch.observe(canvas);
+  document.addEventListener('visibilitychange',schedule);
+  window.addEventListener('resize',schedule,{passive:true});
+  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;canvas.classList.remove('is-ready');if(raf)cancelAnimationFrame(raf);});
+  canvas.addEventListener('webglcontextrestored',()=>{canvas.hidden=true;}); // Keep the photograph if GPU state was lost.
+})();
+
+/* Canvas starfield: a subtle field of stars and reactive light */
 (function initSpace(){const canvas=$('#space-canvas');if(!canvas)return;const ctx=canvas.getContext('2d',{alpha:true});if(!ctx)return;
   const rand=(i,s)=>{let x=Math.sin((i+1)*127.1+s*311.7)*43758.5453;return x-Math.floor(x);};
   const stars=Array.from({length:125},(_,i)=>({x:rand(i,1),y:rand(i,2),r:.4+rand(i,3)*1.3,phase:rand(i,4)*6.283,parallax:rand(i,5)*.6}));let w=0,h=0,pointerX=0,pointerY=0,currentX=0,currentY=0,frame=0,active=true,spaceFrame=0;
@@ -600,7 +763,7 @@ if(!reducedMotion && window.matchMedia('(hover:hover) and (pointer:fine)').match
 
 /* Touch + keyboard utility: keep focus inside active dialog. */
 document.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const active=!modal.hidden?modal:!command.hidden?command:null;if(!active)return;
-  const focusable=$$('button:not([disabled]),a[href]',active).filter(el=>el.getClientRects().length);if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  const focusable=$('button:not([disabled]),a[href]',active).filter(el=>el.getClientRects().length);if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
 });
 
 </script>

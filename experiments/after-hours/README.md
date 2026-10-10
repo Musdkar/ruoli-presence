@@ -1,6 +1,6 @@
 # KALIERI® — AFTER HOURS / WORLDLINE EDITION
 
-An experimental, interactive scroll-driven redesign of [kalieri.com](https://kalieri.com) — a living personal universe.
+An experimental, interactive scroll-driven redesign of [kalieri.com](https://kalieri.com) — a corner of the world.
 
 **Preview:** https://kalieri-after-hours-preview.vercel.app
 
@@ -66,3 +66,10 @@ This is a **standalone visual theme prototype**, not a wholesale migration of th
 - `desktop-hero.png` and `mobile-hero.png` — offline-captured first-fold visual previews
 
 Designed as a fresh direction rather than a superficial reskin. © 2026 Kalieri.
+
+## Earth edition / birthday update (2026-10-10)
+
+- The About strip now says **20**; photo archive totals are unchanged.
+- Hero headline: **A corner of the world.** (世界的一隅).
+- The abstract gas giant is replaced with a slowly rotating Earth on the original scroll-driven orbital stage. The OpenGL ES 2.0 / WebGL 1 renderer requires no new runtime dependencies, pauses while offscreen, and respects `prefers-reduced-motion`. A CSS image remains if GPU rendering is unavailable.
+- Earth and cloud maps: [three.js example textures](https://github.com/mrdoob/three.js/tree/dev/examples/textures/planets), based on NASA Earth imagery. Earth imagery credit: NASA/Goddard Space Flight Center / The Blue Marble. Assets are bundled locally; there are no extra external image requests for the globe.

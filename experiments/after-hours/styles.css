@@ -189,3 +189,50 @@ body{overflow-x:clip}
 .worldline-photo{background:radial-gradient(ellipse at 55% 30%,#c3a8d3,#665e82 59%,#302c49)}
 .hero-subrow p{text-shadow:0 2px 15px #050610}
 @media(max-width:560px){.worldline-supra{padding:6px 9px}.hero-subrow p{text-shadow:0 2px 10px #020409,0 0 20px #020409}}
+
+/* -----------------------------------------------------------------------
+   AFTER HOURS / EARTH EDITION — our actual home planet, not a gas giant.
+   The CSS photograph is a no-WebGL fallback; the lightweight fragment
+   renderer wraps the same locally hosted texture onto a real 3-D sphere.
+   ----------------------------------------------------------------------- */
+.earth-planet{
+  background:#061629;
+  box-shadow:inset -18px -15px 45px #010913e8,
+    0 0 0 1px #c1ebff78,
+    0 0 28px #4e9bdc55,
+    0 0 95px #4b8ccb33;
+}
+.earth-planet .planet-surface{
+  inset:0;
+  background:#17374e url("./assets/earth-day.jpg") 85% 50% / 205% 104% no-repeat;
+  filter:saturate(1.12) contrast(1.06);
+}
+.earth-planet .planet-surface:after{display:none}
+.earth-planet .earth-render{
+  position:absolute;inset:0;z-index:2;width:100%;height:100%;display:block;
+  opacity:0;transition:opacity 800ms ease-out;pointer-events:none;
+}
+.earth-planet .earth-render.is-ready{opacity:1}
+.earth-planet .planet-shadow{
+  position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:radial-gradient(ellipse at 31% 23%,transparent 22%,#00112e0d 55%,#020813c9 99%);
+  opacity:.3;
+}
+.earth-planet::after{
+  content:'';position:absolute;inset:0;z-index:4;border-radius:50%;
+  box-shadow:inset 5px 6px 15px #b3dffe38,inset -6px -10px 26px #03070e8c;
+  pointer-events:none;
+}
+.planet-backglow{
+  background:radial-gradient(circle,#3789d047 0%,#3b86d624 36%,transparent 69%);
+  filter:blur(39px);
+}
+.orbital-1{
+  border:1px solid #9fd1fc79;border-left-color:#c8edffbd;border-bottom-color:#75bde846;
+  filter:drop-shadow(0 0 4px #6ba8db5c);
+}
+.orbital-2{border-color:#c2e7fa3d}
+.orbital-3{border-color:#91bdde31}
+@media(prefers-reduced-motion:reduce){
+  .earth-planet .earth-render{transition:none}
+}
