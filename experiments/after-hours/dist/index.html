@@ -251,6 +251,23 @@ body{overflow-x:clip}
   .earth-planet .earth-render{transition:none}
 }
 
+/* Keep the orbital stage decorative, while the actual Earth accepts dragging. */
+.hero-art{pointer-events:none}
+.earth-planet{pointer-events:auto;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;outline-offset:6px}
+.earth-planet.is-dragging{cursor:grabbing}
+.earth-planet:focus-visible{outline:2px solid var(--lime)}
+.earth-reset{position:absolute;z-index:10;right:7%;bottom:18%;pointer-events:auto;
+  min-height:42px;display:flex;align-items:center;gap:8px;padding:5px 13px;
+  border-radius:999px;background:#080d18b8;border:1px solid #b5dbf05b;
+  color:#d8f1fc;font:10px var(--mono);cursor:pointer;backdrop-filter:blur(10px)}
+.earth-reset:hover,.earth-reset:focus-visible{border-color:var(--lime);color:var(--lime)}
+@media(max-width:560px){.earth-reset{right:4%;bottom:13%}}
+/* Restored 7 original devices: featured MacBook plus 6 catalog entries. */
+.devices-row{grid-template-columns:repeat(3,minmax(0,1fr))}
+.device-item{min-width:0}
+@media(max-width:850px){.devices-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.device-item strong{font-size:clamp(16px,4.6vw,21px)}}
+
 </style>
 </head>
 <body>
@@ -280,7 +297,7 @@ body{overflow-x:clip}
           <div class="hero-subrow"><div class="hero-rule"></div><p>Hello, I'm <b>Kalieri.</b> I build things, collect fleeting moments, and occasionally get lost in other worlds. This is the space in between.</p></div>
           <div class="hero-actions"><a class="circle-cta" href="#signal"><span class="circle-cta-label">ENTER THE SIGNAL</span><span class="circle-cta-icon">↘</span></a><span class="hero-side-note">SCROLL TO<br />GET TO KNOW ME <span class="spin-star">✳</span></span></div>
         </div>
-        <div class="hero-art" aria-hidden="true"><div class="art-coordinate art-coordinate-tl">FIG. 001 <span>—</span> PLANET EARTH · HOME</div><div class="art-coordinate art-coordinate-tr">[ SIGNAL ACTIVE ]</div><canvas id="space-canvas"></canvas><div class="planet-backglow"></div><div class="planet earth-planet"><div class="planet-surface"></div><canvas id="earth-canvas" class="earth-render" aria-hidden="true"></canvas><div class="planet-shadow"></div></div><div class="orbital orbital-1"></div><div class="orbital orbital-2"></div><div class="orbital orbital-3"></div><div class="orbit-satellite"></div><div class="art-cross art-cross-a">+</div><div class="art-cross art-cross-b">+</div><div class="art-caption"><span>OUR BLUE DOT ↗</span><span>30°35′N 114°18′E<br />A PLACE TO CALL HOME.</span></div><div class="art-index">K—001</div></div>
+        <div class="hero-art"><div class="art-coordinate art-coordinate-tl">FIG. 001 <span>—</span> PLANET EARTH · HOME</div><div class="art-coordinate art-coordinate-tr">[ SIGNAL ACTIVE ]</div><canvas id="space-canvas"></canvas><div class="planet-backglow"></div><div class="planet earth-planet" id="earth-control" tabindex="0" role="group" aria-label="Interactive Earth. Drag to rotate. Arrow keys rotate; R resets orientation." title="Drag the globe to rotate"><div class="planet-surface"></div><canvas id="earth-canvas" class="earth-render" aria-hidden="true"></canvas><div class="planet-shadow"></div></div><button type="button" class="earth-reset" id="earth-reset" aria-label="Reset Earth orientation">↺ <span>RESET</span></button><div class="orbital orbital-1"></div><div class="orbital orbital-2"></div><div class="orbital orbital-3"></div><div class="orbit-satellite"></div><div class="art-cross art-cross-a">+</div><div class="art-cross art-cross-b">+</div><div class="art-caption"><span>DRAG TO EXPLORE ↔</span><span>30°35′N 114°18′E<br />A PLACE TO CALL HOME.</span></div><div class="art-index">K—001</div></div>
       </div>
       <div class="hero-bottom"><div class="online-label"><span class="live-pulse"></span><span id="hero-status">WAITING FOR SIGNAL</span></div><div class="tiny-manifesto">A PERSONAL DIGITAL PRESENCE EXPERIMENT <span>↗</span> UPDATED IN REAL TIME</div><div class="hero-bottom-arrow"><span class="hero-scroll-signal">SCROLL / TO ORBIT</span><span class="hero-arrow-glyph">↓</span></div></div>
     </section>
@@ -319,9 +336,9 @@ body{overflow-x:clip}
 
     <section class="archive-section editorial-section" id="archive"><div class="section-intro reveal"><div class="section-number">02 / THE MEMORY VAULT</div><div class="section-intro-main"><h2>Fragments<br /><em>of elsewhere.</em></h2><p>Sometimes reality is a little too ordinary. These are postcards from the places I've been — real, virtual, and somewhere in between.</p></div></div><div class="archive-meta reveal"><span>VISUAL DIARY © 2026</span><span id="archive-count">19 FRAGMENTS IN THE VAULT</span><span>CLICK TO EXPLORE ↗</span></div><div class="archive-grid" id="archive-grid"></div><div class="archive-end reveal"><span>MEMORIES ARE NOT MEANT TO STAY STILL.</span><a class="underline-link" href="https://kalieri.com/photo" target="_blank" rel="noreferrer">EXPLORE THE ORIGINAL ARCHIVE ↗</a></div></section>
 
-    <section class="journal-section editorial-section" id="journal"><div class="section-intro reveal"><div class="section-number">03 / THINGS ON MY MIND</div><div class="section-intro-main"><h2>Notes from<br /><em>the margins.</em></h2><p>Unfinished thoughts, tiny discoveries, and things worth remembering. Not quite a blog. More like scraps left on the internet.</p></div></div><div class="journal-list"><button class="journal-entry reveal" data-post="0"><span class="journal-no">NOTE № 001</span><span class="journal-name">对抗无聊 <small>Against boredom</small></span><span class="journal-date">JAN 29, 2026</span><span class="journal-arrow">↗</span></button><button class="journal-entry reveal" data-post="1"><span class="journal-no">NOTE № 002</span><span class="journal-name">跑步记录 <small>Keeping pace</small></span><span class="journal-date">FEB 02, 2026</span><span class="journal-arrow">↗</span></button></div><div class="journal-foot"><span>THE THOUGHTS ARE STILL LOADING...</span><span>STAY CURIOUS. ✳</span></div></section>
+    <section class="journal-section editorial-section" id="journal"><div class="section-intro reveal"><div class="section-number">03 / THINGS ON MY MIND</div><div class="section-intro-main"><h2>Notes from<br /><em>the margins.</em></h2><p>Unfinished thoughts, tiny discoveries, and things worth remembering. Not quite a blog. More like scraps left on the internet.</p></div></div><div class="journal-list"><button class="journal-entry reveal" data-post="0"><span class="journal-no">NOTE № 001</span><span class="journal-name">对抗无聊 <small>Against boredom</small></span><span class="journal-date">JAN 29, 2026</span><span class="journal-arrow">↗</span></button><button class="journal-entry reveal" data-post="1"><span class="journal-no">NOTE № 002</span><span class="journal-name">1 <small>Running log</small></span><span class="journal-date">FEB 02, 2026</span><span class="journal-arrow">↗</span></button></div><div class="journal-foot"><span>THE THOUGHTS ARE STILL LOADING...</span><span>STAY CURIOUS. ✳</span></div></section>
 
-    <section class="uses-section editorial-section" id="uses"><div class="section-intro reveal"><div class="section-number">04 / MY EVERYDAY COMPANIONS</div><div class="section-intro-main"><h2>The toolkit<span class="accent-period">.</span></h2><p>The machines, programs and little rituals that help make all of this happen. The best tools tend to disappear when you're really into something.</p></div></div><div class="tools-layout"><div class="tools-feature reveal"><span class="micro">PRIMARY WEAPON OF CHOICE</span><div class="device-sculpture" aria-hidden="true"><div class="laptop-screen"><span class="laptop-glow"></span><span class="laptop-text">hello,<br/>world<span>.</span></span></div><div class="laptop-base"></div></div><div class="device-desc"><span>001 / DAILY DRIVER</span><strong>MacBook Pro</strong><small>M1 PRO · macOS</small></div></div><div class="tools-content reveal"><div class="tools-tabs" role="tablist" aria-label="Software groups"><button class="tool-tab active" data-tool="development" role="tab" aria-selected="true">DEVELOPMENT</button><button class="tool-tab" data-tool="ai" role="tab" aria-selected="false">AI & THINKING</button><button class="tool-tab" data-tool="vr" role="tab" aria-selected="false">OTHER WORLDS</button><button class="tool-tab" data-tool="daily" role="tab" aria-selected="false">EVERYDAY</button></div><div class="tools-list" id="tools-list"></div><div class="tools-footer"><span>MY TOOLS CHANGE. THE CURIOSITY DOESN'T.</span><span>LAST EDITED / 2026 ↗</span></div></div></div><div class="devices-row reveal"><div class="device-item"><span>02 / MOBILE</span><strong>iPhone 16 Pro Max</strong><small>the pocket universe</small></div><div class="device-item"><span>03 / OTHER WORLDS</span><strong>Meta Quest 3</strong><small>virtual everything</small></div><div class="device-item"><span>04 / PLAY</span><strong>RTX 5070 Ti</strong><small>gaming laptop</small></div><div class="device-item"><span>05 / LISTEN</span><strong>AirPods Pro 3</strong><small>soundtrack of my life</small></div></div></section>
+    <section class="uses-section editorial-section" id="uses"><div class="section-intro reveal"><div class="section-number">04 / MY EVERYDAY COMPANIONS</div><div class="section-intro-main"><h2>The toolkit<span class="accent-period">.</span></h2><p>The machines, programs and little rituals that help make all of this happen. The best tools tend to disappear when you're really into something.</p></div></div><div class="tools-layout"><div class="tools-feature reveal"><span class="micro">PRIMARY WEAPON OF CHOICE</span><div class="device-sculpture" aria-hidden="true"><div class="laptop-screen"><span class="laptop-glow"></span><span class="laptop-text">hello,<br/>world<span>.</span></span></div><div class="laptop-base"></div></div><div class="device-desc"><span>001 / DAILY DRIVER</span><strong>MacBook Pro</strong><small>M1 PRO · macOS</small></div></div><div class="tools-content reveal"><div class="tools-tabs" role="tablist" aria-label="Software groups"><button class="tool-tab active" data-tool="development" role="tab" aria-selected="true">DEVELOPMENT</button><button class="tool-tab" data-tool="ai" role="tab" aria-selected="false">AI & THINKING</button><button class="tool-tab" data-tool="vr" role="tab" aria-selected="false">OTHER WORLDS</button><button class="tool-tab" data-tool="daily" role="tab" aria-selected="false">EVERYDAY</button></div><div class="tools-list" id="tools-list"></div><div class="tools-footer"><span>MY TOOLS CHANGE. THE CURIOSITY DOESN'T.</span><span>LAST EDITED / 2026 ↗</span></div></div></div><div class="devices-row reveal"><div class="device-item"><span>02 / DAILY · MOBILE</span><strong>iPhone 16 Pro Max</strong><small>mobile</small></div><div class="device-item"><span>03 / DAILY · AUDIO</span><strong>AirPods Pro 3</strong><small>audio</small></div><div class="device-item"><span>04 / PLAY · VR</span><strong>Quest 3</strong><small>VR</small></div><div class="device-item"><span>05 / PLAY · LAPTOP</span><strong>Gaming Laptop</strong><small>7945HX · RTX 5070 Ti</small></div><div class="device-item"><span>06 / PLAY · DESKTOP</span><strong>Desktop PC</strong><small>5800X · RX 6900 XT</small></div><div class="device-item"><span>07 / PLAY · TABLET</span><strong>Xiaomi Pad 7S Pro</strong><small>tablet</small></div></div></section>
 
     <section class="about-bridge"><span class="about-bridge-index">SELF PORTRAIT / 005</span><div class="about-avatar"><img src="https://kalieri.com/assets/avatar.webp" alt="Kalieri's avatar" onerror="this.style.opacity=0" /></div><div class="about-bridge-copy"><span class="eyebrow">A FEW MORE THINGS ABOUT ME</span><p>20 / STUDENT / <i>INTJ-A</i><br/>LEARNING JAPANESE / <i>CREATING</i><br/>AMATEUR VRCHAT DANCER / <i>CURIOUS</i><br/>USUALLY HERE, OCCASIONALLY SOMEWHERE ELSE.</p></div><div class="about-kanji" aria-hidden="true">夢</div></section>
 
@@ -373,7 +390,7 @@ const software = {
 };
 const blogPosts = [
   {title:'对抗无聊', subtitle:'Against boredom', date:'JAN 29, 2026', html:`<p>一些关于保持好奇心、对抗无聊的零散笔记。</p><ul><li>多接触日光，少接触能够快速大量产生多巴胺的活动。</li><li>每天接触 10–30 分钟的日光，可以每天早起去跑步。</li><li>褪黑素的长期使用会抑制多巴胺水平。</li><li>芝麻、奶酪、牛肉、鱼肉、坚果：补充酪氨酸，帮助多巴胺生成。</li><li>中午 12 点之前可以适当地喝一些咖啡，让多巴胺回路更加敏感。</li><li>在无聊的时候做一些主观上更难受的事，从而快速恢复状态。</li><li>在重复枯燥的工作中找到新鲜感。</li><li>学习另一门外语，或者从 <a target="_blank" rel="noreferrer" style="color:var(--lime)" href="https://www.imdb.com/chart/top/">IMDb Top 250 ↗</a> 开始看电影。</li></ul>`},
-  {title:'跑步记录', subtitle:'Keeping pace', date:'FEB 02, 2026', html:`<p>随手记下的跑步里程。步伐不一定快，但在往前走。</p><ul>${[['1.30','2.74'],['1.31','2.88'],['2.01','2.92'],['2.02','2.90'],['2.03','2.85'],['2.05','3.03'],['2.07','2.67'],['2.11','2.98'],['2.15','2.17'],['2.20','2.96'],['2.24','2.82'],['3.02','2.42'],['3.05','3.59'],['3.10','3.17']].map(([d,v])=>`<li>${d} — ${v} km</li>`).join('')}</ul><p>完整笔记仍保存在 <a style="color:var(--lime)" href="https://kalieri.com/blog/2" target="_blank" rel="noreferrer">原站 ↗</a>。</p>`}
+  {title:'1', subtitle:'Running log', date:'FEB 02, 2026', html:`<ol><li>1.30：2.74km</li><li>1.31：2.88km</li><li>2.01：2.92km</li><li>2.02：2.90km</li><li>2.03：2.85km</li><li>2.05：3.03km</li><li>2.07：2.67km</li><li>2.08：2.83km</li><li>2.09：2.94km</li><li>2.11：2.98km</li><li>2.12：2.77km</li><li>2.15：2.17km</li><li>2.17：2.64km</li><li>2.20：2.96km</li><li>2.23：2.85km</li><li>2.24：2.82km</li><li>3.02：2.42km</li><li>3.03：2.70km</li><li>3.04：2.97km</li><li>3.05：3.59km</li><li>3.06：2.98km</li><li>3.09：2.74km</li><li>3.10：3.17km</li></ol><p><a style="color:var(--lime)" href="https://kalieri.com/blog/2" target="_blank" rel="noreferrer">VIEW ORIGINAL ↗</a></p>`}
 ];
 
 /* Editorial photo wall */
@@ -646,6 +663,7 @@ varying vec2 v;
 uniform sampler2D dayMap;
 uniform sampler2D cloudMap;
 uniform float spin;
+uniform float pitch;
 void main(){
   vec2 p=(v-0.5)*2.0;
   p.y=-p.y;
@@ -653,8 +671,10 @@ void main(){
   if(r2>=1.0)discard;
   float z=sqrt(max(0.0,1.0-r2));
   vec3 n=vec3(p.x,p.y,z);
-  float lon=atan(n.x,n.z);
-  float lat=asin(clamp(n.y,-1.0,1.0));
+  float c=cos(pitch),s=sin(pitch);
+  vec3 turned=vec3(n.x,n.y*c-n.z*s,n.y*s+n.z*c);
+  float lon=atan(turned.x,turned.z);
+  float lat=asin(clamp(turned.y,-1.0,1.0));
   vec2 uv=vec2(fract(0.5+lon/6.283185307+spin),0.5+lat/3.141592654);
   vec3 earth=texture2D(dayMap,uv).rgb;
   vec3 cloud=texture2D(cloudMap,vec2(fract(uv.x+0.007),uv.y)).rgb;
@@ -666,11 +686,9 @@ void main(){
   float rim=pow(1.0-z,4.0);
   color+=vec3(0.17,0.50,0.98)*rim*0.69;
   // A quiet pinpoint of light on Wuhan when its side faces the viewer.
-  float cityLon=6.283185307*(0.81752-0.5-spin);
-  float cityLat=0.53392;
-  vec3 city=vec3(cos(cityLat)*sin(cityLon),sin(cityLat),cos(cityLat)*cos(cityLon));
-  float d=length(p-city.xy);
-  float marker=exp(-d*d*850.0)*step(0.0,city.z)*0.38;
+  float longitudeDelta=abs(fract(uv.x-0.81752+0.5)-0.5)*6.283185307;
+  float latitudeDelta=(uv.y-(0.5+0.53392/3.141592654))*3.141592654;
+  float marker=exp(-900.0*(longitudeDelta*longitudeDelta+latitudeDelta*latitudeDelta))*0.40;
   color+=vec3(0.71,1.0,0.54)*marker;
   gl_FragColor=vec4(color,1.0);
 }`;
@@ -693,10 +711,66 @@ void main(){
   const aPos=gl.getAttribLocation(program,'pos');gl.enableVertexAttribArray(aPos);
   gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
   const spinUniform=gl.getUniformLocation(program,'spin');
+  const pitchUniform=gl.getUniformLocation(program,'pitch');
   const samplers=['dayMap','cloudMap'];
   samplers.forEach((name,i)=>gl.uniform1i(gl.getUniformLocation(program,name),i));
   let ready=false,visible=false,lost=false,raf=0;
   const natural=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const control=$('#earth-control'),reset=$('#earth-reset');
+  let yaw=0,pitch=0,velocityX=0,velocityY=0,drag=null,hovered=false;
+  let autoSpin=0,lastFrame=0,lastGesture=0;
+  const clamp=(value,low,high)=>Math.max(low,Math.min(high,value));
+  const resetOrientation=()=>{
+    yaw=0;pitch=0;velocityX=0;velocityY=0;autoSpin=0;lastGesture=performance.now();
+    schedule();
+  };
+  control.addEventListener('pointerenter',()=>{hovered=true;});
+  control.addEventListener('pointerleave',()=>{hovered=false;lastGesture=performance.now();schedule();});
+  control.addEventListener('pointerdown',event=>{
+    if(event.pointerType==='mouse'&&event.button!==0)return;
+    if(!ready||lost)return;
+    event.preventDefault();
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,t:performance.now()};
+    velocityX=0;velocityY=0;
+    control.classList.add('is-dragging');
+    control.setPointerCapture(event.pointerId);
+    lastGesture=performance.now();schedule();
+  });
+  control.addEventListener('pointermove',event=>{
+    if(!drag||event.pointerId!==drag.id)return;
+    const now=performance.now();
+    const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
+    const dt=Math.max(10,now-drag.t);
+    const factor=Math.PI/Math.max(260,control.getBoundingClientRect().width);
+    yaw-=dx*factor;
+    pitch=clamp(pitch-dy*factor,-1.47,1.47);
+    velocityX=clamp((-dx*factor/dt)*16,-0.045,0.045);
+    velocityY=clamp((-dy*factor/dt)*16,-0.045,0.045);
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,t:now};
+    lastGesture=now;schedule();
+  });
+  function release(event){
+    if(!drag||event.pointerId!==drag.id)return;
+    if(event.type==='pointercancel'){velocityX=0;velocityY=0;}
+    drag=null;control.classList.remove('is-dragging');
+    if(control.hasPointerCapture(event.pointerId))control.releasePointerCapture(event.pointerId);
+    lastGesture=performance.now();schedule();
+  }
+  control.addEventListener('pointerup',release);
+  control.addEventListener('pointercancel',release);
+  control.addEventListener('keydown',event=>{
+    const step=event.shiftKey?0.35:0.13;
+    if(event.key==='ArrowLeft')yaw-=step;
+    else if(event.key==='ArrowRight')yaw+=step;
+    else if(event.key==='ArrowUp')pitch=clamp(pitch+step,-1.47,1.47);
+    else if(event.key==='ArrowDown')pitch=clamp(pitch-step,-1.47,1.47);
+    else if(event.key.toLowerCase()==='r')resetOrientation();
+    else return;
+    event.preventDefault();velocityX=0;velocityY=0;lastGesture=performance.now();schedule();
+  });
+  control.addEventListener('dblclick',resetOrientation);
+  reset.addEventListener('click',resetOrientation);
+
   function resize(){
     const rect=canvas.getBoundingClientRect();
     const dpr=Math.min(window.devicePixelRatio||1,1.8);
@@ -708,7 +782,19 @@ void main(){
     if(!ready||lost||document.hidden||!visible)return;
     resize();
     gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.uniform1f(spinUniform,0.31752+(natural?0:t/390000));
+    const dt=lastFrame?Math.min(64,Math.max(0,t-lastFrame)):16;
+    lastFrame=t;
+    if(!drag&&!natural){
+      if(Math.abs(velocityX)+Math.abs(velocityY)>0.00008){
+        yaw+=velocityX*(dt/16);
+        pitch=clamp(pitch+velocityY*(dt/16),-1.47,1.47);
+        const friction=Math.pow(0.92,dt/16);
+        velocityX*=friction;velocityY*=friction;
+      }else{velocityX=0;velocityY=0;}
+      if(!hovered&&t-lastGesture>1200)autoSpin+=dt/390000;
+    }
+    gl.uniform1f(spinUniform,0.31752+autoSpin+yaw/6.283185307);
+    gl.uniform1f(pitchUniform,pitch);
     gl.drawArrays(gl.TRIANGLES,0,6);
     if(!canvas.classList.contains('is-ready'))canvas.classList.add('is-ready');
     if(!natural)raf=requestAnimationFrame(draw);
@@ -735,6 +821,7 @@ void main(){
   }).catch(()=>{canvas.hidden=true;});
   const watch=new IntersectionObserver(([entry])=>{
     visible=entry.isIntersecting;
+    lastFrame=0;
     if(!visible&&raf){cancelAnimationFrame(raf);raf=0;}
     if(visible)schedule();
   },{rootMargin:'80px'});

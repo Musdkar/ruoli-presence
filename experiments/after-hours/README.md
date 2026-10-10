@@ -73,3 +73,9 @@ Designed as a fresh direction rather than a superficial reskin. © 2026 Kalieri.
 - Hero headline: **A corner of the world.** (世界的一隅).
 - The abstract gas giant is replaced with a slowly rotating Earth on the original scroll-driven orbital stage. The OpenGL ES 2.0 / WebGL 1 renderer requires no new runtime dependencies, pauses while offscreen, and respects `prefers-reduced-motion`. A CSS image remains if GPU rendering is unavailable.
 - Earth and cloud maps: [three.js example textures](https://github.com/mrdoob/three.js/tree/dev/examples/textures/planets), based on NASA Earth imagery. Earth imagery credit: NASA/Goddard Space Flight Center / The Blue Marble. Assets are bundled locally; there are no extra external image requests for the globe.
+
+## Earth interaction and source fidelity
+
+- Earth: drag horizontally/vertically; inertia after release; auto-rotation pauses on hover and while dragging. Double-click, R, or the visible reset button restores the original angle. Arrow keys rotate for keyboard users (Shift increases step). Touch drags on the globe; the rest of the page remains scrollable. Reduced-motion visitors retain deliberate interaction but no automatic spin or inertial animation.
+- The running-log post is called **1**, exactly as in the original `src/content/posts.js`. All **23** original running entries are restored.
+- The full original **7-device** inventory from `src/data/devices.js` is visible, including Desktop PC (5800X / RX 6900 XT), Xiaomi Pad 7S Pro, and full gaming-laptop specs.

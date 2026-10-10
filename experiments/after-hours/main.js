@@ -39,7 +39,7 @@ const software = {
 };
 const blogPosts = [
   {title:'对抗无聊', subtitle:'Against boredom', date:'JAN 29, 2026', html:`<p>一些关于保持好奇心、对抗无聊的零散笔记。</p><ul><li>多接触日光，少接触能够快速大量产生多巴胺的活动。</li><li>每天接触 10–30 分钟的日光，可以每天早起去跑步。</li><li>褪黑素的长期使用会抑制多巴胺水平。</li><li>芝麻、奶酪、牛肉、鱼肉、坚果：补充酪氨酸，帮助多巴胺生成。</li><li>中午 12 点之前可以适当地喝一些咖啡，让多巴胺回路更加敏感。</li><li>在无聊的时候做一些主观上更难受的事，从而快速恢复状态。</li><li>在重复枯燥的工作中找到新鲜感。</li><li>学习另一门外语，或者从 <a target="_blank" rel="noreferrer" style="color:var(--lime)" href="https://www.imdb.com/chart/top/">IMDb Top 250 ↗</a> 开始看电影。</li></ul>`},
-  {title:'跑步记录', subtitle:'Keeping pace', date:'FEB 02, 2026', html:`<p>随手记下的跑步里程。步伐不一定快，但在往前走。</p><ul>${[['1.30','2.74'],['1.31','2.88'],['2.01','2.92'],['2.02','2.90'],['2.03','2.85'],['2.05','3.03'],['2.07','2.67'],['2.11','2.98'],['2.15','2.17'],['2.20','2.96'],['2.24','2.82'],['3.02','2.42'],['3.05','3.59'],['3.10','3.17']].map(([d,v])=>`<li>${d} — ${v} km</li>`).join('')}</ul><p>完整笔记仍保存在 <a style="color:var(--lime)" href="https://kalieri.com/blog/2" target="_blank" rel="noreferrer">原站 ↗</a>。</p>`}
+  {title:'1', subtitle:'Running log', date:'FEB 02, 2026', html:`<ol><li>1.30：2.74km</li><li>1.31：2.88km</li><li>2.01：2.92km</li><li>2.02：2.90km</li><li>2.03：2.85km</li><li>2.05：3.03km</li><li>2.07：2.67km</li><li>2.08：2.83km</li><li>2.09：2.94km</li><li>2.11：2.98km</li><li>2.12：2.77km</li><li>2.15：2.17km</li><li>2.17：2.64km</li><li>2.20：2.96km</li><li>2.23：2.85km</li><li>2.24：2.82km</li><li>3.02：2.42km</li><li>3.03：2.70km</li><li>3.04：2.97km</li><li>3.05：3.59km</li><li>3.06：2.98km</li><li>3.09：2.74km</li><li>3.10：3.17km</li></ol><p><a style="color:var(--lime)" href="https://kalieri.com/blog/2" target="_blank" rel="noreferrer">VIEW ORIGINAL ↗</a></p>`}
 ];
 
 /* Editorial photo wall */
@@ -312,6 +312,7 @@ varying vec2 v;
 uniform sampler2D dayMap;
 uniform sampler2D cloudMap;
 uniform float spin;
+uniform float pitch;
 void main(){
   vec2 p=(v-0.5)*2.0;
   p.y=-p.y;
@@ -319,8 +320,10 @@ void main(){
   if(r2>=1.0)discard;
   float z=sqrt(max(0.0,1.0-r2));
   vec3 n=vec3(p.x,p.y,z);
-  float lon=atan(n.x,n.z);
-  float lat=asin(clamp(n.y,-1.0,1.0));
+  float c=cos(pitch),s=sin(pitch);
+  vec3 turned=vec3(n.x,n.y*c-n.z*s,n.y*s+n.z*c);
+  float lon=atan(turned.x,turned.z);
+  float lat=asin(clamp(turned.y,-1.0,1.0));
   vec2 uv=vec2(fract(0.5+lon/6.283185307+spin),0.5+lat/3.141592654);
   vec3 earth=texture2D(dayMap,uv).rgb;
   vec3 cloud=texture2D(cloudMap,vec2(fract(uv.x+0.007),uv.y)).rgb;
@@ -332,11 +335,9 @@ void main(){
   float rim=pow(1.0-z,4.0);
   color+=vec3(0.17,0.50,0.98)*rim*0.69;
   // A quiet pinpoint of light on Wuhan when its side faces the viewer.
-  float cityLon=6.283185307*(0.81752-0.5-spin);
-  float cityLat=0.53392;
-  vec3 city=vec3(cos(cityLat)*sin(cityLon),sin(cityLat),cos(cityLat)*cos(cityLon));
-  float d=length(p-city.xy);
-  float marker=exp(-d*d*850.0)*step(0.0,city.z)*0.38;
+  float longitudeDelta=abs(fract(uv.x-0.81752+0.5)-0.5)*6.283185307;
+  float latitudeDelta=(uv.y-(0.5+0.53392/3.141592654))*3.141592654;
+  float marker=exp(-900.0*(longitudeDelta*longitudeDelta+latitudeDelta*latitudeDelta))*0.40;
   color+=vec3(0.71,1.0,0.54)*marker;
   gl_FragColor=vec4(color,1.0);
 }`;
@@ -359,10 +360,66 @@ void main(){
   const aPos=gl.getAttribLocation(program,'pos');gl.enableVertexAttribArray(aPos);
   gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
   const spinUniform=gl.getUniformLocation(program,'spin');
+  const pitchUniform=gl.getUniformLocation(program,'pitch');
   const samplers=['dayMap','cloudMap'];
   samplers.forEach((name,i)=>gl.uniform1i(gl.getUniformLocation(program,name),i));
   let ready=false,visible=false,lost=false,raf=0;
   const natural=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const control=$('#earth-control'),reset=$('#earth-reset');
+  let yaw=0,pitch=0,velocityX=0,velocityY=0,drag=null,hovered=false;
+  let autoSpin=0,lastFrame=0,lastGesture=0;
+  const clamp=(value,low,high)=>Math.max(low,Math.min(high,value));
+  const resetOrientation=()=>{
+    yaw=0;pitch=0;velocityX=0;velocityY=0;autoSpin=0;lastGesture=performance.now();
+    schedule();
+  };
+  control.addEventListener('pointerenter',()=>{hovered=true;});
+  control.addEventListener('pointerleave',()=>{hovered=false;lastGesture=performance.now();schedule();});
+  control.addEventListener('pointerdown',event=>{
+    if(event.pointerType==='mouse'&&event.button!==0)return;
+    if(!ready||lost)return;
+    event.preventDefault();
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,t:performance.now()};
+    velocityX=0;velocityY=0;
+    control.classList.add('is-dragging');
+    control.setPointerCapture(event.pointerId);
+    lastGesture=performance.now();schedule();
+  });
+  control.addEventListener('pointermove',event=>{
+    if(!drag||event.pointerId!==drag.id)return;
+    const now=performance.now();
+    const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
+    const dt=Math.max(10,now-drag.t);
+    const factor=Math.PI/Math.max(260,control.getBoundingClientRect().width);
+    yaw-=dx*factor;
+    pitch=clamp(pitch-dy*factor,-1.47,1.47);
+    velocityX=clamp((-dx*factor/dt)*16,-0.045,0.045);
+    velocityY=clamp((-dy*factor/dt)*16,-0.045,0.045);
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,t:now};
+    lastGesture=now;schedule();
+  });
+  function release(event){
+    if(!drag||event.pointerId!==drag.id)return;
+    if(event.type==='pointercancel'){velocityX=0;velocityY=0;}
+    drag=null;control.classList.remove('is-dragging');
+    if(control.hasPointerCapture(event.pointerId))control.releasePointerCapture(event.pointerId);
+    lastGesture=performance.now();schedule();
+  }
+  control.addEventListener('pointerup',release);
+  control.addEventListener('pointercancel',release);
+  control.addEventListener('keydown',event=>{
+    const step=event.shiftKey?0.35:0.13;
+    if(event.key==='ArrowLeft')yaw-=step;
+    else if(event.key==='ArrowRight')yaw+=step;
+    else if(event.key==='ArrowUp')pitch=clamp(pitch+step,-1.47,1.47);
+    else if(event.key==='ArrowDown')pitch=clamp(pitch-step,-1.47,1.47);
+    else if(event.key.toLowerCase()==='r')resetOrientation();
+    else return;
+    event.preventDefault();velocityX=0;velocityY=0;lastGesture=performance.now();schedule();
+  });
+  control.addEventListener('dblclick',resetOrientation);
+  reset.addEventListener('click',resetOrientation);
+
   function resize(){
     const rect=canvas.getBoundingClientRect();
     const dpr=Math.min(window.devicePixelRatio||1,1.8);
@@ -374,7 +431,19 @@ void main(){
     if(!ready||lost||document.hidden||!visible)return;
     resize();
     gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.uniform1f(spinUniform,0.31752+(natural?0:t/390000));
+    const dt=lastFrame?Math.min(64,Math.max(0,t-lastFrame)):16;
+    lastFrame=t;
+    if(!drag&&!natural){
+      if(Math.abs(velocityX)+Math.abs(velocityY)>0.00008){
+        yaw+=velocityX*(dt/16);
+        pitch=clamp(pitch+velocityY*(dt/16),-1.47,1.47);
+        const friction=Math.pow(0.92,dt/16);
+        velocityX*=friction;velocityY*=friction;
+      }else{velocityX=0;velocityY=0;}
+      if(!hovered&&t-lastGesture>1200)autoSpin+=dt/390000;
+    }
+    gl.uniform1f(spinUniform,0.31752+autoSpin+yaw/6.283185307);
+    gl.uniform1f(pitchUniform,pitch);
     gl.drawArrays(gl.TRIANGLES,0,6);
     if(!canvas.classList.contains('is-ready'))canvas.classList.add('is-ready');
     if(!natural)raf=requestAnimationFrame(draw);
@@ -401,6 +470,7 @@ void main(){
   }).catch(()=>{canvas.hidden=true;});
   const watch=new IntersectionObserver(([entry])=>{
     visible=entry.isIntersecting;
+    lastFrame=0;
     if(!visible&&raf){cancelAnimationFrame(raf);raf=0;}
     if(visible)schedule();
   },{rootMargin:'80px'});
