@@ -79,3 +79,9 @@ Designed as a fresh direction rather than a superficial reskin. © 2026 Kalieri.
 - Earth: drag horizontally/vertically; inertia after release; auto-rotation pauses on hover and while dragging. Double-click, R, or the visible reset button restores the original angle. Arrow keys rotate for keyboard users (Shift increases step). Touch drags on the globe; the rest of the page remains scrollable. Reduced-motion visitors retain deliberate interaction but no automatic spin or inertial animation.
 - The running-log post is called **1**, exactly as in the original `src/content/posts.js`. All **23** original running entries are restored.
 - The full original **7-device** inventory from `src/data/devices.js` is visible, including Desktop PC (5800X / RX 6900 XT), Xiaomi Pad 7S Pro, and full gaming-laptop specs.
+
+## Home-centred Earth & sonnet editorial pass
+
+- The author-specific globe now centres on Wuhan (30.5928° N, 114.3055° E) from the first frame. Reset eases the view back to Wuhan by the shortest rotation path; it no longer resets to arbitrary latitude zero. Manual pointer/keyboard controls remain.
+- Idle motion subtly sways around the home longitude instead of slowly rotating the home city out of view. The site does **not** request browser geolocation (which would refer to a visitor rather than Kalieri).
+- Updated peripheral labels and hero prose. The headline **A corner of the world** stays. Sonnet excerpt is from William Shakespeare, *Sonnet 14* (“Not from the stars do I my judgement pluck”), with attribution visible on the page.

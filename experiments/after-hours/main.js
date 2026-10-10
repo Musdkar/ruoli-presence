@@ -366,12 +366,22 @@ void main(){
   let ready=false,visible=false,lost=false,raf=0;
   const natural=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const control=$('#earth-control'),reset=$('#earth-reset');
-  let yaw=0,pitch=0,velocityX=0,velocityY=0,drag=null,hovered=false;
+  // Coordinates from the author's existing config: Wuhan, China.
+  // On the shader's equirectangular map the visible centre is (0.5 + spin, -pitch).
+  const HOME_LATITUDE=30.5928*Math.PI/180;
+  const HOME_SPIN=114.3055/360;
+  const HOME_PITCH=-HOME_LATITUDE;
+  let yaw=0,pitch=HOME_PITCH,velocityX=0,velocityY=0,drag=null,hovered=false;
   let autoSpin=0,lastFrame=0,lastGesture=0;
+  let returnHome=null;
   const clamp=(value,low,high)=>Math.max(low,Math.min(high,value));
+  // Smoothly fly back to Wuhan's latitude/longitude; never use device location
+  // or request visitor geolocation for this author-specific personal site.
   const resetOrientation=()=>{
-    yaw=0;pitch=0;velocityX=0;velocityY=0;autoSpin=0;lastGesture=performance.now();
-    schedule();
+    const now=performance.now();
+    returnHome={started:now,fromYaw:yaw+autoSpin*6.283185307,fromPitch:pitch};
+    yaw=0;autoSpin=0;velocityX=0;velocityY=0;
+    lastGesture=now;schedule();
   };
   control.addEventListener('pointerenter',()=>{hovered=true;});
   control.addEventListener('pointerleave',()=>{hovered=false;lastGesture=performance.now();schedule();});
@@ -380,7 +390,7 @@ void main(){
     if(!ready||lost)return;
     event.preventDefault();
     drag={id:event.pointerId,x:event.clientX,y:event.clientY,t:performance.now()};
-    velocityX=0;velocityY=0;
+    velocityX=0;velocityY=0;returnHome=null;
     control.classList.add('is-dragging');
     control.setPointerCapture(event.pointerId);
     lastGesture=performance.now();schedule();
@@ -415,7 +425,7 @@ void main(){
     else if(event.key==='ArrowDown')pitch=clamp(pitch-step,-1.47,1.47);
     else if(event.key.toLowerCase()==='r')resetOrientation();
     else return;
-    event.preventDefault();velocityX=0;velocityY=0;lastGesture=performance.now();schedule();
+    event.preventDefault();returnHome=null;velocityX=0;velocityY=0;lastGesture=performance.now();schedule();
   });
   control.addEventListener('dblclick',resetOrientation);
   reset.addEventListener('click',resetOrientation);
@@ -433,16 +443,28 @@ void main(){
     gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
     const dt=lastFrame?Math.min(64,Math.max(0,t-lastFrame)):16;
     lastFrame=t;
-    if(!drag&&!natural){
+    if(returnHome){
+      const fraction=clamp((t-returnHome.started)/(natural?1:850),0,1);
+      const ease=1-Math.pow(1-fraction,3);
+      // Shortest longitude route prevents an unnecessary multi-turn reset.
+      const shortest=Math.atan2(Math.sin(returnHome.fromYaw),Math.cos(returnHome.fromYaw));
+      yaw=shortest*(1-ease);
+      pitch=returnHome.fromPitch+(HOME_PITCH-returnHome.fromPitch)*ease;
+      if(fraction>=1){returnHome=null;yaw=0;pitch=HOME_PITCH;autoSpin=0;}
+    }else if(!drag&&!natural){
       if(Math.abs(velocityX)+Math.abs(velocityY)>0.00008){
         yaw+=velocityX*(dt/16);
         pitch=clamp(pitch+velocityY*(dt/16),-1.47,1.47);
         const friction=Math.pow(0.92,dt/16);
         velocityX*=friction;velocityY*=friction;
       }else{velocityX=0;velocityY=0;}
+      // A gentle orbit around home rather than spinning Wuhan off the screen.
+      // ±4° of longitude keeps the author location visible at all times.
       if(!hovered&&t-lastGesture>1200)autoSpin+=dt/390000;
     }
-    gl.uniform1f(spinUniform,0.31752+autoSpin+yaw/6.283185307);
+    const homeSway=(!drag&&!returnHome&&!hovered&&!natural)
+      ?Math.sin(autoSpin*6.283185307)*0.011:0;
+    gl.uniform1f(spinUniform,HOME_SPIN+yaw/6.283185307+homeSway);
     gl.uniform1f(pitchUniform,pitch);
     gl.drawArrays(gl.TRIANGLES,0,6);
     if(!canvas.classList.contains('is-ready'))canvas.classList.add('is-ready');

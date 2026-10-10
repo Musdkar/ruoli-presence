@@ -268,6 +268,14 @@ body{overflow-x:clip}
 @media(max-width:850px){.devices-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.device-item strong{font-size:clamp(16px,4.6vw,21px)}}
 
+/* A verse in the margin, not another dashboard card. */
+.hero-sonnet{margin:26px 0 0 clamp(0px,2.2vw,33px);padding:0;border:0;position:relative;z-index:6;max-width:550px}
+.hero-sonnet blockquote{margin:0;color:#d6cbec;font:italic 400 clamp(15px,1.5vw,21px)/1.45 Georgia,'Times New Roman',serif;letter-spacing:-.01em;text-shadow:0 3px 16px #080910}
+.hero-sonnet figcaption{margin-top:9px;color:#9590a7;font:9px var(--mono);letter-spacing:.1em}
+.hero-sonnet figcaption span{color:var(--lime);margin:0 5px}
+@media(max-width:850px){.hero-sonnet{margin-top:16px;margin-left:0;max-width:350px}}
+@media(max-width:560px){.hero-sonnet{max-width:295px;margin-top:17px}.hero-sonnet blockquote{font-size:13px}.hero-sonnet figcaption{font-size:8px}}
+
 </style>
 </head>
 <body>
@@ -292,14 +300,14 @@ body{overflow-x:clip}
       <div class="hero-topline"><span class="eyebrow"><span class="asterisk">✳</span> INDEPENDENT HUMAN, IN PROGRESS</span><span class="issue">EST. 2006 — INTERNET EDITION <span class="separator">/</span> 30°35′N 114°18′E</span></div>
       <div class="hero-content">
         <div class="hero-copy">
-          <div class="hello-badge"><span class="badge-emoji">↳</span> A transmission from <b>Wuhan, China.</b></div>
+          <div class="hello-badge"><span class="badge-emoji">↳</span> FROM <b>WUHAN, CHINA.</b> · 30.5928° N / 114.3055° E</div>
           <h1 id="hero-heading">A corner<br /><span class="hero-heading-outline">of the</span><br /><span class="hero-last">world<span class="hero-period">.</span></span></h1>
-          <div class="hero-subrow"><div class="hero-rule"></div><p>Hello, I'm <b>Kalieri.</b> I build things, collect fleeting moments, and occasionally get lost in other worlds. This is the space in between.</p></div>
-          <div class="hero-actions"><a class="circle-cta" href="#signal"><span class="circle-cta-label">ENTER THE SIGNAL</span><span class="circle-cta-icon">↘</span></a><span class="hero-side-note">SCROLL TO<br />GET TO KNOW ME <span class="spin-star">✳</span></span></div>
+          <div class="hero-subrow"><div class="hero-rule"></div><p>Hello, I'm <b>Kalieri.</b> From a small corner of Wuhan, I collect moments, make things, and wander between the tangible and the virtual.</p></div>
+          <figure class="hero-sonnet"><blockquote>“Not from the stars do I my judgement pluck.”</blockquote><figcaption>WILLIAM SHAKESPEARE <span>—</span> SONNET 14</figcaption></figure><div class="hero-actions"><a class="circle-cta" href="#signal"><span class="circle-cta-label">ENTER THE SIGNAL</span><span class="circle-cta-icon">↘</span></a><span class="hero-side-note">SCROLL TO<br />GET TO KNOW ME <span class="spin-star">✳</span></span></div>
         </div>
-        <div class="hero-art"><div class="art-coordinate art-coordinate-tl">FIG. 001 <span>—</span> PLANET EARTH · HOME</div><div class="art-coordinate art-coordinate-tr">[ SIGNAL ACTIVE ]</div><canvas id="space-canvas"></canvas><div class="planet-backglow"></div><div class="planet earth-planet" id="earth-control" tabindex="0" role="group" aria-label="Interactive Earth. Drag to rotate. Arrow keys rotate; R resets orientation." title="Drag the globe to rotate"><div class="planet-surface"></div><canvas id="earth-canvas" class="earth-render" aria-hidden="true"></canvas><div class="planet-shadow"></div></div><button type="button" class="earth-reset" id="earth-reset" aria-label="Reset Earth orientation">↺ <span>RESET</span></button><div class="orbital orbital-1"></div><div class="orbital orbital-2"></div><div class="orbital orbital-3"></div><div class="orbit-satellite"></div><div class="art-cross art-cross-a">+</div><div class="art-cross art-cross-b">+</div><div class="art-caption"><span>DRAG TO EXPLORE ↔</span><span>30°35′N 114°18′E<br />A PLACE TO CALL HOME.</span></div><div class="art-index">K—001</div></div>
+        <div class="hero-art"><div class="art-coordinate art-coordinate-tl">FIG. 001 <span>—</span> EARTH / WUHAN CENTRED</div><div class="art-coordinate art-coordinate-tr">[ SIGNAL ACTIVE ]</div><canvas id="space-canvas"></canvas><div class="planet-backglow"></div><div class="planet earth-planet" id="earth-control" tabindex="0" role="group" aria-label="Interactive Earth. Drag to rotate. Arrow keys rotate; R resets orientation." title="Drag the globe to rotate"><div class="planet-surface"></div><canvas id="earth-canvas" class="earth-render" aria-hidden="true"></canvas><div class="planet-shadow"></div></div><button type="button" class="earth-reset" id="earth-reset" aria-label="Turn Earth toward Wuhan" title="Return to Wuhan">↺ <span>WUHAN</span></button><div class="orbital orbital-1"></div><div class="orbital orbital-2"></div><div class="orbital orbital-3"></div><div class="orbit-satellite"></div><div class="art-cross art-cross-a">+</div><div class="art-cross art-cross-b">+</div><div class="art-caption"><span>DRAG THE EARTH ↔</span><span>30°35′N 114°18′E<br />HOME IS THE CENTRE.</span></div><div class="art-index">K—001</div></div>
       </div>
-      <div class="hero-bottom"><div class="online-label"><span class="live-pulse"></span><span id="hero-status">WAITING FOR SIGNAL</span></div><div class="tiny-manifesto">A PERSONAL DIGITAL PRESENCE EXPERIMENT <span>↗</span> UPDATED IN REAL TIME</div><div class="hero-bottom-arrow"><span class="hero-scroll-signal">SCROLL / TO ORBIT</span><span class="hero-arrow-glyph">↓</span></div></div>
+      <div class="hero-bottom"><div class="online-label"><span class="live-pulse"></span><span id="hero-status">WAITING FOR SIGNAL</span></div><div class="tiny-manifesto">ONE SMALL CORNER <span>✳</span> A WORLD STILL TURNING</div><div class="hero-bottom-arrow"><span class="hero-scroll-signal">SCROLL / EXPLORE</span><span class="hero-arrow-glyph">↓</span></div></div>
     </section>
 
     <div class="marquee" aria-hidden="true"><div class="marquee-track">CREATING THINGS <span>✳</span> STAYING CURIOUS <span>✳</span> OTHER WORLDS <span>✳</span> MOSTLY ONLINE <span>✳</span> CREATING THINGS <span>✳</span> STAYING CURIOUS <span>✳</span> OTHER WORLDS <span>✳</span> MOSTLY ONLINE <span>✳</span></div></div>
@@ -328,7 +336,7 @@ body{overflow-x:clip}
           <div class="worldline-photo worldline-liminal"><img src="https://kalieri.com/assets/photos/2026-08-21-230444.webp" alt="" loading="lazy" /><span class="worldline-photo-label">02 / IN BETWEEN</span></div>
           <div class="worldline-photo worldline-digital"><img src="https://kalieri.com/assets/photos/2026-09-06-022351.webp" alt="" loading="lazy" /><span class="worldline-photo-label">03 / THE VIRTUAL</span></div>
         </div>
-        <div class="worldline-headline"><div class="worldline-supra"><span>INTERNET FIELD NOTES</span><i>↗</i><span>2026 / ELSEWHERE</span></div><h2>MORE THAN<br /><em>ONE</em> WORLD<span>.</span></h2><p class="worldline-caption" id="worldline-caption" aria-live="off">A life made of ordinary afternoons.</p></div>
+        <div class="worldline-headline"><div class="worldline-supra"><span>FIELD NOTES FROM EARTH</span><i>↗</i><span>2026 / ELSEWHERE</span></div><h2>MORE THAN<br /><em>ONE</em> WORLD<span>.</span></h2><p class="worldline-caption" id="worldline-caption" aria-live="off">A life made of ordinary afternoons.</p></div>
         <div class="worldline-coordinates" aria-hidden="true"><div class="worldline-crosshair">✳</div><span>NO FIXED COORDINATES<br/>FOR THESE PLACES</span></div>
         <div class="worldline-bottom"><div><span class="worldline-stage-index" id="worldline-stage-index">01</span><span class="worldline-stage-name" id="worldline-stage-name">IN THE PHYSICAL</span></div><div class="worldline-timeline"><span id="worldline-progress"></span><i></i><i></i><i></i></div><span class="worldline-gesture">KEEP SCROLLING <b>↓</b></span></div>
       </div>
@@ -342,7 +350,7 @@ body{overflow-x:clip}
 
     <section class="about-bridge"><span class="about-bridge-index">SELF PORTRAIT / 005</span><div class="about-avatar"><img src="https://kalieri.com/assets/avatar.webp" alt="Kalieri's avatar" onerror="this.style.opacity=0" /></div><div class="about-bridge-copy"><span class="eyebrow">A FEW MORE THINGS ABOUT ME</span><p>20 / STUDENT / <i>INTJ-A</i><br/>LEARNING JAPANESE / <i>CREATING</i><br/>AMATEUR VRCHAT DANCER / <i>CURIOUS</i><br/>USUALLY HERE, OCCASIONALLY SOMEWHERE ELSE.</p></div><div class="about-kanji" aria-hidden="true">夢</div></section>
 
-    <footer class="footer" id="contact"><div class="footer-top"><span>05 / THE OTHER SIDE OF THE SCREEN</span><span>LET'S MAKE THE INTERNET A LITTLE LESS LONELY.</span></div><div class="footer-main"><span>Have something<br/>in mind?</span><a href="mailto:contact@kalieri.com" class="footer-big-link">Say hello<span>↗</span></a></div><div class="footer-links"><a href="https://github.com/Musdkar" target="_blank" rel="noreferrer">GITHUB ↗</a><a href="mailto:contact@kalieri.com">EMAIL ↗</a><a href="https://kalieri.com" target="_blank" rel="noreferrer">ORIGINAL SITE ↗</a><button id="back-top">BACK TO TOP ↑</button></div><div class="footer-bottom"><span>KALIERI® <span class="footer-year">© 2026</span></span><span>MADE OF PIXELS, STARDUST & TOO MUCH CAFFEINE.</span><span>WUHAN, CHINA <span class="live-pulse"></span></span></div></footer>
+    <footer class="footer" id="contact"><div class="footer-top"><span>05 / THE OTHER SIDE OF THE SCREEN</span><span>LET'S MAKE THE INTERNET A LITTLE LESS LONELY.</span></div><div class="footer-main"><span>Have something<br/>in mind?</span><a href="mailto:contact@kalieri.com" class="footer-big-link">Say hello<span>↗</span></a></div><div class="footer-links"><a href="https://github.com/Musdkar" target="_blank" rel="noreferrer">GITHUB ↗</a><a href="mailto:contact@kalieri.com">EMAIL ↗</a><a href="https://kalieri.com" target="_blank" rel="noreferrer">ORIGINAL SITE ↗</a><button id="back-top">BACK TO TOP ↑</button></div><div class="footer-bottom"><span>KALIERI® <span class="footer-year">© 2026</span></span><span>FROM THIS CORNER OF THE WORLD, WITH CURIOSITY.</span><span>WUHAN, CHINA <span class="live-pulse"></span></span></div></footer>
   </main>
 
   <button class="floating-console" id="floating-console" aria-label="Open navigation command deck"><span>✳</span><small>QUICK JUMP</small></button>
@@ -717,12 +725,22 @@ void main(){
   let ready=false,visible=false,lost=false,raf=0;
   const natural=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const control=$('#earth-control'),reset=$('#earth-reset');
-  let yaw=0,pitch=0,velocityX=0,velocityY=0,drag=null,hovered=false;
+  // Coordinates from the author's existing config: Wuhan, China.
+  // On the shader's equirectangular map the visible centre is (0.5 + spin, -pitch).
+  const HOME_LATITUDE=30.5928*Math.PI/180;
+  const HOME_SPIN=114.3055/360;
+  const HOME_PITCH=-HOME_LATITUDE;
+  let yaw=0,pitch=HOME_PITCH,velocityX=0,velocityY=0,drag=null,hovered=false;
   let autoSpin=0,lastFrame=0,lastGesture=0;
+  let returnHome=null;
   const clamp=(value,low,high)=>Math.max(low,Math.min(high,value));
+  // Smoothly fly back to Wuhan's latitude/longitude; never use device location
+  // or request visitor geolocation for this author-specific personal site.
   const resetOrientation=()=>{
-    yaw=0;pitch=0;velocityX=0;velocityY=0;autoSpin=0;lastGesture=performance.now();
-    schedule();
+    const now=performance.now();
+    returnHome={started:now,fromYaw:yaw+autoSpin*6.283185307,fromPitch:pitch};
+    yaw=0;autoSpin=0;velocityX=0;velocityY=0;
+    lastGesture=now;schedule();
   };
   control.addEventListener('pointerenter',()=>{hovered=true;});
   control.addEventListener('pointerleave',()=>{hovered=false;lastGesture=performance.now();schedule();});
@@ -731,7 +749,7 @@ void main(){
     if(!ready||lost)return;
     event.preventDefault();
     drag={id:event.pointerId,x:event.clientX,y:event.clientY,t:performance.now()};
-    velocityX=0;velocityY=0;
+    velocityX=0;velocityY=0;returnHome=null;
     control.classList.add('is-dragging');
     control.setPointerCapture(event.pointerId);
     lastGesture=performance.now();schedule();
@@ -766,7 +784,7 @@ void main(){
     else if(event.key==='ArrowDown')pitch=clamp(pitch-step,-1.47,1.47);
     else if(event.key.toLowerCase()==='r')resetOrientation();
     else return;
-    event.preventDefault();velocityX=0;velocityY=0;lastGesture=performance.now();schedule();
+    event.preventDefault();returnHome=null;velocityX=0;velocityY=0;lastGesture=performance.now();schedule();
   });
   control.addEventListener('dblclick',resetOrientation);
   reset.addEventListener('click',resetOrientation);
@@ -784,16 +802,28 @@ void main(){
     gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
     const dt=lastFrame?Math.min(64,Math.max(0,t-lastFrame)):16;
     lastFrame=t;
-    if(!drag&&!natural){
+    if(returnHome){
+      const fraction=clamp((t-returnHome.started)/(natural?1:850),0,1);
+      const ease=1-Math.pow(1-fraction,3);
+      // Shortest longitude route prevents an unnecessary multi-turn reset.
+      const shortest=Math.atan2(Math.sin(returnHome.fromYaw),Math.cos(returnHome.fromYaw));
+      yaw=shortest*(1-ease);
+      pitch=returnHome.fromPitch+(HOME_PITCH-returnHome.fromPitch)*ease;
+      if(fraction>=1){returnHome=null;yaw=0;pitch=HOME_PITCH;autoSpin=0;}
+    }else if(!drag&&!natural){
       if(Math.abs(velocityX)+Math.abs(velocityY)>0.00008){
         yaw+=velocityX*(dt/16);
         pitch=clamp(pitch+velocityY*(dt/16),-1.47,1.47);
         const friction=Math.pow(0.92,dt/16);
         velocityX*=friction;velocityY*=friction;
       }else{velocityX=0;velocityY=0;}
+      // A gentle orbit around home rather than spinning Wuhan off the screen.
+      // ±4° of longitude keeps the author location visible at all times.
       if(!hovered&&t-lastGesture>1200)autoSpin+=dt/390000;
     }
-    gl.uniform1f(spinUniform,0.31752+autoSpin+yaw/6.283185307);
+    const homeSway=(!drag&&!returnHome&&!hovered&&!natural)
+      ?Math.sin(autoSpin*6.283185307)*0.011:0;
+    gl.uniform1f(spinUniform,HOME_SPIN+yaw/6.283185307+homeSway);
     gl.uniform1f(pitchUniform,pitch);
     gl.drawArrays(gl.TRIANGLES,0,6);
     if(!canvas.classList.contains('is-ready'))canvas.classList.add('is-ready');

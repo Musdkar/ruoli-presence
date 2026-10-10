@@ -253,3 +253,11 @@ body{overflow-x:clip}
 .device-item{min-width:0}
 @media(max-width:850px){.devices-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.device-item strong{font-size:clamp(16px,4.6vw,21px)}}
+
+/* A verse in the margin, not another dashboard card. */
+.hero-sonnet{margin:26px 0 0 clamp(0px,2.2vw,33px);padding:0;border:0;position:relative;z-index:6;max-width:550px}
+.hero-sonnet blockquote{margin:0;color:#d6cbec;font:italic 400 clamp(15px,1.5vw,21px)/1.45 Georgia,'Times New Roman',serif;letter-spacing:-.01em;text-shadow:0 3px 16px #080910}
+.hero-sonnet figcaption{margin-top:9px;color:#9590a7;font:9px var(--mono);letter-spacing:.1em}
+.hero-sonnet figcaption span{color:var(--lime);margin:0 5px}
+@media(max-width:850px){.hero-sonnet{margin-top:16px;margin-left:0;max-width:350px}}
+@media(max-width:560px){.hero-sonnet{max-width:295px;margin-top:17px}.hero-sonnet blockquote{font-size:13px}.hero-sonnet figcaption{font-size:8px}}
