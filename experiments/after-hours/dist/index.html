@@ -738,7 +738,7 @@ void main(){
   // or request visitor geolocation for this author-specific personal site.
   const resetOrientation=()=>{
     const now=performance.now();
-    returnHome={started:now,fromYaw:yaw+autoSpin*6.283185307,fromPitch:pitch};
+    returnHome={started:now,fromYaw:yaw+(hovered?0:Math.sin(autoSpin*6.283185307)*0.011*6.283185307),fromPitch:pitch};
     yaw=0;autoSpin=0;velocityX=0;velocityY=0;
     lastGesture=now;schedule();
   };
