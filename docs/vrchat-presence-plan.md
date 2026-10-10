@@ -52,12 +52,14 @@ Secrets 是 GitHub 提供的加密配置机制，环境变量是程序运行时�
 
 ## 对外数据与状态语义
 
-现有发布链路保留 `status` 和 `observedAt`。用户已批准公开可见世界名及房间类型；只有游戏连接为 `online` 时，才允许附带过滤后的 `location`：
+现有发布链路保留 `status` 和 `observedAt`。用户已批准公开本人名字、头像、社交状态，以及可见世界名、房间类型和世界缩略图。只有游戏连接为 `online` 时，才允许附带过滤后的 `location`：
 
 ```json
 {
   "status": "online",
   "observedAt": "<真实观测时刻的 UTC ISO 时间>",
+  "availability": "join me",
+  "profile": {"displayName": "<本人账号显示名>", "avatarUrl": "<无凭据的官方头像地址>"},
   "location": {"kind": "world", "worldName": "<可公开的世界名>", "access": "public"}
 }
 ```
@@ -66,13 +68,17 @@ Secrets 是 GitHub 提供的加密配置机制，环境变量是程序运行时�
 
 只有连接为 `online` 时，使用同一已认证会话读取 `/auth/user`，确认本人 ID，取其当前 `presence.world / presence.instance / instanceType`。不使用该接口的 `state` 判定游戏连接（社区规范说明它总是 offline），也不把旧的顶层 location 优先于当前 presence。世界元数据通过固定、验证过的 world ID 查询并在内存缓存，最多 32 条、有效期一小时；每次观测仍重新判定当前位置，缓存不会维持旧房间。[UserState 规范](https://github.com/vrchatapi/specification/blob/master/openapi/components/schemas/UserState.yaml)、[VRCX 当前用户处理](https://github.com/vrcx-team/VRCX/blob/01aaf037aa6f4af0ea6777879a1be3bd3c4ab393/src/stores/user.js)、[VRCX 位置解析](https://github.com/vrcx-team/VRCX/blob/01aaf037aa6f4af0ea6777879a1be3bd3c4ab393/src/shared/utils/locationParser.js)
 
-- 可见且 `releaseStatus: public` 的世界：仅名称（去控制字符、最多 120 字符）和访问标签 `public / friends / friends+ / group public / group+`。
-- Invite、Invite+、群组 members、未公开世界、`ask me / busy` 或 API 隐藏位置：`location: {kind: private}`，页面显示 `PRIVATE`，不发布名称。
+- 可见且 `releaseStatus: public` 的世界：名称（去控制字符、最多 120 字符）、访问标签 `public / friends / friends+ / group public / group+`，以及通过地址校验的可选 `thumbnailUrl`。
+- Invite、Invite+、群组 members、未公开世界、`ask me / busy` 或 API 隐藏位置：`location: {kind: private}`，页面显示 `PRIVATE`，不发布名称或世界图片。
 - 切换世界：`location: {kind: traveling}`，页面显示 `TRAVELING`，不发布目的地。轮询可能错过很短的切换阶段。
 - 未识别、矛盾的访问标记或缺少有效世界元数据：`location: {kind: unknown}`，不猜测房间名称或公开程度。
 - `active / offline`：不携带 location，旧房间名立即清除。旧记录超过 180 秒也清除名称并回退到新鲜 Discord 活动或 `NO PUBLIC SIGNAL`。
 
-原始 world/instance ID、nonce、加入链接、好友、群组名称、头像、邮箱、自定义状态文本、Cookie 和响应正文不进入公开 KV，也不记录长期游戏轨迹。不会把电脑关机等同于账号离线，因为可能正在 Quest 上玩。未知、断网、认证失效不会被改写成 offline；停止更新后自然过期。
+`profile` 仅允许去控制字符、最多 80 字符的显示名和头像地址；`availability` 仅允许 `active / join me / ask me / busy`。状态灯参考 VRCX：Online 绿、Join Me 蓝、Ask Me 橙、Busy 红；account active 使用空心灯，与实际游戏在线区分。[VRCX 状态与头像处理](https://github.com/vrcx-team/VRCX/blob/01aaf037aa6f4af0ea6777879a1be3bd3c4ab393/src/shared/utils/user.js)
+
+头像和世界图只接受 `api.vrchat.cloud` 上固定格式的 HTTPS file/image 地址，禁止 query、userinfo、fragment 和其他域名。加载图片无需向浏览器提供 Cookie。大传送门下方显示账号信息，头像仅在下方；中心默认保留原来的花背景图片及唱片式效果，进入可见世界且图片加载成功后才切换。私人、切换中、无图片、加载失败和记录过期时恢复花背景，旧世界图片与旧名称一同清除。
+
+原始 world/instance ID、nonce、加入链接、好友、群组名称、邮箱、自定义状态文本、Cookie 和响应正文不进入公开 KV，也不记录长期游戏轨迹。不会把电脑关机等同于账号离线，因为可能正在 Quest 上玩。未知、断网、认证失效不会被改写成 offline；停止更新后自然过期。
 
 ## 接收与发布协议
 
@@ -82,7 +88,7 @@ Secrets 是 GitHub 提供的加密配置机制，环境变量是程序运行时�
 2. 限制 JSON 请求体 1KB，拒绝额外字段，校验枚举与 ISO 时间。拒绝超过服务器时钟 60 秒的未来时间、超过 180 秒的旧记录及乱序时间；建议每个发布者每 30 秒一次、允许短暂两次突发。校验时间范围同时避免重放旧状态。
 3. 本地桥接器先过滤；服务器再做同样的白名单过滤。只保存一条最新记录。发布失败不能用服务器当前时间刷新旧观测时间。
 4. 接收器用自身私有 `LANYARD_API_KEY` 向现有 Lanyard `/v1/users/{owner}/kv` 发 PATCH，仅更新 `vrchat_presence` 的 JSON 字符串。复用仓库 `api/music/index.js` 的发布方式。
-5. 匿名 GET `/api/presence` 再执行原有 KV allowlist / sanitizer，仅返回经过白名单过滤的 `{status, observedAt, location?}`。公开读取不需要写入 token，也绝不能返回服务器凭据。
+5. 匿名 GET `/api/presence` 再执行原有 KV allowlist / sanitizer，仅返回经过白名单过滤的 `{status, observedAt, availability?, profile?, location?}`。公开读取不需要写入 token，也绝不能返回服务器凭据。
 
 Lanyard 本身有公开读取接口，所以必须**在写入 KV 前**完成隐私最小化，不能只依靠本站的读取过滤遮住原始数据。[Lanyard KV 文档](https://github.com/Phineas/lanyard#key-value-kv-store)
 
@@ -98,9 +104,9 @@ VPS relay 使用现有 TLS 反向代理；接收服务只监听 localhost，关�
 
 ## 已实施内容与当前边界
 
-- iPhone 的 `phone_presence` 继续控制 01.01 与首屏；VRChat 的 `vrchat_presence` 只控制 01.07。两者互不改写。`active` 不亮游戏在线，显示 `ACCOUNT ACTIVE`；发布器取 API `state`，忽略历史 `last_platform`；社交偏好只用于隐藏位置。社区 SDK 的 UserState 规范明确 `/auth/user` 返回的 state 总是 offline，不能用它判定游戏状态；本模块使用 `/users/{id}`。目前尚未做本人实际启动/退出游戏的映射验收。[UserState 规范](https://github.com/vrchatapi/specification/blob/master/openapi/components/schemas/UserState.yaml)
+- iPhone 的 `phone_presence` 继续控制 01.01 与首屏；VRChat 的 `vrchat_presence` 只控制 01.07。两者互不改写。01.01 标签为 `iPhone`，沿用绿 / 红 / 紫状态灯。`active` 不亮游戏在线，显示 `ACCOUNT ACTIVE`；发布器取 API `state`，忽略历史 `last_platform`；社交偏好用于状态灯及隐藏位置。社区 SDK 的 UserState 规范明确 `/auth/user` 返回的 state 总是 offline，不能用它判定游戏状态；本模块使用 `/users/{id}`。目前尚未做本人实际启动/退出游戏的映射验收。[UserState 规范](https://github.com/vrchatapi/specification/blob/master/openapi/components/schemas/UserState.yaml)
 - `bridge/vrchat/presence_publisher.py` 在已有采集器中串行复用 session，不读取 Cookie 文件，不创建登录，只有启用并匹配本人 ID 时才查询。单次请求超时 8 秒，间隔 60–90 秒随机；失败指数退避，429 尊重 Retry-After，401/2FA 停止更新并等待原采集器登录处理。Lanyard 写权限无效时关闭发布直到配置修正并重启。
-- 写入使用独立 HTTP session，固定账户和固定 `vrchat_presence` 键；发布前丢弃整个原始对象，只输出 `{status: online|active|offline, observedAt, location?}`；location 遵循上面的已批准规则。仅保留当前记录，失败不重新给历史记录打时间戳，也不伪造 offline。
+- 写入使用独立 HTTP session，固定账户和固定 `vrchat_presence` 键；发布前丢弃整个原始对象，只输出 `{status: online|active|offline, observedAt, availability?, profile?, location?}`；各字段遵循上面的已批准规则。仅保留当前记录，失败不重新给历史记录打时间戳，也不伪造 offline。
 - 预览专属 `experiments/after-hours/api/presence.js` 替换旧 rewrite，直接读取已核验的同一个公开 Lanyard 用户。该函数没有写 key 或 VRChat Cookie，不支持写请求，不允许访客指定上游。读取后使用原有 sanitizer / KV allowlist。实验目录中的 sanitizer 是指向原模块的符号链接，部署时上传原模块内容；没有第二份过滤规则。
 - 独立过期检查在页面前台每 10 秒及恢复前台时执行，成功读取与否都不影响 180 秒有效期。旧 Discord 活动也会过期；没有新鲜证据时显示 `NO PUBLIC SIGNAL`。iPhone 保留原有 36 小时 Focus 更新规则。
 - 原站与预览原代理曾因请求 User-Agent 返回 Cloudflare 403，带正常浏览器 UA 时现已验证 HTTP 200。新的预览读函数直接读取 Lanyard，不修改原站防护或原站 API。
@@ -113,6 +119,12 @@ VPS relay 使用现有 TLS 反向代理；接收服务只监听 localhost，关�
 VPS 发布模块已于 06:38:21 UTC 更新并备份；两个原有账户均恢复登录。06:38:24.865 UTC 的真实记录为 `active`，仅含 status 和 observedAt，没有世界或实例。Lanyard 与预览读链的观测时间一致；iPhone 的状态与更新时间也和原站一致。该场景沿用用户先前确认的“仅 VRCX 挂着、未进入世界”，不代表已验证游戏内转换。
 
 发布器 16 项测试已在本机和 VPS 通过；网页完整检查包含 174 项测试、构建与 8 项产物检查，均通过。本地浏览器以样例验证公开世界、Friends+ 长名称、PRIVATE、TRAVELING 以及读取失败后 180 秒清除旧世界名；移动 390px 无横向溢出。没有向公开服务发送样例状态。用户暂时不方便进入世界，先完成部署；真实启动、进入、离开世界的转换仍需实际游戏会话验收。
+
+## 2026-10-10 账号与世界图扩展核验
+
+VPS 模块于 07:20:24 UTC 更新并重启，旧模块备份于 `after-hours-profile-backup-20261010T072023Z`。两账户均登录成功，无新的登录标记或发布警告。07:20:26.774 UTC 的真实记录为 account active，包含本人显示名、有效头像地址和 `availability: active`，不含世界；iPhone 的状态与更新时间未被改写。头像地址已用无 Cookie 请求验证 HTTP 200。
+
+本机与 VPS 的发布器 20 项测试均通过；网页完整检查包含 178 项测试、构建与 8 项产物检查，均通过。本地浏览器验证世界图片加载、默认花背景、PRIVATE、TRAVELING、Busy 隐藏、图片加载失败、三色 iPhone 灯，以及实际等待 180 秒后旧世界名称与图片同时清除。390px 手机布局无横向溢出，保留大传送门及下方账号信息。图片切换用明确标注的本地样例检查，未向公开服务写入样例；实际游戏内进入/离开世界仍待后续验收。
 
 ## 私有配置与维护
 

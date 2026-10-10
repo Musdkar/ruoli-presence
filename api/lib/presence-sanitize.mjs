@@ -53,6 +53,16 @@ function cleanText(value, max = 300) {
 
 // Reduce an arbitrary upstream presence payload to exactly the fields the UI
 // consumes. Returns null for anything that is not a plain object.
+export function sanitizeVrchatImageUrl(value) {
+  return typeof value === "string" && value.length <= 1024 &&
+    /^https:\/\/api\.vrchat\.cloud\/api\/1\/(?:image|file)\/file_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\/\d+\/(?:file|\d+)$/.test(value) ? value : null;
+}
+
+function displayText(value, max) {
+  const text = cleanText(value, max);
+  return text && Array.from(text).filter(ch => ch.codePointAt(0) >= 32 && ch.codePointAt(0) !== 127).join("").trim();
+}
+
 export function sanitizePresence(value) {
   if (value == null || typeof value !== "object" || Array.isArray(value)) return null;
   const kv = {};
@@ -62,9 +72,9 @@ export function sanitizePresence(value) {
       const item = boundedKvValue(value.kv[key]);
       if (item === null) continue;
       if (key === "vrchat_presence") {
-        // Allow the owner's filtered status, time and optional world display.
+        // Allow the approved identity, status, time and optional world display.
         // Never expose world IDs, instance IDs, friends,
-        // authentication cookies or profile data in the anonymous public API.
+        // authentication cookies or other raw profile fields in the public API.
         let record = item;
         if (typeof record === "string") {
           try { record = JSON.parse(record); } catch { continue; }
@@ -75,15 +85,25 @@ export function sanitizePresence(value) {
         if (!["online", "active", "offline"].includes(status?.toLowerCase()) ||
             !observedAt || !Number.isFinite(Date.parse(observedAt))) continue;
         kv[key] = { status: status.toLowerCase(), observedAt };
-        const loc = record.location;
+        const name = displayText(record.profile?.displayName, 80);
+        if (name) {
+          kv[key].profile = { displayName: name };
+          const avatarUrl = sanitizeVrchatImageUrl(record.profile.avatarUrl);
+          if (avatarUrl) kv[key].profile.avatarUrl = avatarUrl;
+        }
+        if (kv[key].status !== "offline" && ["active", "join me", "ask me", "busy"].includes(record.availability)) {
+          kv[key].availability = record.availability;
+        }
+        const loc = ["ask me", "busy"].includes(kv[key].availability) ? { kind: "private" } : record.location;
         if (kv[key].status === "online" && loc && typeof loc === "object" && !Array.isArray(loc)) {
           if (["private", "traveling", "unknown"].includes(loc.kind)) {
             kv[key].location = { kind: loc.kind };
           } else if (loc.kind === "world") {
-            const rawName = cleanText(loc.worldName, 120);
-            const worldName = rawName && Array.from(rawName).filter(ch => ch.codePointAt(0) >= 32 && ch.codePointAt(0) !== 127).join("").trim();
+            const worldName = displayText(loc.worldName, 120);
             const access = ["public", "friends", "friends+", "group public", "group+"].includes(loc.access) ? loc.access : null;
             kv[key].location = worldName && access ? { kind: "world", worldName, access } : { kind: "unknown" };
+            const thumbnailUrl = sanitizeVrchatImageUrl(loc.thumbnailUrl);
+            if (worldName && access && thumbnailUrl) kv[key].location.thumbnailUrl = thumbnailUrl;
           }
         }
         continue;

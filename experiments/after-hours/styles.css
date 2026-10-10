@@ -119,6 +119,21 @@ html{overflow-x:clip}
 .tile-portal.is-live .portal-core{color:var(--lime);text-shadow:0 0 35px #d8ffa180}
 .tile-portal.is-live #vr-state{color:var(--lime)}
 #vr-title{overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.vr-identity{display:flex;align-items:center;gap:14px;margin:5px 0 22px;min-width:0}
+.vr-avatar{width:54px;height:54px;flex:none;object-fit:cover;border-radius:12px;border:1px solid #bba6ff50;background:#171621}
+.vr-person{min-width:0}
+.vr-name{font:500 clamp(21px,2.2vw,27px)/1.15 var(--sans);letter-spacing:-.045em;overflow-wrap:anywhere}
+.vr-availability{display:flex;align-items:center;gap:7px;margin-top:6px;font:10px/1.4 var(--mono);color:var(--muted)}
+.vr-status-dot{--status-color:var(--dim);width:8px;height:8px;flex:none;border-radius:50%;background:var(--status-color);border:2px solid var(--status-color)}
+.vr-status-dot[data-tone="online"]{--status-color:#6fcf97}
+.vr-status-dot[data-tone="joinme"]{--status-color:#70a7ff}
+.vr-status-dot[data-tone="askme"]{--status-color:#e6a23c}
+.vr-status-dot[data-tone="busy"]{--status-color:#eb5757}
+.vr-status-dot.is-hollow{background:transparent}
+#vr-title{font-size:clamp(23px,2.3vw,31px);line-height:1.1;margin:8px 0}
+.portal-world-image{position:absolute;inset:7px;width:calc(100% - 14px);height:calc(100% - 14px);object-fit:cover;border-radius:50%}
+.tile-portal.has-world-image .portal-core{opacity:0}
+#presence-dot{width:7px;height:7px}
 .tile-music.is-playing .vinyl{animation:slow-spin 9s linear infinite}
 .tile-music:not(.is-playing) .equalizer i{animation-play-state:paused}
 

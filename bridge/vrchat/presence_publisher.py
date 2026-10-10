@@ -15,11 +15,18 @@ USER_AGENT = 'AFTER-HOURS/1.0 (+https://kalieri.com)'
 log = logging.getLogger('after-hours-presence')
 
 
+def public_image_url(value):
+    """Credential-free VRChat file/image endpoints only; never signed URLs."""
+    if not isinstance(value, str) or len(value) > 1024:
+        return None
+    return value if re.fullmatch(r'https://api\.vrchat\.cloud/api/1/(?:image|file)/file_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/\d+/(?:file|\d+)', value) else None
+
+
 def location_descriptor(user):
     """Parse VRCX-style owner presence; identifiers stay inside the collector."""
-    if user.get('status') in ('ask me', 'busy'):
-        return {'kind': 'private'}
     presence = user.get('presence')
+    if user.get('status') in ('ask me', 'busy') or (isinstance(presence, dict) and presence.get('status') in ('ask me', 'busy')):
+        return {'kind': 'private'}
     instance_type = None
     if isinstance(presence, dict):
         instance_type = presence.get('instanceType')
@@ -75,11 +82,24 @@ def location_descriptor(user):
 def public_record(user, owner_id, observed_at, *, world=None):
     if not isinstance(user, dict) or user.get('id') != owner_id or user.get('requiresTwoFactorAuth'):
         return None
-    # state proves connection presence; status can only hide a location.
+    # state proves connection; social status is a display preference, not proof.
     state = user.get('state')
     if state not in ('online', 'active', 'offline'):
         return None
     record = {'status': state, 'observedAt': observed_at.isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
+    presence = user.get('presence') if isinstance(user.get('presence'), dict) else {}
+    availability = presence.get('status') or user.get('status')
+    if state in ('online', 'active') and availability in ('active', 'join me', 'ask me', 'busy'):
+        record['availability'] = availability
+    name = presence.get('displayName') or user.get('displayName')
+    name = re.sub(r'[\x00-\x1f\x7f]', '', name).strip()[:80] if isinstance(name, str) else ''
+    if name:
+        profile = {'displayName': name}
+        candidates = (presence.get('userIcon'), user.get('iconUrl'), user.get('userIcon'), presence.get('profilePicOverride'), user.get('profilePicOverrideThumbnail'), user.get('profilePicOverride'), presence.get('avatarThumbnail'), user.get('currentAvatarThumbnailImageUrl'))
+        avatar = next((url for item in candidates if (url := public_image_url(item))), None)
+        if avatar:
+            profile['avatarUrl'] = avatar
+        record['profile'] = profile
     if state == 'online':
         loc = location_descriptor(user)
         if loc['kind'] == 'world':
@@ -91,6 +111,9 @@ def public_record(user, owner_id, observed_at, *, world=None):
                 name = world.get('name')
                 name = re.sub(r'[\x00-\x1f\x7f]', '', name).strip()[:120] if isinstance(name, str) else ''
                 loc = {'kind': 'world', 'worldName': name, 'access': loc['access']} if name else {'kind': 'unknown'}
+                image = public_image_url(world.get('thumbnailImageUrl'))
+                if name and image:
+                    loc['thumbnailUrl'] = image
         record['location'] = loc
     return record
 
@@ -199,7 +222,7 @@ class PresencePublisher:
                             return
                         data = meta.json()
                         if isinstance(data, dict):
-                            world = {k: data.get(k) for k in ('id', 'name', 'releaseStatus')}
+                            world = {k: data.get(k) for k in ('id', 'name', 'releaseStatus', 'thumbnailImageUrl')}
                             if len(self.world_cache) >= 32:
                                 self.world_cache.pop(next(iter(self.world_cache)))
                             if world['id'] == wid:

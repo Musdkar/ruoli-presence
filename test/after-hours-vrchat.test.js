@@ -38,6 +38,37 @@ describe('independent iPhone and VRChat signals',()=>{
   data.activities=[{name:'VRChat'}];expect(selectVrchatPresence(data,now,now).live).toBe(true);
  });
 });
+
+describe('VRCX identity and world thumbnails',()=>{
+ const avatar='https://api.vrchat.cloud/api/1/image/file_11111111-1111-1111-1111-111111111111/2/256';
+ const thumbnail='https://api.vrchat.cloud/api/1/image/file_22222222-2222-2222-2222-222222222222/1/256';
+ it('hidden social availability also suppresses a supplied world name and image',async()=>{
+  const data=presence('online');data.kv.vrchat_presence.availability='busy';
+  data.kv.vrchat_presence.location={kind:'world',worldName:'Hidden world',access:'public',thumbnailUrl:thumbnail};
+  const res=response();await createPresenceHandler({fetcher:async()=>({ok:true,json:async()=>({success:true,data})})})({method:'GET'},res);
+  expect(res.body.data.kv.vrchat_presence.location).toEqual({kind:'private'});
+  expect(selectVrchatPresence(data,now,now)).toMatchObject({title:'PRIVATE',worldImageUrl:null});
+ });
+ it('keeps social availability separate from an account-only connection',()=>{
+  const data=presence('active');data.kv.vrchat_presence.profile={displayName:'A name',avatarUrl:avatar};data.kv.vrchat_presence.availability='busy';
+  expect(selectVrchatPresence(data,now,now)).toMatchObject({name:'A name',avatarUrl:avatar,availabilityLabel:'Active · Busy',availabilityTone:'busy',availabilityHollow:true,state:'ACCOUNT ACTIVE',live:false,worldImageUrl:null});
+ });
+ it('clears the world image in private, traveling, and stale states',()=>{
+  const data=presence('online');data.kv.vrchat_presence.location={kind:'world',worldName:'A world',access:'public',thumbnailUrl:thumbnail};
+  expect(selectVrchatPresence(data,now,now).worldImageUrl).toBe(thumbnail);
+  for(const kind of ['private','traveling']){data.kv.vrchat_presence.location.kind=kind;expect(selectVrchatPresence(data,now,now).worldImageUrl).toBeNull();}
+  data.kv.vrchat_presence.location.kind='world';expect(selectVrchatPresence(data,now,now+180000).worldImageUrl).toBeNull();
+ });
+ it('filters profile extras and image credentials before anonymous publication',async()=>{
+  const data=presence('online');data.kv.vrchat_presence.profile={displayName:'\u0000 A name ',avatarUrl:avatar+'?token=secret',email:'secret'};data.kv.vrchat_presence.availability='join me';
+  data.kv.vrchat_presence.location={kind:'world',worldName:'A world',access:'public',thumbnailUrl:thumbnail};
+  const res=response();await createPresenceHandler({fetcher:async()=>({ok:true,json:async()=>({success:true,data})})})({method:'GET'},res);
+  expect(res.body.data.kv.vrchat_presence.profile).toEqual({displayName:'A name'});
+  expect(res.body.data.kv.vrchat_presence.availability).toBe('join me');
+  expect(res.body.data.kv.vrchat_presence.location.thumbnailUrl).toBe(thumbnail);
+  expect(JSON.stringify(res.body)).not.toContain('secret');
+ });
+});
 function response(){return {headers:{},setHeader(k,v){this.headers[k]=v;},end(body){this.body=JSON.parse(body);}};}
 describe('preview anonymous read API',()=>{
  it('reads only the fixed public owner and filters secrets without changing phone',async()=>{
@@ -72,7 +103,7 @@ describe('owner world display and privacy',()=>{
  it('clears world names for private rooms, travel, and expired observations',()=>{
   const data=presence('online');
   data.kv.vrchat_presence.location={kind:'private',worldName:'private name'};
-  expect(selectVrchatPresence(data,now,now).detail).toContain('PRIVATE');
+  expect(selectVrchatPresence(data,now,now).title).toBe('PRIVATE');
   expect(JSON.stringify(selectVrchatPresence(data,now,now))).not.toContain('private name');
   data.kv.vrchat_presence.location={kind:'traveling',worldName:'destination'};
   expect(selectVrchatPresence(data,now,now).state).toBe('TRAVELING');

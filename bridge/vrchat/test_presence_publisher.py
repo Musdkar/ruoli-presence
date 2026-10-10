@@ -15,7 +15,7 @@ class PublisherTests(unittest.TestCase):
   for state in ('online','active','offline'):
    record=public_record({'id':OWNER,'state':state,'status':'active','location':'private','friends':['secret'],'auth':'secret'},OWNER,NOW)
    self.assertEqual(record['status'],state);self.assertEqual(record['observedAt'],'2026-10-10T05:00:00.000Z')
-   self.assertEqual(set(record),{'status','observedAt','location'} if state=='online' else {'status','observedAt'})
+   self.assertEqual(set(record),{'status','observedAt','availability','location'} if state=='online' else {'status','observedAt','availability'} if state=='active' else {'status','observedAt'})
    if state=='online':self.assertEqual(record['location'],{'kind':'private'})
  def test_wrong_owner_unknown_or_2fa_is_not_published(self):
   for payload in ({'id':'other','state':'online'},{'id':OWNER,'state':'unexpected'},{'id':OWNER,'state':'online','requiresTwoFactorAuth':['totp']}):
@@ -119,5 +119,31 @@ class LocationFailureTests(unittest.TestCase):
    pub.tick(Source(),OWNER)
    self.assertEqual(writer.calls,[])
    if failure=='world':self.assertGreaterEqual(pub.next_due,1000)
+
+class ProfileTests(unittest.TestCase):
+ def test_current_presence_busy_also_hides_the_world(self):
+  user={'id':OWNER,'state':'online','status':'active','presence':{'status':'busy','world':'wrld_11111111-1111-1111-1111-111111111111','instance':'42'}}
+  self.assertEqual(public_record(user,OWNER,NOW).get('location'),{'kind':'private'})
+ def test_profile_publishes_display_identity_without_raw_account_fields(self):
+  image='https://api.vrchat.cloud/api/1/image/file_11111111-1111-1111-1111-111111111111/2/256'
+  user={'id':OWNER,'state':'active','status':'ask me','displayName':'\x00 A name ','currentAvatarThumbnailImageUrl':image,'email':'secret','statusDescription':'secret','friends':['secret']}
+  record=public_record(user,OWNER,NOW)
+  self.assertEqual(record.get('profile'),{'displayName':'A name','avatarUrl':image})
+  self.assertEqual(record['availability'],'ask me');self.assertEqual(record['status'],'active')
+  self.assertNotIn('secret',json.dumps(record));self.assertNotIn('location',record)
+ def test_avatar_urls_cannot_carry_credentials_or_use_other_hosts(self):
+  base='https://api.vrchat.cloud/api/1/image/file_11111111-1111-1111-1111-111111111111/2/256'
+  for image in (base+'?token=secret',base.replace('https://','https://user:secret@'),base.replace('api.vrchat.cloud','attacker.invalid'),base.replace('https://','http://')):
+   record=public_record({'id':OWNER,'state':'offline','displayName':'A name','currentAvatarThumbnailImageUrl':image},OWNER,NOW)
+   self.assertEqual(record.get('profile'),{'displayName':'A name'})
+   self.assertNotIn('availability',record)
+ def test_world_thumbnail_is_only_published_with_a_visible_world(self):
+  wid='wrld_11111111-1111-1111-1111-111111111111'
+  image='https://api.vrchat.cloud/api/1/image/file_22222222-2222-2222-2222-222222222222/1/256'
+  world={'id':wid,'name':'A world','releaseStatus':'public','thumbnailImageUrl':image}
+  user={'id':OWNER,'state':'online','location':wid+':42'}
+  self.assertEqual(public_record(user,OWNER,NOW,world=world)['location'].get('thumbnailUrl'),image)
+  for location in ('private','traveling'):
+   user['location']=location;self.assertNotIn(image,json.dumps(public_record(user,OWNER,NOW,world=world)))
 
 if __name__=='__main__':unittest.main()

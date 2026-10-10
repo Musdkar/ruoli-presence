@@ -197,18 +197,35 @@ function updateMusic(song){if(!song)return;
   $('.equalizer').style.opacity=song.state==='playing'?'1':'.3';
   $('.tile-music').classList.toggle('is-playing',song.state==='playing');
 }
-function updateStatus(presence){const kv=presence?.kv||{};let label=null,source='Discord / Lanyard',status='unknown';
+function updateStatus(presence){const kv=presence?.kv||{};let label=null,source='Reality status',status='unknown';
   if(kv.phone_presence!==undefined){const p=safeParse(kv.phone_presence);const ts=Date.parse(p?.updatedAt||'');
-    if(['online','dnd','sleeping'].includes(p?.status)&&Number.isFinite(ts)&&ts<=Date.now()+300000&&Date.now()-ts<=36*60*60*1000){status=p.status;label={online:'Mostly online',dnd:'In focus',sleeping:'Dreaming'}[p.status];source='iPhone / Focus';}else{label='Not synced';source='iPhone / Focus';}
+    if(['online','dnd','sleeping'].includes(p?.status)&&Number.isFinite(ts)&&ts<=Date.now()+300000&&Date.now()-ts<=36*60*60*1000){status=p.status;label={online:'Mostly online',dnd:'In focus',sleeping:'Dreaming'}[p.status];source='iPhone';}else{label='Not synced';source='iPhone';}
   } else if(presence) {status=presence.discord_status||'offline';label={online:'Mostly online',idle:'Away for a bit',dnd:'In focus',offline:'Off the grid'}[status]||'Off the grid';}
   if(!label) return;$('#presence-title').innerHTML=label.replace(' ','<br>')+'<span class="accent-period">.</span>';
   $('#presence-source').textContent=source;$('#hero-status').textContent=status==='online'?'SIGNAL ONLINE':status==='dnd'?'IN FOCUS':status==='sleeping'?'IN DREAM MODE':status==='idle'?'IDLE / AWAY':'SIGNAL '+status.toUpperCase();
-  $('#presence-dot').style.background=['online','dnd'].includes(status)?'var(--lime)':'var(--violet)';
+  $('#presence-dot').style.background={online:'#6fcf97',dnd:'#eb5757',sleeping:'var(--violet)',idle:'#f2c94c'}[status]||'var(--dim)';
 }
 let lastPresence = null, lastPresenceReceivedAt = NaN;
+const vrAvatar = $('#vr-avatar'), vrWorldImage = $('#vr-world-image'), vrPortal = $('.tile-portal');
+const defaultVrAvatar = new URL('./assets/map-avatar.webp', document.baseURI).href;
+let requestedAvatar = null, requestedWorldImage = null;
+vrAvatar.addEventListener('error',()=>{if(vrAvatar.src!==defaultVrAvatar)vrAvatar.src=defaultVrAvatar;});
+vrWorldImage.addEventListener('load',()=>{if(requestedWorldImage&&vrWorldImage.src===requestedWorldImage){vrWorldImage.hidden=false;vrPortal.classList.add('has-world-image');}});
+vrWorldImage.addEventListener('error',()=>{vrWorldImage.hidden=true;vrPortal.classList.remove('has-world-image');});
 function updateVR(presence){
   const view = selectVrchatPresence(presence, lastPresenceReceivedAt);
-  $('.tile-portal').classList.toggle('is-live', view.live);
+  vrPortal.classList.toggle('is-live', view.live);
+  $('#vr-name').textContent = view.name;
+  $('#vr-availability').textContent = view.availabilityLabel;
+  $('#vr-status-dot').dataset.tone = view.availabilityTone;
+  $('#vr-status-dot').classList.toggle('is-hollow', view.availabilityHollow);
+  const avatar = view.avatarUrl || defaultVrAvatar;
+  if(avatar!==requestedAvatar){requestedAvatar=avatar;vrAvatar.src=avatar;}
+  vrAvatar.alt = `${view.name} — VRChat avatar`;
+  if(view.worldImageUrl!==requestedWorldImage){
+    requestedWorldImage=view.worldImageUrl;vrWorldImage.hidden=true;vrPortal.classList.remove('has-world-image');
+    if(requestedWorldImage)vrWorldImage.src=requestedWorldImage;else vrWorldImage.removeAttribute('src');
+  }
   $('#vr-title').textContent = view.title;
   $('#vr-title').title = view.title;
   $('#vr-detail').textContent = view.detail;

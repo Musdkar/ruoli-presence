@@ -8,16 +8,26 @@ untouched. Without presence-private.json, it makes no requests.
 `GET /users/{owner}` supplies connection state (`online`, `active`, `offline`).
 Only while online, `GET /auth/user` supplies the authenticated owner's current
 presence, as in VRCX. Its `state` is ignored. Social `status` cannot prove game
-presence; `ask me` and `busy` only suppress public location.
+presence; `ask me` and `busy` suppress public location. The approved social
+preference is displayed separately as Online, Join Me, Ask Me or Busy; account
+activity uses a hollow dot and never implies a game connection.
 
-The fixed Lanyard `vrchat_presence` key contains `status`, `observedAt` and, only
-while online, an optional filtered `location`. A visible public-release world
-may publish `kind: world`, `worldName` (max 120 characters) and an access label
+The fixed Lanyard `vrchat_presence` key contains `status`, `observedAt`, optional
+`availability` and the approved `profile` (displayName, max 80 characters, and
+avatarUrl). Only while online may it contain a filtered `location`. A visible
+public-release world may publish `kind: world`, `worldName` (max 120 characters),
+an optional `thumbnailUrl` and an access label
 (public, friends, friends+, group public, group+). Invite, Invite+, group members,
 non-public worlds and hidden social states publish `kind: private` without a
 name. Traveling publishes only `kind: traveling`; unrecognized data publishes
 only `kind: unknown`. Ambiguous access fails closed. No instance or world IDs,
 join URLs, nonce, group or friend details enter public KV. Names render as text.
+Image URLs must match credential-free official VRChat file/image endpoints;
+query strings, signed URLs, userinfo, fragments and other hosts are rejected.
+The large animated portal keeps its original floral photograph as the default;
+the profile avatar appears only below it. Only a visible world's thumbnail
+replaces its centre; private, traveling, missing, failed or expired images restore
+the default. The profile row remains below the portal.
 
 Current location is checked on every 60–90 second randomized observation.
 World metadata is cached in memory (max 32 entries, one-hour TTL); the previous

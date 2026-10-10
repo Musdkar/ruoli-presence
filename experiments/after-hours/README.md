@@ -38,7 +38,7 @@ Deploy the modular source, including `lib/`, `api/`, and bundled assets. `lib/pr
 ## What is implemented
 
 - Immersive animated hero with a procedural starfield, layered orbital composition, parallax-light response, scroll choreography, and responsive editorial typography.
-- The Signal: iPhone Focus / Discord presence, Wuhan weather (Open-Meteo), steps (6,000 goal), live/last-played music, foreground application usage, Mac/Windows keyboard heat maps, and VRChat presence. Missing/expired data is shown as such, never replaced by invented personal stats.
+- The Signal: iPhone / Discord presence, Wuhan weather (Open-Meteo), steps (6,000 goal), live/last-played music, foreground application usage, Mac/Windows keyboard heat maps, and VRChat presence. Missing/expired data is shown as such, never replaced by invented personal stats.
 - The Archive: all **19** existing photos referenced from the public original site, editorial photo wall, full-view lightbox, and show-all toggle.
 - Notes: the two published blog entries as interactive reading overlays.
 - Toolkit: original software groups and hardware inventory, with interactive categories.
@@ -131,3 +131,11 @@ The position of the site owner is contextual telemetry, not part of the site's b
 - Only approved display fields enter Lanyard and the shared anonymous API. Instance IDs, nonce, join URLs, friends and credentials stay private. Names render as text, wrap on mobile and clamp to three lines with a title tooltip.
 - Account activity now says **ACCOUNT ACTIVE**, accurately covering VRCX as well as web activity. The iPhone/Focus card and opening status remain separate.
 - Old names clear on active/offline and after the existing 180-second validity window, including repeated read failures. The current live account-active scene is distinct from local browser fixtures used to check world displays; real enter/leave transitions still require in-game observation.
+
+## v1.12: portal, profile and world artwork
+
+- The large animated portal stays. Its original floral photograph remains the default centre, never the profile avatar. Only the current visible world's thumbnail replaces it while in that world; private, traveling, missing, failed and expired images restore the floral default.
+- Below it, the approved owner profile displays its actual avatar and display name, a VRCX-style availability dot, then the current world name or **PRIVATE**. Active accounts use a hollow dot and remain distinct from game connections.
+- Only credential-free official VRChat image/file URLs are accepted, without query strings, userinfo or fragments. Private world names and images never enter public KV. Text still renders without HTML interpretation.
+- 01.01 says **iPhone** with the original green online, red DND and purple sleeping lights. Its data and expiry remain independent of VRChat.
+- Local browser fixtures cover image switching, failed images, private/traveling/Busy states and actual 180-second expiry. These fixtures are never published; real in-game transitions remain pending.
