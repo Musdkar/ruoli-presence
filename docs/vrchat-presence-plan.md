@@ -97,6 +97,7 @@ VPS relay 使用现有 TLS 反向代理；接收服务只监听 localhost，关�
 - feature 分支的 `api/lib/presence-sanitize.mjs` 已将该键加入 allowlist，且只保留两个字段。
 - 但预览项目的 `vercel.json` 把 `/api/presence` 转发到 **原站 `kalieri.com/api/presence`**。当前 GitHub `main` 的 sanitizer 未包含该键。只更新实验站前端，不会让原站后端自动支持这个字段。
 - 尚无 VRChat 专用接收器、本地适配器或真实发布记录。本次地图与首屏修改不会改变原站后端。
+- 发布后的自动读取检查中，原站 `/api/presence` 与预览代理均返回 403，响应为 Cloudflare `error code: 1010`；此次公开读链验证未通过，不能据此判断 VRChat Cookie 是否有效。接入时还须核验上游访问策略，或部署上述预览独立只读聚合器。本次没有修改原站防护设置。
 
 正式接入有两条发布路径：允许以后独立更新原站 API 的 allowlist；或者在保持 `main` 与原站不动的前提下，给**预览项目**部署独立的只读聚合 `/api/presence`：读取原站已有匿名状态，再从服务器端 Lanyard / relay 取最小记录并应用同一 sanitizer。后一条替换预览的 rewrite，浏览器仍请求同一路径。该聚合器只写入 `vrchat_presence`，不得透传未过滤的整个上游 KV，也不把 VRChat 请求放进匿名请求处理过程。
 
