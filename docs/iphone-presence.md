@@ -14,7 +14,9 @@
 
 ## 链路
 
-iPhone 快捷指令 → Lanyard 的 `phone_presence` KV → 现有 WebSocket → Home 和左侧身份栏。
+iPhone 快捷指令 → 本站 `/api/phone-presence` → 服务端写入 Lanyard 的 `phone_presence` KV → 现有 WebSocket → Home 和左侧身份栏。
+
+手机不直接访问 `api.lanyard.rest`：该域名在部分网络环境（如中国大陆未代理时）不可达，会导致自动化静默失败。中转端点放在本站域名下，手机只要能访问本站即可同步；Lanyard API key 只保存在服务端环境变量中，不放进快捷指令。
 
 只覆盖保存最新的 `status` 和 `updatedAt`，不上传通知、位置、App、屏幕使用记录或专注模式的其他配置。更新会公开在 Lanyard API 中。网站优先显示有效的手机状态；没有这个 KV 时继续显示 Discord 状态。超过 36 小时未更新或数据格式错误时显示 `not synced`，不会把过期的“睡眠”一直当成当前状态。
 
@@ -22,33 +24,26 @@ iPhone 快捷指令 → Lanyard 的 `phone_presence` KV → 现有 WebSocket →
 
 1. 加入 [Lanyard Discord server](https://discord.gg/lanyard)，让它开始跟踪你的 Discord ID。
 2. 在网站的 Vercel 环境变量中设置 `VITE_DISCORD_ID` 为这个 ID，重新部署。
-3. 按 [Lanyard 官方文档](https://github.com/Phineas/lanyard#kv)，向 Lanyard bot 获取个人 API key。密钥只填入你自己的快捷指令，不放进前端、GitHub、截图或聊天。
+3. 按 [Lanyard 官方文档](https://github.com/Phineas/lanyard#kv)，向 Lanyard bot 获取个人 API key。把它设置为部署环境的 `LANYARD_API_KEY` 环境变量（与 `LANYARD_USER_ID`、`INGEST_TOKEN` 放在一起），不放进前端、快捷指令、GitHub、截图或聊天。
 
-这条手机同步链路直接访问 Lanyard，不经过 Vercel Preview，也不需要建立公开管理后台或额外的数据库。
+手机同步链路经过本站中转，不要求手机能访问 Lanyard，也不需要建立公开管理后台或额外的数据库。
 
 ## 建立一个“同步网站状态”快捷指令
 
 1. 添加“获取当前专注模式”。取其名称，用你手机实际显示的名称判断：睡眠 → `sleeping`；勿扰 → `dnd`；其他或空值 → `online`。
-2. 获取“当前日期”，格式化为带时区的 ISO 8601，例如 `2026-09-16T20:00:00+08:00`。可使用自定格式 `yyyy-MM-dd'T'HH:mm:ssXXX`。
-3. 用“文本”操作组成下面的 JSON，将两个占位部分插入为前两步的变量：
+2. 添加“获取 URL 内容”：
+   - URL：`https://你的域名/api/phone-presence`
+   - 方法：`POST`
+   - 标头：`X-Ingest-Token` = 与服务端 `INGEST_TOKEN` 相同的值；`Content-Type` = `application/json`
+   - 请求体：JSON，增加一个**文本类型**字段 `status`，值选择上一步的状态变量。
 
    ```json
-   { "status": "状态变量", "updatedAt": "ISO时间变量" }
+   { "status": "online" }
    ```
 
-4. 添加“获取 URL 内容”：
-   - URL：`https://api.lanyard.rest/v1/users/你的DiscordID/kv`
-   - 方法：`PATCH`
-   - 标头：`Authorization` = 你的 Lanyard API key；`Content-Type` = `application/json`
-   - 请求体：JSON，增加一个**文本类型**字段 `phone_presence`，值选择上一步整段文本变量。
+   `updatedAt` 可以省略，服务端会用自己的时钟；也可以附带一个 ISO 8601 字符串，但超过 36 小时或超前服务端时钟 5 分钟以上的值会被拒绝。
 
-   实际请求体应类似下面这样：外层 JSON 对象只有一个键，其值是 JSON **字符串**，而不是第二层对象。
-
-   ```json
-   { "phone_presence": "{\"status\":\"sleeping\",\"updatedAt\":\"2026-09-16T20:00:00+08:00\"}" }
-   ```
-
-5. 先手动运行一次。接口返回成功后，在网站上确认状态和左栏同步变化。网络失败时不能假定网站已经更新；重新运行即可。
+3. 先手动运行一次。接口返回 `{"ok":true,...}` 后，在网站上确认状态和左栏同步变化。网络失败时不能假定网站已经更新；重新运行即可。
 
 ## 建立自动化
 
