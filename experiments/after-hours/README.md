@@ -156,3 +156,7 @@ The position of the site owner is contextual telemetry, not part of the site's b
 
 - Hidden album artwork and its placeholder no longer occupy layout space together. The album area stays square when an image loads or fails, and the vinyl uses a fixed 1:1 aspect ratio.
 - The record still rotates only for a playing track; paused and last-played tracks stay still.
+
+## v1.13.2: complete Earth orbits
+
+- The hero illustration no longer clips its orbital paths and glow at the stage edge. Desktop, tablet and mobile offsets leave space inside the viewport for the full animated drawing.

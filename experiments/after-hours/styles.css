@@ -395,7 +395,7 @@ sup {
   top: 50%;
   transform: translateY(-50%);
   isolation: isolate;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
 }
 .hero-art:before {
@@ -3990,14 +3990,14 @@ body {
   padding-top: 14px;
   flex-shrink: 0;
 }
-/* Bound both stage dimensions by the viewport height so the square globe
-   and its floating motion stay inside the clipped illustration. */
+/* Keep the globe within the first fold and leave room for the full orbital
+   paths and glow outside the stage. */
 .hero-art {
   min-height: 0;
   height: min(52vw, 76svh, 800px);
   min-width: 0;
   width: min(52vw, 76svh, 800px);
-  right: 2%;
+  right: 4%;
 }
 @media (max-width: 850px) {
   :root {
@@ -4015,7 +4015,7 @@ body {
   .hero-art {
     width: min(75vw, 70svh);
     height: 70svh;
-    right: 0;
+    right: 12%;
     top: 50%;
     opacity: 0.7;
   }
@@ -4037,8 +4037,8 @@ body {
   .hero-art {
     width: min(85vw, 56svh, 440px);
     height: min(85vw, 56svh, 440px);
-    right: -3%;
-    top: clamp(94px, 16%, 112px);
+    right: 10%;
+    top: clamp(126px, 20%, 144px);
     opacity: 0.52;
   }
   .hero-art .art-coordinate,
