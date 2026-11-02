@@ -17,10 +17,10 @@ describe("computer daily snapshots", () => {
     const kv = {
       keyboard_today_mac: keyboard(10, { A: 2 }),
       keyboard_today_win: JSON.stringify(keyboard(100, { A: 5, CONTROL: 3 })),
-      "keyboard_today_mac-intel": keyboard(50, { A: 9, COMMAND: 7 }),
+      keyboard_today_mac_intel: keyboard(50, { A: 9, COMMAND: 7 }),
       apps_today_mac: apps(5),
       apps_today_win: apps(10),
-      "apps_today_mac-intel": apps(20),
+      apps_today_mac_intel: apps(20),
     };
     const result = selectComputerUsage(kv, now);
     expect(result.keyboardMac.total).toBe(10);
@@ -41,7 +41,7 @@ describe("computer daily snapshots", () => {
           apps_today: apps(10),
           apps_today_mac: apps(10),
           keyboard_today_win: keyboard(500, { A: 15 }, "2026-11-01"),
-          "keyboard_today_mac-intel": keyboard(600, { A: 15 }, "2026-11-03"),
+          keyboard_today_mac_intel: keyboard(600, { A: 15 }, "2026-11-03"),
           apps_today_win: apps(50, "2026-11-01"),
         },
         now
@@ -61,7 +61,7 @@ describe("computer daily snapshots", () => {
       selectComputerUsage(
         {
           keyboard_today_win: "broken",
-          "keyboard_today_mac-intel": { v: 1, date: "2026-11-02", total: Infinity, heat: { A: 2 } },
+          keyboard_today_mac_intel: { v: 1, date: "2026-11-02", total: Infinity, heat: { A: 2 } },
           apps_today_win: { date: "2026-11-02", apps: [null, { name: "Bad", minutes: -5 }] },
         },
         now
@@ -80,7 +80,7 @@ describe("music from separate collectors", () => {
       updatedAt: new Date(now - 1000).toISOString(),
     };
     expect(
-      selectMusicValue({ music_now: legacy, "music_now_mac-intel": music("paused", 5000) }, now)
+      selectMusicValue({ music_now: legacy, music_now_mac_intel: music("paused", 5000) }, now)
     ).toEqual(legacy);
   });
   it("prefers fresh playing over a newer paused source or legacy duplicate", () => {
@@ -90,7 +90,7 @@ describe("music from separate collectors", () => {
         {
           music_now: music("paused"),
           music_now_mac: music("paused"),
-          "music_now_mac-intel": playing,
+          music_now_mac_intel: playing,
         },
         now
       )
@@ -99,14 +99,11 @@ describe("music from separate collectors", () => {
   it("prefers fresh paused over expired playing; newest history otherwise", () => {
     const paused = music("paused", 50000);
     expect(
-      selectMusicValue(
-        { music_now_mac: music("playing", 91000), "music_now_mac-intel": paused },
-        now
-      )
+      selectMusicValue({ music_now_mac: music("playing", 91000), music_now_mac_intel: paused }, now)
     ).toEqual(paused);
     const recent = music("last_played", 100000);
     expect(
-      selectMusicValue({ music_now: music("playing", 120000), "music_now_mac-intel": recent }, now)
+      selectMusicValue({ music_now: music("playing", 120000), music_now_mac_intel: recent }, now)
     ).toEqual(recent);
   });
   it("rejects malformed and far-future records and supports a legacy Mac", () => {
@@ -116,7 +113,7 @@ describe("music from separate collectors", () => {
         {
           music_now_mac: "bad",
           music_now: JSON.stringify(fallback),
-          "music_now_mac-intel": music("playing", -600000),
+          music_now_mac_intel: music("playing", -600000),
         },
         now
       )

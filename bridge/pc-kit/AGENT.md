@@ -8,7 +8,9 @@
 | ---------------------- | ----------- | --------------------------------------------------- | -------- |
 | 原 Apple Silicon Mac   | `mac`       | `apps_today_mac` / `keyboard_today_mac`             | MACBOOK  |
 | PC 的 Windows          | `win`       | `apps_today_win` / `keyboard_today_win`             | PC       |
-| 同一 PC 的 Intel macOS | `mac-intel` | `apps_today_mac-intel` / `keyboard_today_mac-intel` | PC       |
+| 同一 PC 的 Intel macOS | `mac-intel` | `apps_today_mac_intel` / `keyboard_today_mac_intel` | PC       |
+
+存储键名仅允许字母、数字和下划线，因此服务端将外部设备标识 `mac-intel` 映射为键名后缀 `mac_intel`。PC 上配置仍用 `DEVICE=mac-intel`，不要改成 `mac_intel`。
 
 **黑苹果必须用 `mac-intel`，绝不能用默认的 `mac`，也不要与 Windows 共用 `win`。** 不需要建立 `pc` 上传槽。
 
@@ -74,7 +76,7 @@ v2.1.0 校验提交：`8c8c1fa4820681fd4bbd6a17ce0a5655e1f4ebe7`；不一致先�
 
 音乐 bridge 默认每 8000ms 查询；播放或暂停时每 30000ms 刷新；连续三次未读到播放器后保留歌曲并改为 `last_played`。封面本地通过系统 `sips` 压成 JPEG（优先 384px，逐级缩小），上限 26000 字符。离线超过 90 秒，网页也会显示上次播放。
 
-本次网站支持分来源音乐槽：Intel 上传到 `music_now_mac-intel`；原 Mac 的旧 bridge 不传 DEVICE 也会由新 API 视为 `mac`，同时保留 `music_now` 兼容键。网页优先新鲜的正在播放，再暂停，最后最近历史。Intel 任务必须等新网站/API 已部署后才开启；旧 API 只写一个共享槽。
+本次网站支持分来源音乐槽：Intel 上传到 `music_now_mac_intel`；原 Mac 的旧 bridge 不传 DEVICE 也会由新 API 视为 `mac`，同时保留 `music_now` 兼容键。网页优先新鲜的正在播放，再暂停，最后最近历史。Intel 任务必须等新网站/API 已部署后才开启；旧 API 只写一个共享槽。
 
 此包现有音乐采集器只支持 macOS；不将它伪装为 Windows 音乐采集器。Windows 的已有软件/键盘上传继续正常运行，网易云和 Apple Music 的本方案在黑苹果系统内运行。
 

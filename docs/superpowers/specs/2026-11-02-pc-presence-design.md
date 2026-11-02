@@ -9,3 +9,5 @@ Alternatives: writing both systems into `win` would overwrite cumulative data; a
 Music is isolated per source in KV. Device-less legacy collectors map to `mac`; keep legacy `music_now` for compatibility. Readers prefer fresh playing, then fresh paused, then most recent history. This prevents an idle/paused Mac from overwriting playback from the PC. Keep the existing 90s expiry and track/artwork retention.
 
 Kit includes Chinese agent instructions, audited baseline, source collectors, Intel build/run/autostart instructions, private config template, diagnosis/acceptance/rollback guidance. No credentials, raw database, title, URL, login state or arm64 binary. Target Intel hardware and real playback require acceptance on that target, and are not implied by local checks.
+
+Storage constraint confirmed from Lanyard: KV keys use letters, digits and underscores only. Keep the external DEVICE slug `mac-intel`; adapt it to suffix `mac_intel` at both ingest boundaries and consume those keys in readers. No target configuration change or data migration is required.

@@ -114,7 +114,9 @@ module.exports = async function (context, req) {
   };
 
   const kvUrl = "https://api.lanyard.rest/v1/users/" + userId + "/kv";
-  const kv = { ["music_now_" + device]: JSON.stringify(summary) };
+  // Keep existing collector configuration; adapt only the upstream KV key.
+  const slot = device === "mac-intel" ? "mac_intel" : device;
+  const kv = { ["music_now_" + slot]: JSON.stringify(summary) };
   if (device === "mac") kv.music_now = JSON.stringify(summary);
   try {
     const r = await fetch(kvUrl, {

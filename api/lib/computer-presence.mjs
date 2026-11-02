@@ -58,7 +58,7 @@ export function selectComputerUsage(kv = {}, now = Date.now()) {
   const keyboardMac = keyboard(kv.keyboard_today_mac, day) || keyboard(kv.keyboard_today, day);
   const sources = [
     keyboard(kv.keyboard_today_win, day),
-    keyboard(kv["keyboard_today_mac-intel"], day),
+    keyboard(kv["keyboard_today_mac_intel"], day),
   ].filter(Boolean);
   let keyboardPC = null;
   if (sources.length) {
@@ -74,7 +74,7 @@ export function selectComputerUsage(kv = {}, now = Date.now()) {
   for (const app of [
     ...(macApps.length ? macApps : appList(kv.apps_today, day)),
     ...appList(kv.apps_today_win, day),
-    ...appList(kv["apps_today_mac-intel"], day),
+    ...appList(kv["apps_today_mac_intel"], day),
   ])
     byName.set(app.name, (byName.get(app.name) || 0) + app.minutes);
   const apps = [...byName]
@@ -85,7 +85,7 @@ export function selectComputerUsage(kv = {}, now = Date.now()) {
 }
 
 export function selectMusicValue(kv = {}, now = Date.now()) {
-  const candidates = [kv.music_now_mac, kv.music_now, kv["music_now_mac-intel"], kv.music_now_win]
+  const candidates = [kv.music_now_mac, kv.music_now, kv["music_now_mac_intel"], kv.music_now_win]
     .map(parse)
     .filter((v) => {
       if (!v || typeof v !== "object") return false;

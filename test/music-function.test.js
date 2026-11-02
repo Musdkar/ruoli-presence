@@ -34,7 +34,7 @@ describe("music source isolation", () => {
     await fn(ctx, request("mac-intel"));
     expect(ctx.res.status).toBe(200);
     const kv = JSON.parse(fetch.mock.calls[0][1].body);
-    expect(Object.keys(kv)).toEqual(["music_now_mac-intel"]);
+    expect(Object.keys(kv)).toEqual(["music_now_mac_intel"]);
   });
   it("maps old collectors to Mac and maintains the legacy alias", async () => {
     await fn(context(), request(undefined));
@@ -52,11 +52,11 @@ describe("music source isolation", () => {
       sanitizePresence({
         kv: {
           music_now_mac: "{}",
-          "music_now_mac-intel": "{}",
+          music_now_mac_intel: "{}",
           music_now_win: "{}",
           music_now_secret: "{}",
         },
       }).kv
-    ).toEqual({ music_now_mac: "{}", "music_now_mac-intel": "{}", music_now_win: "{}" });
+    ).toEqual({ music_now_mac: "{}", music_now_mac_intel: "{}", music_now_win: "{}" });
   });
 });

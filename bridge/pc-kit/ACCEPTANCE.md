@@ -6,12 +6,12 @@
 - [ ] ActivityWatch 本地 5600 可用，`aw-watcher-window` 存在；切换前台应用后新事件时间推进。仅确认 bucket 存在不足以证明正在采集。
 - [ ] WhatPulse 权限已授予；输入一段测试文字并等待落库后，当天总数增加；只读查询成功，原数据库没有被写入或迁移。
 - [ ] `DEVICE=mac-intel`。一次统计上传返回 200，`updated.software` 与 `updated.keyboard` 都为 true。若刚安装且尚无数据，先产生正常活动再重试；仅 200 或只更新键盘不足以验收软件同步。
-- [ ] 从 `https://kalieri.com/api/presence` 读回 `apps_today_mac-intel` / `keyboard_today_mac-intel`，日期为 UTC+8 当天；`mac`、`win` 各自旧快照保持独立。
+- [ ] 从 `https://kalieri.com/api/presence` 读回 `apps_today_mac_intel` / `keyboard_today_mac_intel`，日期为 UTC+8 当天；`mac`、`win` 各自旧快照保持独立。
 - [ ] 网页键盘标签为 MACBOOK / PC；原 Mac 卡数据独立；PC 总数等于当天 `win.total + mac-intel.total`；逐键热度取 max，过期来源不参与。
 - [ ] 同日 Windows → 黑苹果 → Windows 后，累计不会被重置或重复相加。重复上传不增加最终总数，只有实际新增输入会改变来源累计。
 - [ ] 软件卡显示三个来源当天同名应用分钟数之和；旧日数据不混入今天；没有伪造数据填充。
 - [ ] 网易云播放、暂停、切歌、退出均实测；歌曲与封面正确。随后 Apple Music 完整重复一遍。
-- [ ] `music_now_mac-intel` 可从公开 presence 读回；原 Mac 播放与 Intel 暂停并存时，网页仍优先显示新鲜正在播放的来源。不能只检查本地 reader。
+- [ ] `music_now_mac_intel` 可从公开 presence 读回；原 Mac 播放与 Intel 暂停并存时，网页仍优先显示新鲜正在播放的来源。不能只检查本地 reader。
 - [ ] 停止音乐 bridge 后 >90 秒，网页转为 LAST PLAYED，曲目/封面保留；重新播放后恢复 NOW PLAYING。
 - [ ] 退出登录并重新登录后，AW/WhatPulse 应用及两个上传任务恢复；统计任务间歇退出属正常，音乐进程持续存在。
 - [ ] ZIP、仓库、截图、聊天均无真实 token、WhatPulse 登录文件、数据库、窗口标题或原始封面长文本；配置权限 0600（Windows 用本人 ACL）。

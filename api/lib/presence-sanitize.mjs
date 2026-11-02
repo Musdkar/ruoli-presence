@@ -19,7 +19,7 @@ const KV_KEYS = [
   "keyboard_yesterday",
   "music_now",
   "music_now_mac",
-  "music_now_mac-intel",
+  "music_now_mac_intel",
   "music_now_win",
 ];
 const KV_KEY_RE =

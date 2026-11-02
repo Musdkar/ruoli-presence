@@ -120,15 +120,17 @@ module.exports = async function (context, req) {
   }
 
   const device = deviceSlot(payload.device);
+  // The public device slug is unchanged, but Lanyard KV forbids hyphens.
+  const slot = device === "mac-intel" ? "mac_intel" : device;
   const kv = {};
   if (software) {
-    kv["apps_today_" + device] = JSON.stringify(software);
+    kv["apps_today_" + slot] = JSON.stringify(software);
     // Keep the legacy unsuffixed key populated for the primary device so older
     // clients and cached reads keep working.
     if (device === LEGACY_DEVICE) kv.apps_today = JSON.stringify(software);
   }
   if (keyboard) {
-    kv["keyboard_today_" + device] = JSON.stringify(keyboard);
+    kv["keyboard_today_" + slot] = JSON.stringify(keyboard);
     if (device === LEGACY_DEVICE) kv.keyboard_today = JSON.stringify(keyboard);
   }
 
