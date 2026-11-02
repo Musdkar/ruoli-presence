@@ -50,3 +50,12 @@ Optional environment variables:
 - `NP_HEARTBEAT_MS` — refresh interval for live states, default `30000`.
 - `NP_MISS_LIMIT` — consecutive misses before `last_played`, default `3`.
 - `NP_CLI` — path to `nowplaying-cli`; defaults to the bundled binary.
+
+## Windows + Intel macOS on one PC
+
+Use `DEVICE=win` on Windows and `DEVICE=mac-intel` on the Hackintosh. Keep the
+original Mac on `DEVICE=mac`. Both PC source snapshots remain separate in KV;
+the website combines their same-day totals under PC and takes the maximum
+per-key heat level. Music uses per-source KV slots, with device-less older
+collectors mapped to Mac. See [the Intel agent kit](pc-kit/AGENT.md) for
+installation, private configuration, music setup, autostart and acceptance.

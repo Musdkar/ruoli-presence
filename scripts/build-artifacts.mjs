@@ -11,6 +11,7 @@ export const ALLOWED_PREFIXES = [
   "main.js",
   "styles.css",
   "lib/vrchat-presence.mjs",
+  "lib/computer-presence.mjs",
   "lib/presence-sanitize.mjs",
   "assets/",
   "staticwebapp.config.json",

@@ -67,6 +67,11 @@ module.exports = async function (context, req) {
   }
 
   const payload = req.body || {};
+  const device = payload.device === undefined ? "mac" : payload.device;
+  if (!["mac", "mac-intel", "win"].includes(device)) {
+    jsonResponse(context, 400, { error: "invalid_device" });
+    return;
+  }
   const rawTrack =
     payload.track && typeof payload.track === "object" && Array.isArray(payload.track) === false
       ? payload.track
@@ -109,11 +114,13 @@ module.exports = async function (context, req) {
   };
 
   const kvUrl = "https://api.lanyard.rest/v1/users/" + userId + "/kv";
+  const kv = { ["music_now_" + device]: JSON.stringify(summary) };
+  if (device === "mac") kv.music_now = JSON.stringify(summary);
   try {
     const r = await fetch(kvUrl, {
       method: "PATCH",
       headers: { Authorization: apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify({ music_now: JSON.stringify(summary) }),
+      body: JSON.stringify(kv),
     });
     if (r.ok === false) {
       jsonResponse(context, 502, { error: "lanyard_update_failed", status: r.status });

@@ -18,6 +18,9 @@ const KV_KEYS = [
   "keyboard_today",
   "keyboard_yesterday",
   "music_now",
+  "music_now_mac",
+  "music_now_mac-intel",
+  "music_now_win",
 ];
 const KV_KEY_RE =
   /^(?:apps_today|keyboard_today|keyboard_yesterday|health_today)_[a-z0-9_-]{1,16}$/;

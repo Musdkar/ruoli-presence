@@ -15,6 +15,7 @@ const files = [
   "index.html",
   "main.js",
   "lib/vrchat-presence.mjs",
+  "lib/computer-presence.mjs",
   "lib/presence-sanitize.mjs",
   "assets/earth-day.jpg",
   "assets/earth-clouds.png",

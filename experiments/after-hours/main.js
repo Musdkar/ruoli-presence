@@ -1,4 +1,5 @@
 import { selectVrchatPresence } from "./lib/vrchat-presence.mjs";
+import { selectComputerUsage, selectMusicValue } from "./lib/computer-presence.mjs";
 /* KALIERI — AFTER HOURS
    A dependency-free interactive editorial prototype.
    Live information uses the preview-only anonymous /api/presence endpoint.
@@ -409,20 +410,42 @@ const winKeyboardRows = [
     ["→", "ARROWRIGHT"],
   ],
 ];
-let keyboards = { mac: null, win: null },
+let keyboards = { mac: null, pc: null },
   activeKeyboard = "mac";
 function drawKeyboard() {
   const item = keyboards[activeKeyboard];
   $("#keyboard-total").textContent = item ? fmt(item.total) : "—";
   const outer = $("#keyboard-visual");
   outer.replaceChildren();
-  outer.classList.toggle("is-windows", activeKeyboard === "win");
-  const layout = activeKeyboard === "win" ? winKeyboardRows : macKeyboardRows;
+  outer.classList.toggle("is-windows", activeKeyboard === "pc");
+  const layout = activeKeyboard === "pc" ? winKeyboardRows : macKeyboardRows;
   layout.forEach((row) => {
     const r = document.createElement("div");
     r.className = "kb-row";
     row.forEach(([label, key, size = 1]) => {
-      const val = item?.heat?.[key] ?? item?.heat?.[label] ?? 0;
+      const canonical =
+        {
+          META: "COMMAND",
+          ALT: "OPTION",
+          ENTER: "RETURN",
+          CAPSLOCK: "CAPS",
+          ARROWLEFT: "LEFT",
+          ARROWDOWN: "DOWN",
+          ARROWRIGHT: "RIGHT",
+          ARROWUP: "UP",
+          MINUS: "-",
+          EQUAL: "=",
+          BRACKETLEFT: "[",
+          BRACKETRIGHT: "]",
+          BACKSLASH: "\\",
+          SEMICOLON: ";",
+          QUOTE: "'",
+          COMMA: ",",
+          PERIOD: ".",
+          SLASH: "/",
+          BACKQUOTE: "`",
+        }[key] || key;
+      const val = item?.heat?.[canonical] ?? item?.heat?.[label] ?? 0;
       const el = document.createElement("div");
       el.className = "kb-key";
       el.style.setProperty("--heat", String(Math.min(1, Math.max(0, Number(val) / 15 || 0))));
@@ -442,50 +465,16 @@ $$(".kb-tab").forEach((btn) =>
   })
 );
 drawKeyboard();
-function normalKeyboard(value) {
-  let d = safeParse(value);
-  if (!d || d.v !== 1 || !d.heat || typeof d.heat !== "object") return null;
-  let total = numberWithin(d.total, 1e7);
-  if (total === null) return null;
-  return {
-    total,
-    heat: Object.fromEntries(
-      Object.entries(d.heat)
-        .filter(([k, v]) => typeof k === "string" && numberWithin(v, 15) !== null)
-        .slice(0, 100)
-    ),
-  };
-}
-function normalizeApps(value) {
-  let d = safeParse(value);
-  if (!d || !Array.isArray(d.apps)) return [];
-  return d.apps
-    .filter(
-      (v) =>
-        v &&
-        typeof v.name === "string" &&
-        v.name.length <= 120 &&
-        numberWithin(v.minutes, 1440) !== null
-    )
-    .slice(0, 8)
-    .map((v) => ({ name: v.name, minutes: Number(v.minutes) }));
-}
-function appUsage(kv) {
-  const merged = new Map();
-  for (const app of [
-    ...normalizeApps(kv.apps_today_mac || kv.apps_today),
-    ...normalizeApps(kv.apps_today_win),
-  ])
-    merged.set(app.name, (merged.get(app.name) || 0) + app.minutes);
-  return [...merged]
-    .map(([name, minutes]) => ({ name, minutes }))
-    .sort((a, b) => b.minutes - a.minutes)
-    .slice(0, 8);
-}
 function drawApps(apps) {
   const list = $("#app-list");
-  if (!apps.length) return;
   list.replaceChildren();
+  if (!apps.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-data";
+    empty.textContent = "No activity sync today.";
+    list.append(empty);
+    return;
+  }
   const max = Math.max(1, ...apps.map((a) => a.minutes));
   apps.forEach((a, i) => {
     const row = document.createElement("div");
@@ -532,12 +521,14 @@ function musicRecord(v, spotify) {
       state: goodAge ? raw.state : "last_played",
     };
   } else if (raw && typeof raw.title === "string" && typeof raw.artist === "string") {
+    const age = Date.now() - Date.parse(raw.updatedAt);
+    const state = raw.state || (raw.playing === true ? "playing" : "last_played");
     song = {
       title: raw.title,
       artist: raw.artist,
       artwork: raw.cover,
       service: raw.source,
-      state: "last_played",
+      state: age >= -300000 && age <= 90000 ? state : "last_played",
     };
   }
   if (spotify?.song && spotify?.artist && song?.state !== "playing" && song?.state !== "paused")
@@ -679,6 +670,14 @@ function updateVR(presence) {
 function refreshCachedPresence() {
   updateStatus(lastPresence);
   updateVR(lastPresence);
+  if (lastPresence) {
+    const kv = lastPresence.kv || {};
+    const { apps, keyboardMac, keyboardPC } = selectComputerUsage(kv);
+    drawApps(apps);
+    keyboards = { mac: keyboardMac, pc: keyboardPC };
+    drawKeyboard();
+    updateMusic(musicRecord(selectMusicValue(kv), lastPresence.spotify));
+  }
 }
 function updateHealth(v) {
   const d = safeParse(v);
@@ -704,13 +703,6 @@ async function fetchPresence() {
     refreshCachedPresence();
     const kv = data.kv || {};
     updateHealth(kv.health_today);
-    drawApps(appUsage(kv));
-    keyboards = {
-      mac: normalKeyboard(kv.keyboard_today_mac || kv.keyboard_today || kv.keyboard_yesterday),
-      win: normalKeyboard(kv.keyboard_today_win),
-    };
-    drawKeyboard();
-    updateMusic(musicRecord(kv.music_now, data.spotify));
   } catch {
     /* Do not invent a status or erase last known values on failure. */
   } finally {

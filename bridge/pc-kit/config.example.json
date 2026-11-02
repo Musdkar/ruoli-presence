@@ -1,0 +1,9 @@
+{
+  "DEVICE": "mac-intel",
+  "INGEST_TOKEN": "REPLACE_LOCALLY",
+  "WHATPULSE_API_URL": "https://kalieri.com/api/whatpulse",
+  "MUSIC_API_URL": "https://kalieri.com/api/music",
+  "ACTIVITYWATCH_API_URL": "http://127.0.0.1:5600/api/0",
+  "NODE": "/usr/local/bin/node",
+  "NP_CLI": "/absolute/path/to/kit/bridge/nowplaying/nowplaying-cli"
+}

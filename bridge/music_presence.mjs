@@ -22,6 +22,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const API_URL = process.env.MUSIC_API_URL || "";
 const TOKEN = process.env.INGEST_TOKEN || "";
+const DEVICE = process.env.DEVICE || "mac";
 const NP_CLI = process.env.NP_CLI || join(__dirname, "nowplaying", "nowplaying-cli");
 const INTERVAL = Math.max(2000, Number(process.env.NP_INTERVAL_MS || 8000));
 const HEARTBEAT = Math.max(INTERVAL, Number(process.env.NP_HEARTBEAT_MS || 30000));
@@ -139,6 +140,7 @@ async function publishSnapshot(snapshot, force = false) {
   if (force === false && key === lastPublishedKey && now - lastPublishedAt < HEARTBEAT) return true;
 
   const ok = await publish({
+    device: DEVICE,
     state: snapshot.state,
     service: snapshot.service,
     track: { title: snapshot.title, artist: snapshot.artist, album: snapshot.album },
