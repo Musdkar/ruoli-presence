@@ -74,9 +74,11 @@
 
 /* Phone Focus shares the same presence treatment in Home and the identity rail. */
 .status-dot.sleeping { background: var(--violet); }
+.status-dot.reduce_interruptions { background: #f2c94c; }
 .sidebar-presence.online { color: #6fcf97; }
 .sidebar-presence.dnd { color: #eb5757; }
 .sidebar-presence.sleeping { color: var(--violet); }
+.sidebar-presence.reduce_interruptions { color: #f2c94c; }
 .status-main { right: 14px; }
 .status-main strong { max-width: calc(100% - 18px); font-size: clamp(21px, 2vw, 31px); vertical-align: middle; }
 

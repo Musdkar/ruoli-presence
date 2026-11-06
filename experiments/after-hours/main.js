@@ -584,13 +584,18 @@ function updateStatus(presence) {
     const p = safeParse(kv.phone_presence);
     const ts = Date.parse(p?.updatedAt || "");
     if (
-      ["online", "dnd", "sleeping"].includes(p?.status) &&
+      ["online", "dnd", "sleeping", "reduce_interruptions"].includes(p?.status) &&
       Number.isFinite(ts) &&
       ts <= Date.now() + 300000 &&
       Date.now() - ts <= 36 * 60 * 60 * 1000
     ) {
       status = p.status;
-      label = { online: "Online", dnd: "Do not disturb", sleeping: "Sleeping" }[p.status];
+      label = {
+        online: "Online",
+        dnd: "Do not disturb",
+        sleeping: "Sleeping",
+        reduce_interruptions: "Reduce Interruptions",
+      }[p.status];
       source = "iPhone";
     } else {
       label = "Not synced";
@@ -605,20 +610,29 @@ function updateStatus(presence) {
   if (!label) return;
   $("#presence-title").innerHTML =
     label.replace(/ ([^ ]+)$/, "<br>$1") + '<span class="accent-period">.</span>';
+  $("#presence-title").style.fontSize =
+    status === "reduce_interruptions" ? "clamp(20px, 3vw, 51px)" : "";
   $("#presence-source").textContent = source;
   $("#hero-status").textContent =
     status === "online"
       ? "SIGNAL ONLINE"
-      : status === "dnd"
-        ? "IN FOCUS"
-        : status === "sleeping"
-          ? "IN DREAM MODE"
-          : status === "idle"
-            ? "IDLE / AWAY"
-            : "SIGNAL " + status.toUpperCase();
+      : status === "reduce_interruptions"
+        ? "REDUCED INTERRUPTIONS"
+        : status === "dnd"
+          ? "IN FOCUS"
+          : status === "sleeping"
+            ? "IN DREAM MODE"
+            : status === "idle"
+              ? "IDLE / AWAY"
+              : "SIGNAL " + status.toUpperCase();
   $("#presence-dot").style.background =
-    { online: "#6fcf97", dnd: "#eb5757", sleeping: "var(--violet)", idle: "#f2c94c" }[status] ||
-    "var(--dim)";
+    {
+      online: "#6fcf97",
+      dnd: "#eb5757",
+      sleeping: "var(--violet)",
+      reduce_interruptions: "#f2c94c",
+      idle: "#f2c94c",
+    }[status] || "var(--dim)";
 }
 let lastPresence = null,
   lastPresenceReceivedAt = NaN;

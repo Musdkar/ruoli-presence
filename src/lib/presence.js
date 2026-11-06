@@ -2,11 +2,13 @@ const PHONE_STATUS_LABELS = {
   online: "Online",
   dnd: "Focus",
   sleeping: "Sleep",
+  reduce_interruptions: "Reduce Interruptions",
 };
 const PHONE_STATUS_KEYS = {
   online: "phoneOnline",
   dnd: "phoneFocus",
   sleeping: "phoneSleep",
+  reduce_interruptions: "phoneReduceInterruptions",
 };
 const MAX_AGE = 36 * 60 * 60 * 1000;
 

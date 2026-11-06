@@ -72,8 +72,8 @@ describe("/api/phone-presence — method and auth guards", () => {
 });
 
 describe("/api/phone-presence — payload validation", () => {
-  it("accepts the three whitelisted statuses", async () => {
-    for (const status of ["online", "dnd", "sleeping"]) {
+  it("accepts the four whitelisted statuses", async () => {
+    for (const status of ["online", "dnd", "sleeping", "reduce_interruptions"]) {
       const ctx = makeContext();
       await fn(ctx, post({ status }));
       expect(ctx.res.status).toBe(200);

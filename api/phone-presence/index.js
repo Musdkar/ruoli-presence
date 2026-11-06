@@ -7,10 +7,10 @@
 // variables. Same pattern as /api/health.
 //
 // Accepted payload (from the Shortcut):
-//   { "status": "online" | "dnd" | "sleeping", "updatedAt": "2026-10-11T20:00:00+08:00" }
+//   { "status": "online" | "dnd" | "sleeping" | "reduce_interruptions", "updatedAt": "2026-10-11T20:00:00+08:00" }
 // updatedAt is optional; the server substitutes its own clock when missing.
 // Anything else is rejected — the phone can only ever write this one KV key
-// with one of three whitelisted states.
+// with one of four whitelisted states.
 
 const { timingSafeEqual } = require("node:crypto");
 
@@ -31,7 +31,7 @@ function safeEqual(a, b) {
   return timingSafeEqual(ab, bb);
 }
 
-const STATUSES = new Set(["online", "dnd", "sleeping"]);
+const STATUSES = new Set(["online", "dnd", "sleeping", "reduce_interruptions"]);
 // Client timestamps slightly ahead of the server clock are fine (timezone or
 // clock drift); anything older than the site's 36h freshness window is not a
 // live update and gets rejected so stale replays cannot resurrect old states.

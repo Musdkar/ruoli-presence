@@ -14,11 +14,14 @@ describe("getDisplayPresence — phone focus", () => {
     expect(r.status).toBe("online");
     expect(r.labelKey).toBe("phoneOnline");
   });
-  it("dnd maps to Focus", () => {
-    const r = getDisplayPresence(withPhone("dnd", 1000), NOW);
-    expect(r.status).toBe("dnd");
-    expect(r.labelKey).toBe("phoneFocus");
-    expect(r.label).toBe("Focus");
+  it.each([
+    ["dnd", "phoneFocus", "Focus"],
+    ["reduce_interruptions", "phoneReduceInterruptions", "Reduce Interruptions"],
+  ])("%s retains its distinct phone Focus label", (status, labelKey, label) => {
+    const r = getDisplayPresence(withPhone(status, 1000), NOW);
+    expect(r.status).toBe(status);
+    expect(r.labelKey).toBe(labelKey);
+    expect(r.label).toBe(label);
   });
   it("sleeping", () => {
     const r = getDisplayPresence(withPhone("sleeping", 1000), NOW);
